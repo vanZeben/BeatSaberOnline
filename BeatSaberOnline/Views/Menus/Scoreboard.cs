@@ -27,7 +27,7 @@ namespace BeatSaberOnline.Views.Menus
         public void UpdateText(int place)
         {
             if (this.text)
-                this.text.text = $"{place+1}.  <align=left>{name} - {combo}<line-height=0>\r\n<align=right>{score}<line-height=1em>";
+                this.text.text = $"{place+1}.  <align=left>{name} - [{combo} combo]<line-height=0>\r\n<align=right>{score}<line-height=1em>";
         }
     }
 
@@ -74,8 +74,6 @@ namespace BeatSaberOnline.Views.Menus
 
             Instance = new GameObject("CustomScoreboard").AddComponent<Scoreboard>();
         }
-
-
 
         public void Awake()
         {
@@ -136,6 +134,8 @@ namespace BeatSaberOnline.Views.Menus
         
         public void AddScoreboardEntry(ulong clientIndex, string name)
         {
+            if (_scoreboardEntries.Find(m => m.name == name && m.clientIndex == clientIndex) != null) return;
+
             ScoreboardEntry entry = new ScoreboardEntry(clientIndex, name);
             entry.text = _textPool.Alloc();
             entry.text.text = name;
@@ -145,33 +145,25 @@ namespace BeatSaberOnline.Views.Menus
         public void RemoveScoreboardEntry(ulong clientIndex)
         {
             ScoreboardEntry entry = _scoreboardEntries.First(s => s.clientIndex == clientIndex);
-            if (entry != null)
-            {
-                _textPool.Free(entry.text);
-                _scoreboardEntries.Remove(entry);
-            }
+            if (entry == null) return;
+            
+            _textPool.Free(entry.text);
+            _scoreboardEntries.Remove(entry);
         }
 
         public void UpdateScoreboardEntry(ulong clientIndex, int score, int combo)
         {
             ScoreboardEntry entry = _scoreboardEntries.First(s => s.clientIndex == clientIndex);
-            if (entry != null)
-            {
-                entry.score = score;
-                entry.combo = combo;
-                _scoreboardEntries.Sort(_scoreComparison);
-                for(int i=0; i<_scoreboardEntries.Count; i++)
-                    _scoreboardEntries[i].UpdateText(i);
-                UpdateScoreboardUI();
-            }
+            if (entry == null) return;
+
+            entry.score = score;
+            entry.combo = combo;
+            _scoreboardEntries.Sort(_scoreComparison);
+            for(int i=0; i<_scoreboardEntries.Count; i++)
+                _scoreboardEntries[i].UpdateText(i);
+            UpdateScoreboardUI();
         }
-        void onDisable()
-        {
-            //for (int i = 0; i < _scoreboardEntries.Count;i++)
-           // {
-           //     RemoveScoreboardEntry(_scoreboardEntries[i].clientIndex);
-          //  }
-        }
+
         private void UpdateScoreboardUI()
         {
             if (_scoreboardEntries.Count > 0)
