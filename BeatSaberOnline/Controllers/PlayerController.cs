@@ -75,7 +75,7 @@ namespace BeatSaberOnline.Controllers
             ReflectionUtil.SetField(_playerInfo, fieldName, (fieldName == "playerTotalBlocks" || fieldName == "playerCutBlocks" ? ReflectionUtil.GetField<uint>(_playerInfo, fieldName) + value : value));
             if (fieldName == "playerScore")
             {
-                Scoreboard.Instance.UpdateScoreboardEntry(_playerInfo.playerId, (int)_playerInfo.playerScore);
+                Scoreboard.Instance.UpdateScoreboardEntry(_playerInfo.playerId, (int)_playerInfo.playerScore, (int)_playerInfo.playerComboBlocks);
             }
         }
 
@@ -112,9 +112,9 @@ namespace BeatSaberOnline.Controllers
                 }
                 if (_connectedPlayers.ContainsKey(info.playerId) && _connectedPlayerAvatars.ContainsKey(info.playerId))
                 {
-                    if (info.playerScore != _connectedPlayers[info.playerId].playerScore)
+                    if (info.playerScore != _connectedPlayers[info.playerId].playerScore || info.playerComboBlocks != _connectedPlayers[info.playerId].playerComboBlocks)
                     {
-                        Scoreboard.Instance.UpdateScoreboardEntry(info.playerId, (int)info.playerScore);
+                        Scoreboard.Instance.UpdateScoreboardEntry(info.playerId, (int)info.playerScore, (int)info.playerComboBlocks);
                     }
                     int offset = 0;
                     if (Plugin.instance.CurrentScene == "GameCore")
@@ -124,7 +124,8 @@ namespace BeatSaberOnline.Controllers
                         _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
                         Array.Sort(playerInfosByID);
                         offset = (Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3;
-                    };
+                    }
+
                     _connectedPlayers[info.playerId] = info;
                     _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                 }

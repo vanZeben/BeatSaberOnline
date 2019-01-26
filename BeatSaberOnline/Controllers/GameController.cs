@@ -60,7 +60,7 @@ namespace BeatSaberOnline.Controllers
                 }
                 if (to.name == "GameCore" || to.name == "Menu")
                 {
-                   // PlayerController.Instance.DestroyAvatars();
+                   PlayerController.Instance.DestroyAvatars();
                    // Scoreboard.Instance.gameObject.SetActive(to.name == "GameCore");
                 }
             }
