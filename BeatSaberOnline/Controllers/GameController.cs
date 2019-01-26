@@ -44,6 +44,7 @@ namespace BeatSaberOnline.Controllers
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
 
+                Scoreboard.OnLoad();
                 _currentScene = SceneManager.GetActiveScene().name;
             }
         }
@@ -59,7 +60,8 @@ namespace BeatSaberOnline.Controllers
                 }
                 if (to.name == "GameCore" || to.name == "Menu")
                 {
-                    PlayerController.Instance.DestroyAvatars();
+                   // PlayerController.Instance.DestroyAvatars();
+                   // Scoreboard.Instance.gameObject.SetActive(to.name == "GameCore");
                 }
             }
             catch (Exception e)
@@ -70,7 +72,7 @@ namespace BeatSaberOnline.Controllers
        
         public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
-            if (levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Quit ||(sender == null && levelCompletionResults == null && difficultyBeatmap == null && gameplayModifiers == null)) {
+            if (levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Quit || (sender == null && levelCompletionResults == null && difficultyBeatmap == null && gameplayModifiers == null)) {
                 PauseMenuManager pauseMenu = Resources.FindObjectsOfTypeAll<PauseMenuManager>().FirstOrDefault();
                 pauseMenu?.MenuButtonPressed();
                 SteamAPI.StopSong();
@@ -88,7 +90,7 @@ namespace BeatSaberOnline.Controllers
             {
                 return;
             }
-
+            
             PlayerDataModelSO.LocalPlayer currentLocalPlayer = _playerDataModel.currentLocalPlayer;
             bool cleared = levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Cleared;
             string levelID = difficultyBeatmap.level.levelID;

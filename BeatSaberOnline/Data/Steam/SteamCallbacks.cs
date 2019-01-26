@@ -53,6 +53,7 @@ namespace BeatSaberOnline.Data.Steam
                     Logger.Info($"Song request to be played -- ${songId} -- ${songDifficulty}");
                 } else if (screen == "MENU")
                 {
+                    Logger.Info("STOPING SONG FOR ALL");
                     GameController.Instance.SongFinished(null, null, null, null);
                 }
             } else

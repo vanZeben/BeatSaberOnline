@@ -80,15 +80,11 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         protected void didSelectLevel(LevelListViewController controller, IBeatmapLevel level)
         {
-            Logger.Info(_partyFlowCoordinator);
-            Logger.Info("Activated: "+_partyFlowCoordinator.isActivated);
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
-                Logger.Info("BUTTONS SHOULD SHOW");
                 toggleButtons(true);
                 return;
             }
-            Logger.Info("BUTTONS SHOULDNT SHOW");
             toggleButtons(false);
             SteamAPI.SetSong(level.levelID);
         }

@@ -1,6 +1,7 @@
 ﻿using BeatSaberOnline.Data;
 using BeatSaberOnline.Data.Steam;
 using BeatSaberOnline.Utils;
+using BeatSaberOnline.Views.Menus;
 using CustomUI.Utilities;
 using Steamworks;
 using System;
@@ -42,6 +43,7 @@ namespace BeatSaberOnline.Controllers
 
                 _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
                 _currentScene = SceneManager.GetActiveScene().name;
+                Scoreboard.Instance.AddScoreboardEntry(_playerInfo.playerId, _playerInfo.playerName);
 
                 InvokeRepeating("BroadcastPlayerInfo", 0f, GameController.TPS);
             }
@@ -69,8 +71,12 @@ namespace BeatSaberOnline.Controllers
 
         public void UpdatePlayerScoring(string fieldName, uint value)
         {
-            if (fieldName != "playerEnergy" || fieldName != "playerScore" || fieldName != "playerTotalBlocks" || fieldName != "playerCutBlocks" || fieldName != "playerComboBlocks") return;
+            if (fieldName != "playerEnergy" && fieldName != "playerScore" && fieldName != "playerTotalBlocks" && fieldName != "playerCutBlocks" && fieldName != "playerComboBlocks") return;
             ReflectionUtil.SetField(_playerInfo, fieldName, (fieldName == "playerTotalBlocks" || fieldName == "playerCutBlocks" ? ReflectionUtil.GetField<uint>(_playerInfo, fieldName) + value : value));
+            if (fieldName == "playerScore")
+            {
+                Scoreboard.Instance.UpdateScoreboardEntry(_playerInfo.playerId, (int)_playerInfo.playerScore);
+            }
         }
 
         public void UpdatePlayerInfo()
@@ -89,25 +95,29 @@ namespace BeatSaberOnline.Controllers
                _playerInfo.rightHandPos = pos.rightHandPos;
                _playerInfo.rightHandRot = pos.rightHandRot;
         }
-
-
+        
         public void UpsertPlayer(PlayerInfo info)
         {
             try
             {
-                if (!_connectedPlayerAvatars.Keys.Contains(info.playerId))
+                if (!_connectedPlayerAvatars.Keys.Contains(info.playerId) && !_connectedPlayers.Keys.Contains(info.playerId))
                 {
+                    _connectedPlayers.Add(info.playerId, info);
                     AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
                     avatar.SetPlayerInfo(info, 0, info.playerId == _playerInfo.playerId);
-                    _connectedPlayers.Add(info.playerId, info);
                     _connectedPlayerAvatars.Add(info.playerId, avatar);
+
+                    Scoreboard.Instance.AddScoreboardEntry(info.playerId, info.playerName);
                     return;
                 }
                 if (_connectedPlayers.ContainsKey(info.playerId) && _connectedPlayerAvatars.ContainsKey(info.playerId))
                 {
-
+                    if (info.playerScore != _connectedPlayers[info.playerId].playerScore)
+                    {
+                        Scoreboard.Instance.UpdateScoreboardEntry(info.playerId, (int)info.playerScore);
+                    }
                     int offset = 0;
-                    if (_currentScene == "GameCore")
+                    if (Plugin.instance.CurrentScene == "GameCore")
                     {
                         ulong[] playerInfosByID = new ulong[_connectedPlayers.Count + 1];
                         playerInfosByID[0] = _playerInfo.playerId;
@@ -115,7 +125,6 @@ namespace BeatSaberOnline.Controllers
                         Array.Sort(playerInfosByID);
                         offset = (Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3;
                     };
-
                     _connectedPlayers[info.playerId] = info;
                     _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                 }
