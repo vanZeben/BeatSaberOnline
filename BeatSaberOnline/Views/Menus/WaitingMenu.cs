@@ -95,10 +95,7 @@ namespace BeatSaberOnline.Views.Menus
                     if (ready) { SteamAPI.SetReady(); }
                     PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
                 } else {
-                  // BeatSaverDownloader.Misc.SongDownloader.Instance.songDownloaded += downloadedSong;
-                  // Utils.SongDownloader.Instance.DownloadSong("AA011514ED58698740CA98AC647EDE27dsd");
-                 //  downloadingSong = Utils.SongDownloader.Instance.CurrentlyDownloadingSong;
-                    
+                   Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), () => { RefreshData(true); }));
                 }
 
                 if (Instance && Instance.isActiveAndEnabled)
