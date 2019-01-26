@@ -49,6 +49,9 @@
     <Reference Include="CustomAvatar">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\CustomAvatar.dll</HintPath>
     </Reference>
+    <Reference Include="CustomSaber">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\CustomSaber.dll</HintPath>
+    </Reference>
     <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>

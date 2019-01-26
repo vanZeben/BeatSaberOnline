@@ -32,11 +32,6 @@ namespace BeatSaberOnline.Data.Steam
         private void OnGameLobbyJoinRequested(GameLobbyJoinRequested_t pCallback)
         {
             SteamAPI.JoinLobby(pCallback.m_steamIDLobby);
-            if (OnlineMenu.Instance == null)
-            {
-                OnlineMenu.Init();
-            }
-            OnlineMenu.Instance.Present();
         }
 
         public void OnLobbyDataUpdate(LobbyDataUpdate_t pCallback)
@@ -69,13 +64,7 @@ namespace BeatSaberOnline.Data.Steam
         public static void OnLobbyEnter(LobbyEnter_t pCallback)
         {
             SteamAPI.SetConnectionState(SteamAPI.ConnectionState.CONNECTED);
-            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);
-            if (OnlineMenu.Instance == null)
-            {
-                OnlineMenu.Init();
-            }
-            OnlineMenu.Instance.Present();
-            
+            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);            
         }
 
         public void OnP2PSessionFail(P2PSessionConnectFail_t pCallback)

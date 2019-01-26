@@ -32,56 +32,34 @@ namespace BeatSaberOnline.Views.Menus
             {
                 Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Online Multiplayer");
                 
-                var leftViewController = BeatSaberUI.CreateViewController<CustomViewController>();
                 var middleViewController = BeatSaberUI.CreateViewController<ListViewController>();
                 var rightViewController = BeatSaberUI.CreateViewController<ListViewController>();
-                var songViewController = BeatSaberUI.CreateViewController<ListViewController>();
 
-                Instance.SetLeftViewController(leftViewController, false, (firstActivation, type) =>
-                {
-                    if (firstActivation)
-                    {
-                        leftViewController.CreateText("Lobby Settings", new Vector2(BASE.x + 62.5f, BASE.y));
-
-                        Button b1 = leftViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 0f, BASE.y - 5f), new Vector2(30, 7f));
-                        b1.SetButtonText(SteamAPI.IsLobbyJoinable() ? "Public" : "Private");
-                        b1.ToggleWordWrapping(false);
-                        b1.SetButtonTextSize(3f);
-                        b1.onClick.AddListener(delegate ()
-                        {
-                              SteamAPI.ToggleLobbyJoinable();
-                              b1.SetButtonText(SteamAPI.IsLobbyJoinable() ? "Public" : "Private");
-                        });
-
-                        Button b2 = leftViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 30f, BASE.y - 5f), new Vector2(30, 7f));
-                        b2.SetButtonText($"{SteamAPI.getUserCount()}/{SteamAPI.getSlotsOpen()}");
-                        b2.ToggleWordWrapping(false);
-                        b2.SetButtonTextSize(3f);
-                        b2.onClick.AddListener(delegate ()
-                        {
-                            SteamAPI.IncreaseSlots();
-                            b2.SetButtonText($"{SteamAPI.getUserCount()}/{SteamAPI.getSlotsOpen()}");
-                        });
-                        
-                    }
-                });
+              
                 Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                 {
                     if (firstActivation)
                     {
                         refreshAvailableLobbies(middleViewController);
                         middleViewController.CreateText("Available Lobbies", new Vector2(BASE.x + 60f, BASE.y));
-                        Button b = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
-                        b.SetButtonText("Refresh");
-                        b.SetButtonTextSize(3f);
-                        b.ToggleWordWrapping(false);
-                        b.onClick.AddListener(delegate ()
+                        Button refresh = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
+                        refresh.SetButtonText("Refresh");
+                        refresh.SetButtonTextSize(3f);
+                        refresh.ToggleWordWrapping(false);
+                        refresh.onClick.AddListener(delegate ()
                         {
                             refreshAvailableLobbies(middleViewController);
                         });
-                        if (type == ActivationType.AddedToHierarchy)
+                        Button host = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f), new Vector2(25f, 7f));
+                        host.SetButtonTextSize(3f);
+                        host.ToggleWordWrapping(false);
+                        if (!Config.Instance.AutoStartLobby)
                         {
-                            AvatarController.LoadAvatars();
+                            SetupHost(host);
+                        }
+                        else
+                        {
+                            SetupDisconnect(host);
                         }
                     }
                 });
@@ -106,6 +84,24 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
+        private static void SetupDisconnect(Button host)
+        {
+            host.SetButtonText("Disconnect");
+            host.onClick.AddListener(delegate ()
+            {
+                SteamAPI.Disconnect();
+                SetupHost(host);
+            });
+        }
+        private static void SetupHost(Button host)
+        {
+            host.SetButtonText("Host Lobby");
+            host.onClick.AddListener(delegate ()
+            {
+                SteamAPI.GetServers();
+                SetupDisconnect(host);
+            });
+        }
         private static void refreshFriendsList(ListViewController rightViewController) 
         {
             friends = SteamAPI.GetOnlineFriends();
@@ -156,22 +152,21 @@ namespace BeatSaberOnline.Views.Menus
 
         private static void refreshAvailableLobbies(ListViewController middleViewController)
         {
-            Dictionary<CSteamID, string> currentLobbyMembers = SteamAPI.GetMembersInLobby();
-
-            if (currentLobbyMembers.Count > 0)
-            {
-                float index = 1f;
-                foreach (KeyValuePair<CSteamID, string> entry in currentLobbyMembers) {
-                    middleViewController.CreateText(entry.Value, new Vector2(BASE.x, BASE.y + (index * 20f)));
-                    index += 1f;
-                }
-            }
             lobbies = SteamAPI.getAvailableLobbies();
             middleViewController.Data.Clear();
             CGameID gameId = SteamAPI.GetGameID();
             foreach (KeyValuePair<CSteamID, string> entry in lobbies)
             {
-                middleViewController.Data.Add(new CustomCellInfo("Custom Lobby", $"~ {entry.Value}"));
+                Dictionary<CSteamID, string> members = SteamAPI.GetMembersInLobby(entry.Key);
+                string status = SteamAPI.getLobbyStatus(entry.Key);
+                if (status == null) status = "Lobby";
+                string membersStr = "";
+                string[] memberStrs = members.Values.ToArray();
+                for (int i = 0; i < memberStrs.Length;i++)
+                {
+                    membersStr += memberStrs[i] + (i >= memberStrs.Length - 1? "" : ", ");
+                }
+                middleViewController.Data.Add(new CustomCellInfo($"{status}", $"{membersStr}"));
             }
 
             middleViewController._customListTableView.ReloadData();

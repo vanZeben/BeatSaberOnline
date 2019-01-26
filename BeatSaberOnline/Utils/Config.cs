@@ -8,7 +8,10 @@ namespace BeatSaberOnline.Data
     public class Config
     {
 
-        [SerializeField] private bool _doTheThing;
+        [SerializeField] private bool _autoStartLobby;
+        [SerializeField] private bool _isPublic;
+        [SerializeField] private int _maxLobbySize;
+        [SerializeField] private bool _noFailMode;
 
         private static Config _instance;
 
@@ -75,12 +78,41 @@ namespace BeatSaberOnline.Data
 
         private bool IsDirty { get; set; }
 
-        public bool DoTheThing
+        public bool AutoStartLobby
         {
-            get { return _doTheThing; }
+            get { return _autoStartLobby; }
             set
             {
-                _doTheThing = value;
+                _autoStartLobby = value;
+                MarkDirty();
+            }
+        }
+
+        public bool IsPublic
+        {
+            get { return _isPublic; }
+            set
+            {
+                _isPublic = value;
+                MarkDirty();
+            }
+        }
+
+        public int MaxLobbySize
+        {
+            get { return _maxLobbySize; }
+            set
+            {
+                _maxLobbySize = value;
+                MarkDirty();
+            }
+        }
+        public bool NoFailMode
+        {
+            get { return _noFailMode; }
+            set
+            {
+                _noFailMode = value;
                 MarkDirty();
             }
         }
@@ -88,7 +120,10 @@ namespace BeatSaberOnline.Data
 
         Config()
         {
-            _doTheThing = false;
+            _autoStartLobby = false;
+            _isPublic = true;
+            _maxLobbySize = 5;
+            _noFailMode = true;
             IsDirty = true;
         }
 
