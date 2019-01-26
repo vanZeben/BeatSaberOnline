@@ -2,6 +2,9 @@
 using UnityEngine.SceneManagement;
 using BeatSaberOnline.Data;
 using BeatSaberOnline.Views;
+using System;
+using Steamworks;
+using BeatSaberOnline.Controllers;
 
 namespace BeatSaberOnline
 {
@@ -21,12 +24,14 @@ namespace BeatSaberOnline
             instance = this;
             Logger.Init();
             Config.Init();
+            Sprites.Init();
 
             SceneManager.activeSceneChanged += ActiveSceneChanged;
         }
 
         public void OnApplicationQuit()
         {
+
             SceneManager.activeSceneChanged -= ActiveSceneChanged;
         }
 
@@ -54,6 +59,14 @@ namespace BeatSaberOnline
             if (from.name == "EmptyTransition" && to.name == "Menu")
             {
                 PluginUI.Init();
+
+                Controllers.GameController.Init(to);
+                Controllers.LeaderboardController.Init(to);
+                Controllers.PlayerController.Init(to);
+            }
+            else
+            { 
+                GameController.Instance?.ActiveSceneChanged(from, to);
             }
         }
     }

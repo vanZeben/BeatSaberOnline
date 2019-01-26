@@ -36,8 +36,22 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="BeatSaberCustomUI">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\BeatSaberCustomUI.dll</HintPath>
+    </Reference>
+    <Reference Include="BeatSaverDownloader">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\BeatSaverDownloader.dll</HintPath>
+    </Reference>
+    <Reference Include="CustomAvatar">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\CustomAvatar.dll</HintPath>
+    </Reference>
+    <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\IllusionInjector.dll</HintPath>
     </Reference>
     <Reference Include="IllusionPlugin">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\IllusionPlugin.dll</HintPath>
@@ -45,8 +59,16 @@
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\Newtonsoft.Json.dll</HintPath>
     </Reference>
+    <Reference Include="SongBrowserPlugin">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\SongBrowserPlugin.dll</HintPath>
+    </Reference>
+    <Reference Include="SongLoaderPlugin">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Plugins\SongLoaderPlugin.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Data" />
@@ -58,12 +80,26 @@
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UI.dll</HintPath>
@@ -74,17 +110,63 @@
     <Reference Include="UnityEngine.UIModule">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UNETModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UNETModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestTextureModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UnityWebRequestWWWModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.VRModule">
       <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.VRModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.WebModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.WebModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\Config.cs" />
-    <Compile Include="Data\Logger.cs" />
+    <Compile Include="Controllers\AvatarController.cs" />
+    <Compile Include="Controllers\GameController.cs" />
+    <Compile Include="Controllers\LeaderboardController.cs" />
+    <Compile Include="Controllers\PlayerController.cs" />
+    <Compile Include="Controllers\WorldController.cs" />
+    <Compile Include="Data\PlayerInfo.cs" />
+    <Compile Include="Utils\Config.cs" />
+    <Compile Include="Utils\Logger.cs" />
+    <Compile Include="Data\Sprites.cs" />
+    <Compile Include="Data\Steam\LobbyInfo.cs" />
+    <Compile Include="Data\Steam\SteamAPI.cs" />
+    <Compile Include="Data\Steam\SteamCallbacks.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utils\CustomExtensions.cs" />
+    <Compile Include="Utils\HexConverter.cs" />
+    <Compile Include="Utils\ModelSaberAPI.cs" />
+    <Compile Include="Utils\Serialization.cs" />
+    <Compile Include="Utils\SongDownloader.cs" />
+    <Compile Include="Utils\SongListUtils.cs" />
+    <Compile Include="Views\Menus\WaitingMenu.cs" />
+    <Compile Include="Views\Menus\OnlineMenu.cs" />
     <Compile Include="Views\PluginUI.cs" />
+    <Compile Include="Views\ViewControllers\ListViewController.cs" />
+    <Compile Include="Views\ViewControllers\MockPartyViewController.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\TextShader" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy /Y "$(TargetPath)" "D:\Games\Steam\SteamApps\common\Beat Saber\Plugins\"
+</PostBuildEvent>
+  </PropertyGroup>
 </Project>

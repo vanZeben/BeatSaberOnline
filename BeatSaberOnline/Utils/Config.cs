@@ -35,7 +35,6 @@ namespace BeatSaberOnline.Data
             try
             {
                 FileLocation?.Directory?.Create();
-                Logger.Debug($"Attempting to load JSON @ {FileLocation.FullName}");
                 _instance = JsonUtility.FromJson<Config>(File.ReadAllText(FileLocation.FullName));
                 _instance.MarkDirty();
                 _instance.Save();
@@ -54,7 +53,6 @@ namespace BeatSaberOnline.Data
             try
             {
                 FileLocation?.Directory?.Create();
-                Logger.Debug($"Creating new config @ {FileLocation.FullName}");
                 Instance.Save();
             }
             catch (Exception)
@@ -101,7 +99,6 @@ namespace BeatSaberOnline.Data
             {
                 using (var f = new StreamWriter(FileLocation.FullName))
                 {
-                    Logger.Debug($"Writing to File @ {FileLocation.FullName}");
                     var json = JsonUtility.ToJson(this, true);
                     f.Write(json);
                 }
