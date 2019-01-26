@@ -61,6 +61,9 @@ namespace BeatSaberOnline.Views.Menus
                         {
                             level = middleViewController.CreateText("", new Vector2(BASE.x + 40f, BASE.y));
                             level.alignment = TMPro.TextAlignmentOptions.Center;
+
+                            Controllers.PlayerController.Instance.UpdatePlayerScoring("playerScore", 0);
+                            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);
                         }
                         if (firstInit)
                         {
@@ -105,7 +108,7 @@ namespace BeatSaberOnline.Views.Menus
                     bool allReady = true;
                     foreach (KeyValuePair<string, bool> user in status.OrderBy(u => u.Value))
                     {
-                        CustomCellInfo cell = new CustomCellInfo(user.Key,  $"{downloadingSong.downloadingProgress * 100}% downloaded", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
+                        CustomCellInfo cell = new CustomCellInfo(user.Key,  user.Value ? "Ready" : "Downloading song", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
                         middleViewController.Data.Add(cell);
                         if (!user.Value)
                         {

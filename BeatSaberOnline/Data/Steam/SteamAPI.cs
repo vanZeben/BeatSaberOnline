@@ -196,6 +196,7 @@ namespace BeatSaberOnline.Data.Steam
         {
             SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "MENU");
         }
+
         public static void ResetScreen()
         {
             if (IsHost())

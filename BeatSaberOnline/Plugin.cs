@@ -5,6 +5,7 @@ using BeatSaberOnline.Views;
 using System;
 using Steamworks;
 using BeatSaberOnline.Controllers;
+using BeatSaberOnline.Views.Menus;
 
 namespace BeatSaberOnline
 {
@@ -13,7 +14,7 @@ namespace BeatSaberOnline
         public static Plugin instance;
         public string Name => "BeatSaberOnline";
         public string Version => "0.0.1";
-
+        public string CurrentScene { get; set; }
         public void OnApplicationStart()
         {
             Init();
@@ -56,6 +57,7 @@ namespace BeatSaberOnline
         private void ActiveSceneChanged(Scene from, Scene to)
         {
             Logger.Debug($"Active scene changed from \"{from.name}\" to \"{to.name}\"");
+            CurrentScene = to.name;
             if (from.name == "EmptyTransition" && to.name == "Menu")
             {
                 PluginUI.Init();
@@ -67,6 +69,7 @@ namespace BeatSaberOnline
             else
             { 
                 GameController.Instance?.ActiveSceneChanged(from, to);
+                LeaderboardController.Instance?.ActiveSceneChanged(from, to);
             }
         }
     }

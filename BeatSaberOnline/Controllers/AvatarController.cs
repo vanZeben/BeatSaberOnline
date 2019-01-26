@@ -179,13 +179,11 @@ namespace BeatSaberOnline.Controllers
 
         void OnDestroy()
         {
-            Logger.Info("Destroying avatar");
             Destroy(avatar.GameObject);
         }
 
         public void SetPlayerInfo(PlayerInfo _playerInfo, float offset, bool isLocal)
         {
-            isLocal = false;
             if (_playerInfo == null)
             {
                 playerNameText.gameObject.SetActive(false);
@@ -201,10 +199,12 @@ namespace BeatSaberOnline.Controllers
             {
 
                 playerInfo = _playerInfo;
-
-               
-
-                if (avatar == null || ModelSaberAPI.cachedAvatars.First(x => x.Value == avatar.CustomAvatar).Key != playerInfo.avatarHash)
+                
+                if (!playerNameText)
+                {
+                    return;
+                }
+                    if (avatar == null || ModelSaberAPI.cachedAvatars.First(x => x.Value == avatar.CustomAvatar).Key != playerInfo.avatarHash)
                 {
                     if (ModelSaberAPI.cachedAvatars.ContainsKey(playerInfo.avatarHash))
                     {
@@ -249,8 +249,6 @@ namespace BeatSaberOnline.Controllers
                     }
                 }
 
-                if (playerNameText)
-                {
                     if (isLocal)
                     {
                         playerNameText.gameObject.SetActive(false);
@@ -271,8 +269,6 @@ namespace BeatSaberOnline.Controllers
                             rendererEnabled = true;
                         }
                     }
-                }
-
                 interpolationProgress = 0f;
 
                 Vector3 offsetVector = new Vector3(offset, 0f, 0f);
