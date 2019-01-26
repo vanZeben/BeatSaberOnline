@@ -105,7 +105,7 @@ namespace BeatSaberOnline.Views.Menus
                     bool allReady = true;
                     foreach (KeyValuePair<string, bool> user in status.OrderBy(u => u.Value))
                     {
-                        CustomCellInfo cell = new CustomCellInfo(user.Key,  $"{downloadingSong.downloadingProgress * 100}% downloaded", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
+                        CustomCellInfo cell = new CustomCellInfo(user.Key,  user.Value ? "Ready" : "Downloading song", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
                         middleViewController.Data.Add(cell);
                         if (!user.Value)
                         {

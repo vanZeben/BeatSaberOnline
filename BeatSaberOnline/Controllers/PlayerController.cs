@@ -93,7 +93,6 @@ namespace BeatSaberOnline.Controllers
 
         public void UpsertPlayer(PlayerInfo info)
         {
-            Data.Logger.Info(info);
             try
             {
                 if (!_connectedPlayerAvatars.Keys.Contains(info.playerId))
@@ -128,7 +127,6 @@ namespace BeatSaberOnline.Controllers
         void BroadcastPlayerInfo()
         {
             UpdatePlayerInfo();
-            //UpsertPlayer(_playerInfo);
             SteamAPI.SendPlayerInfo(_playerInfo);
         }
 
