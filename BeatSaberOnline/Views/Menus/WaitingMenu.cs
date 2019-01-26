@@ -120,13 +120,13 @@ namespace BeatSaberOnline.Views.Menus
                         { 
                             SongLoader.Instance.LoadAudioClipForLevel((CustomLevel)song, (customLevel) =>
                             {
-                                SongListUtils.StartSong(customLevel, SteamAPI.GetSongDifficulty());
+                                SongListUtils.StartSong(customLevel, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
                                 SteamAPI.ResetScreen();
                             });
                         }
                         else
                         {
-                            SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty());
+                            SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
                             SteamAPI.ResetScreen();
                         }
                     }

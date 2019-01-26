@@ -100,10 +100,14 @@ namespace BeatSaberOnline.Views
             var MaxLobbySite = settingsMenu.AddInt("Lobby Size", 2, 10, 1);
             MaxLobbySite.GetValue += delegate { return Config.Instance.MaxLobbySize; };
             MaxLobbySite.SetValue += delegate (int value) {
-
                 SteamMatchmaking.SetLobbyMemberLimit(SteamAPI.getLobbyID(), value);
                 Config.Instance.MaxLobbySize = value;
             };
+            
+            var FailMode = settingsMenu.AddBool("No Fail");
+            FailMode.GetValue += delegate { return Config.Instance.NoFailMode; };
+            FailMode.SetValue += delegate (bool value) { Config.Instance.NoFailMode = value; };
+
         }
 
         private void CreateMainMenuButton()

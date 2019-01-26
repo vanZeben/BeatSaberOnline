@@ -11,6 +11,7 @@ namespace BeatSaberOnline.Data
         [SerializeField] private bool _autoStartLobby;
         [SerializeField] private bool _isPublic;
         [SerializeField] private int _maxLobbySize;
+        [SerializeField] private bool _noFailMode;
 
         private static Config _instance;
 
@@ -106,6 +107,15 @@ namespace BeatSaberOnline.Data
                 MarkDirty();
             }
         }
+        public bool NoFailMode
+        {
+            get { return _noFailMode; }
+            set
+            {
+                _noFailMode = value;
+                MarkDirty();
+            }
+        }
 
 
         Config()
@@ -113,6 +123,7 @@ namespace BeatSaberOnline.Data
             _autoStartLobby = false;
             _isPublic = true;
             _maxLobbySize = 5;
+            _noFailMode = true;
             IsDirty = true;
         }
 
