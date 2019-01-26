@@ -29,7 +29,6 @@ namespace BeatSaberOnline.Views
         private MainMenuViewController _mainMenuViewController;
         private RectTransform _mainMenuRectTransform;
         private MockPartyViewController _mockPartyViewController;
-        private Button _onlineButton;
 
         public object SongInfo { get; private set; }
 
@@ -62,7 +61,6 @@ namespace BeatSaberOnline.Views
 
                 _mockPartyViewController = new MockPartyViewController();
 
-                SongLoader.SongsLoadedEvent += SongsLoaded;
                 SteamAPI.GetServers();
                 if (Config.Instance.AutoStartLobby)
                 {
@@ -81,16 +79,7 @@ namespace BeatSaberOnline.Views
                 Logger.Error($"Unable to create UI! Exception: {e}");
             }
         }
-
-
-        public void SongsLoaded(SongLoader sender, List<CustomLevel> levels)
-        {
-            if (_onlineButton != null)
-            {
-                _onlineButton.interactable = true;
-            }            
-        }
-
+        
         private void CreateSettingsMenu()
         {
             var settingsMenu = SettingsUI.CreateSubMenu(Plugin.instance.Name);
