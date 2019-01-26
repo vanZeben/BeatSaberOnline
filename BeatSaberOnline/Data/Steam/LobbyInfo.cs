@@ -7,7 +7,8 @@ namespace BeatSaberOnline.Data.Steam
     class LobbyInfo
     {
         public CSteamID LobbyID { get; set; }
- 
+
+        public string status { get; set; }
         public bool Joinable { get; set; } = true;
         public int TotalSlots { get; set; } = 5;
         public int MaxSlots { get; private set; } = 10;

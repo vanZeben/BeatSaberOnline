@@ -291,9 +291,13 @@ namespace BeatSaberOnline.Data.Steam
                 return;
             }
             uint numLobbies = pCallback.m_nLobbiesMatching;
-            SteamAPICall_t handle = SteamMatchmaking.CreateLobby(ELobbyType.k_ELobbyTypePublic, _lobbyInfo.MaxSlots);
-            OnLobbyCreatedCallResult.Set(handle);
 
+        }
+
+        public static void CreateLobby()
+        {
+            SteamAPICall_t handle = SteamMatchmaking.CreateLobby(Config.Instance.IsPublic ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeFriendsOnly, Config.Instance.MaxLobbySize);
+            OnLobbyCreatedCallResult.Set(handle);
         }
 
         public static void InviteUserToLobby(CSteamID userId)
@@ -356,7 +360,7 @@ namespace BeatSaberOnline.Data.Steam
                 {
                     FriendGameInfo_t friendGameInfo;
                     CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate);
-                    if (SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo) && friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
+                    if (SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo) && friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && friendGameInfo.m_steamIDLobby != _lobbyInfo.LobbyID)
                     {
                         availableLobbies.Add(friendGameInfo.m_steamIDLobby, SteamFriends.GetFriendPersonaName(steamIDFriend));
                     }
@@ -398,6 +402,34 @@ namespace BeatSaberOnline.Data.Steam
             for (int i = 0; i < numMembers; i++)
             {
                 CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(_lobbyInfo.LobbyID, i);
+                members.Add(member, SteamFriends.GetFriendPersonaName(member));
+            }
+
+            return members;
+        }
+
+        public static void setLobbyStatus(string value)
+        {
+            SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "status", value);
+        }
+
+        public static string getLobbyStatus(CSteamID lobbyID)
+        {
+            return SteamMatchmaking.GetLobbyData(lobbyID, "status");
+        }
+
+        public static Dictionary<CSteamID, string> GetMembersInLobby(CSteamID lobbyID)
+        {
+            Dictionary<CSteamID, string> members = new Dictionary<CSteamID, string>();
+            if (!SteamManager.Initialized)
+            {
+                Logger.Error("CONNECTION FAILED");
+                return members;
+            }
+            int numMembers = SteamMatchmaking.GetNumLobbyMembers(lobbyID);
+            for (int i = 0; i < numMembers; i++)
+            {
+                CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(lobbyID, i);
                 members.Add(member, SteamFriends.GetFriendPersonaName(member));
             }
 

@@ -15,6 +15,10 @@ using BeatSaberOnline.Utils;
 using SongLoaderPlugin;
 using System.Collections.Generic;
 using SongLoaderPlugin.OverrideClasses;
+using CustomUI.MenuButton;
+using Steamworks;
+using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
+using BeatSaberOnline.Controllers;
 
 namespace BeatSaberOnline.Views
 {
@@ -59,9 +63,13 @@ namespace BeatSaberOnline.Views
                 _mockPartyViewController = new MockPartyViewController();
 
                 SongLoader.SongsLoadedEvent += SongsLoaded;
-
                 SteamAPI.GetServers();
+                if (Config.Instance.AutoStartLobby)
+                {
+                    SteamAPI.CreateLobby();
+                }
 
+                AvatarController.LoadAvatars();
                 SongListUtils.Initialize();
                 OnlineMenu.Init();
                 WaitingMenu.Init();
@@ -87,22 +95,32 @@ namespace BeatSaberOnline.Views
         {
             var settingsMenu = SettingsUI.CreateSubMenu(Plugin.instance.Name);
 
-            var doTheThing = settingsMenu.AddBool("Do the thing");
-            doTheThing.GetValue += delegate { return Config.Instance.DoTheThing; };
-            doTheThing.SetValue += delegate (bool value) { Config.Instance.DoTheThing = value; };
+            var AutoStartLobby = settingsMenu.AddBool("Auto-Start Lobby");
+            AutoStartLobby.GetValue += delegate { return Config.Instance.AutoStartLobby; };
+            AutoStartLobby.SetValue += delegate (bool value) { Config.Instance.AutoStartLobby = value; };
 
+            var IsPublic = settingsMenu.AddBool("Lobby Privacy");
+            IsPublic.DisabledText = "Invite Only";
+            IsPublic.EnabledText = "Public";
+            IsPublic.GetValue += delegate { return Config.Instance.IsPublic; };
+            IsPublic.SetValue += delegate (bool value) {
+                SteamMatchmaking.SetLobbyJoinable(SteamAPI.getLobbyID(), value);
+                Config.Instance.IsPublic = value;
+            };
+
+            var MaxLobbySite = settingsMenu.AddInt("Lobby Size", 2, 10, 1);
+            MaxLobbySite.GetValue += delegate { return Config.Instance.MaxLobbySize; };
+            MaxLobbySite.SetValue += delegate (int value) {
+
+                SteamMatchmaking.SetLobbyMemberLimit(SteamAPI.getLobbyID(), value);
+                Config.Instance.MaxLobbySize = value;
+            };
         }
 
         private void CreateMainMenuButton()
         {
-            _onlineButton = BeatSaberUI.CreateUIButton(_mainMenuRectTransform, "SoloFreePlayButton");
-            _onlineButton.transform.SetParent(Resources.FindObjectsOfTypeAll<Button>().First(x => x.name == "SoloFreePlayButton").transform.parent);
-            _onlineButton.transform.SetSiblingIndex(2);
 
-            _onlineButton.SetButtonText("Online");
-            _onlineButton.SetButtonIcon(Sprites.onlineIcon);
-            _onlineButton.interactable = SongLoader.AreSongsLoaded;
-            _onlineButton.onClick.AddListener(delegate ()
+            MenuButtonUI.AddButton("Multiplayer", delegate ()
             {
                 try
                 {
