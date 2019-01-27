@@ -140,6 +140,8 @@ namespace BeatSaberOnline.Views.Menus
             entry.text = _textPool.Alloc();
             entry.text.text = name;
             _scoreboardEntries.Add(entry);
+
+            UpdateScoreboardEntry(clientIndex, 0, 0);
         }
 
         public void RemoveScoreboardEntry(ulong clientIndex)

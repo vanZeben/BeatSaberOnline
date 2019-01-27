@@ -1,5 +1,8 @@
 ﻿using BeatSaberOnline.Controllers;
+using BeatSaberOnline.Utils;
 using BeatSaberOnline.Views.Menus;
+using SongLoaderPlugin;
+using SongLoaderPlugin.OverrideClasses;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -45,13 +48,22 @@ namespace BeatSaberOnline.Data.Steam
                 if (screen == "WAITING")
                 {
                     WaitingMenu.Instance.Present();
-                    Logger.Info($"Song request to be played -- ${songId} -- ${songDifficulty}");
                 } else if (screen == "MENU")
                 {
-                    Logger.Info("STOPING SONG FOR ALL");
                     GameController.Instance.SongFinished(null, null, null, null);
+                } else if (screen == "PLAY_SONG")
+                {
+                    LevelSO song = WaitingMenu.GetInstalledSong();
+                    if (SteamAPI.IsHost())
+                    {
+                        SteamAPI.setLobbyStatus("Playing " + song.songName + " by " + song.songAuthorName);
+                    }
+
+                    SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
+                    SteamAPI.ResetScreen();
                 }
-            } else
+            }
+            else
             {
                 string readyStatus = SteamMatchmaking.GetLobbyMemberData(new CSteamID(pCallback.m_ulSteamIDLobby), new CSteamID(pCallback.m_ulSteamIDMember), "ReadyStatus");
                 if (readyStatus == "Ready")

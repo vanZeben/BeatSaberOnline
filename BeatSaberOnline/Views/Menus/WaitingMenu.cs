@@ -53,7 +53,8 @@ namespace BeatSaberOnline.Views.Menus
             {
                 Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Waiting for players");
                 middleViewController = BeatSaberUI.CreateViewController<ListViewController>();
-                Instance.SetMainViewController(middleViewController, false, (firstActivation, type) =>
+                
+                Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                 {
                     try
                     {
@@ -83,6 +84,12 @@ namespace BeatSaberOnline.Views.Menus
         {
             Logger.Info("Finished downloading " + song.songName);
         }
+        private static void ReadyUp(LevelSO song, bool ready)
+        {
+            Logger.Info("Ready up - "+ready);
+            if (ready) { SteamAPI.SetReady(); }
+            PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
+        }
         public static void RefreshData(bool ready)
         {
             try
@@ -92,8 +99,16 @@ namespace BeatSaberOnline.Views.Menus
                 if (song != null)
                 {
                     level.text = $"Queued: { song.songName} by { song.songAuthorName }";
-                    if (ready) { SteamAPI.SetReady(); }
-                    PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
+                    if (song is CustomLevel)
+                    {
+                        SongLoader.Instance.LoadAudioClipForLevel((CustomLevel) song, (customLevel) =>
+                        {
+                            ReadyUp(customLevel, ready);
+                        });
+                    } else
+                    {
+                        ReadyUp(song, ready);
+                    }
                 } else {
                    Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), () => { RefreshData(true); }));
                 }
@@ -102,34 +117,13 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     var status = SteamAPI.getAllPlayerStatusesInLobby();
                     middleViewController.Data.Clear();
-                    bool allReady = true;
                     foreach (KeyValuePair<string, bool> user in status.OrderBy(u => u.Value))
                     {
                         CustomCellInfo cell = new CustomCellInfo(user.Key,  user.Value ? "Ready" : "Downloading song", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
                         middleViewController.Data.Add(cell);
-                        if (!user.Value)
-                        {
-                            allReady = false;
-                        }
                     }
                     middleViewController._customListTableView.ReloadData();
                     middleViewController._customListTableView.ScrollToRow(0, false);
-                    if (allReady)
-                    {
-                        if (song is CustomLevel)
-                        { 
-                            SongLoader.Instance.LoadAudioClipForLevel((CustomLevel)song, (customLevel) =>
-                            {
-                                SongListUtils.StartSong(customLevel, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
-                                SteamAPI.ResetScreen();
-                            });
-                        }
-                        else
-                        {
-                            SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
-                            SteamAPI.ResetScreen();
-                        }
-                    }
                 }
             } catch (Exception e)
             {
@@ -137,7 +131,7 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
-        private static LevelSO GetInstalledSong()
+        public static LevelSO GetInstalledSong()
         {
             string levelId = SteamAPI.GetSongId();
             LevelSO level;

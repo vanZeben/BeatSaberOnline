@@ -6,6 +6,7 @@ using System;
 using BeatSaberOnline.Controllers;
 using System.Text;
 using BeatSaberOnline.Views.Menus;
+using System.Linq;
 
 namespace BeatSaberOnline.Data.Steam
 {
@@ -118,8 +119,8 @@ namespace BeatSaberOnline.Data.Steam
         {
             if (!_lobbyInfo.ReadyState.ContainsKey(new CSteamID(GetUserID())))
             {
-                _lobbyInfo.ReadyState.Add(new CSteamID(GetUserID()), true);
                 SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "ReadyStatus", "Ready");
+                SetPlayerReady(new CSteamID(GetUserID()));
             }
             WaitingMenu.RefreshData(false);
         }
@@ -132,7 +133,15 @@ namespace BeatSaberOnline.Data.Steam
         public static void SetPlayerReady(CSteamID steamId)
         {
             _lobbyInfo.ReadyState.Add(steamId, true);
-            WaitingMenu.RefreshData(false);
+            WaitingMenu.RefreshData(false); 
+            if (!IsHost()) return;  
+            Dictionary<string, bool> status = SteamAPI.getAllPlayerStatusesInLobby();
+            bool allReady = status.All(u => u.Value);
+            
+            if (allReady)
+            {
+                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "SCREEN", "PLAY_SONG");
+            }
         }
 
         public static Dictionary<string, bool> getAllPlayerStatusesInLobby()
@@ -151,6 +160,11 @@ namespace BeatSaberOnline.Data.Steam
         {
             if (IsHost())
             {
+                LevelSO song = WaitingMenu.GetInstalledSong();
+                if (song != null)
+                {
+                    setLobbyStatus("Loading " + song.songName + " by " + song.songAuthorName);
+                }
                 SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "WAITING");
             }
         }
@@ -195,6 +209,7 @@ namespace BeatSaberOnline.Data.Steam
         public static void StopSong()
         {
             SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "MENU");
+            setLobbyStatus("Waiting In Menu");
         }
 
         public static void ResetScreen()
@@ -215,6 +230,8 @@ namespace BeatSaberOnline.Data.Steam
             _lobbyInfo.SongDifficulty = 0;
             _lobbyInfo.SongId = null;
             SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "ReadyStatus", "");
+            setLobbyStatus("Waiting In Menu");
+
         }
         public static void IncreaseSlots()
         {
@@ -296,7 +313,6 @@ namespace BeatSaberOnline.Data.Steam
 
         public static void CreateLobby()
         {
-            Logger.Info("CREATE LOBBY NOW");
             SteamAPICall_t handle = SteamMatchmaking.CreateLobby(Config.Instance.IsPublic ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeFriendsOnly, Config.Instance.MaxLobbySize);
             OnLobbyCreatedCallResult.Set(handle);
         }
@@ -332,7 +348,7 @@ namespace BeatSaberOnline.Data.Steam
             {
                 Logger.Info("FAILED TO CREATE");
             }
-            Logger.Info("NOW HOSTING LOBBY WITH ID "+_lobbyInfo.LobbyID);
+
             if (hostUserId.m_SteamID == me.m_SteamID)
             {
                 setLobbyStatus("Waiting In Menu");
