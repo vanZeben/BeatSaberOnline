@@ -156,6 +156,7 @@
     <Compile Include="Utils\HexConverter.cs" />
     <Compile Include="Utils\ModelSaberAPI.cs" />
     <Compile Include="Utils\ObjectPool.cs" />
+    <Compile Include="Views\Menus\LobbyMenu.cs" />
     <Compile Include="Views\Menus\Scoreboard.cs" />
     <Compile Include="Utils\Serialization.cs" />
     <Compile Include="Utils\SongDownloader.cs" />

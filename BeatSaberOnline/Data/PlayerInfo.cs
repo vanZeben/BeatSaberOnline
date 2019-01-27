@@ -28,9 +28,10 @@ namespace BeatSaberOnline.Data
         public Quaternion headRot;
         public Quaternion rightHandRot;
         public Quaternion leftHandRot;
-
-        public string avatarHash;
         
+        public string avatarHash;
+        public bool Downloading;
+
         public PlayerInfo(string _name, ulong _id)
         {
             playerName = _name;
@@ -46,7 +47,6 @@ namespace BeatSaberOnline.Data
                 int nameLength = BitConverter.ToInt32(data, 0);
                 playerName = Encoding.UTF8.GetString(data, 4, nameLength);
                 playerId = BitConverter.ToUInt64(data, 4 + nameLength);
-
 
                 playerScore = BitConverter.ToUInt32(data, 12 + nameLength);
                 playerCutBlocks = BitConverter.ToUInt32(data, 16 + nameLength);
@@ -67,6 +67,8 @@ namespace BeatSaberOnline.Data
                 headRot = Serialization.ToQuaternion(avatar.Skip(68).Take(16).ToArray());
 
                 avatarHash = BitConverter.ToString(avatar.Skip(84).Take(16).ToArray()).Replace("-", "");
+
+                Downloading = BitConverter.ToBoolean(data, 136 + nameLength);
         }
 
         private byte[] ToBytes(bool includeSize = true)
@@ -96,6 +98,8 @@ namespace BeatSaberOnline.Data
                             Serialization.ToBytes(headRot)));
 
             buffer.AddRange(HexConverter.ConvertHexToBytesX(avatarHash));
+
+            buffer.AddRange(BitConverter.GetBytes(Downloading));
 
             if (includeSize)
                 buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count));

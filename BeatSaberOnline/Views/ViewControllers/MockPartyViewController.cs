@@ -91,7 +91,7 @@ namespace BeatSaberOnline.Views.ViewControllers
                 return;
             }
             toggleButtons(false);
-            SteamAPI.SetSong(level.levelID);
+            SteamAPI.SetSong(level.levelID, level.songName);
         }
     }
 }

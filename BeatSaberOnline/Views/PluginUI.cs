@@ -61,7 +61,6 @@ namespace BeatSaberOnline.Views
 
                 _mockPartyViewController = new MockPartyViewController();
 
-                SteamAPI.GetServers();
                 if (Config.Instance.AutoStartLobby)
                 {
                     SteamAPI.CreateLobby();
@@ -70,6 +69,7 @@ namespace BeatSaberOnline.Views
                 AvatarController.LoadAvatars();
                 SongListUtils.Initialize();
                 OnlineMenu.Init();
+                LobbyMenu.Init();
                 WaitingMenu.Init();
                 CreateMainMenuButton(); 
                 CreateSettingsMenu();

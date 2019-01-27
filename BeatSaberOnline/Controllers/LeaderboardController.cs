@@ -1,9 +1,11 @@
 ﻿using BeatSaberOnline.Data.Steam;
+using CustomUI.Utilities;
 using System;
 using System.Collections;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-
+using UnityEngine.UI;
 using UnityEngine.XR;
 namespace BeatSaberOnline.Controllers
 {
@@ -12,6 +14,8 @@ namespace BeatSaberOnline.Controllers
         public static LeaderboardController Instance;
         private ScoreController _scoreController;
         private GameEnergyCounter _energyController;
+
+        private PauseMenuManager _pauseMenuManager;
 
         public static void Init(Scene to)
         {
@@ -54,10 +58,46 @@ namespace BeatSaberOnline.Controllers
                 Data.Logger.Error($"(OnlineController) Exception on {to.name} scene activation! Exception: {e}");
             }
         }
-        
+
+        private void ShowPauseMenu()
+        {
+            try
+            {
+                _pauseMenuManager.ShowMenu();
+            }
+            catch (Exception e)
+            {
+                Data.Logger.Error("Unable to show menu! Exception: " + e);
+            }
+        }
+
         IEnumerator InitControllers()
         {
             yield return new WaitUntil(delegate () { return FindObjectOfType<ScoreController>() != null && FindObjectOfType<GameEnergyCounter>() != null; });
+
+            StandardLevelGameplayManager _gameManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().First();
+
+            if (_gameManager != null)
+            {
+                try
+                {
+                    if (ReflectionUtil.GetPrivateField<IPauseTrigger>(_gameManager, "_pauseTrigger") != null)
+                    {
+                        ReflectionUtil.GetPrivateField<IPauseTrigger>(_gameManager, "_pauseTrigger").pauseTriggeredEvent -= _gameManager.HandlePauseTriggered;
+                        ReflectionUtil.GetPrivateField<IPauseTrigger>(_gameManager, "_pauseTrigger").pauseTriggeredEvent += ShowPauseMenu;
+                    }
+
+                    if (ReflectionUtil.GetPrivateField<VRPlatformHelper>(_gameManager, "_vrPlatformHelper") != null)
+                    {
+                        ReflectionUtil.GetPrivateField<VRPlatformHelper>(_gameManager, "_vrPlatformHelper").inputFocusWasCapturedEvent -= _gameManager.HandleInputFocusWasCaptured;
+                        ReflectionUtil.GetPrivateField<VRPlatformHelper>(_gameManager, "_vrPlatformHelper").inputFocusWasCapturedEvent += ShowPauseMenu;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Data.Logger.Error(e.ToString());
+                }
+            }
 
             _scoreController = FindObjectOfType<ScoreController>();
             _energyController = FindObjectOfType<GameEnergyCounter>();
@@ -74,6 +114,14 @@ namespace BeatSaberOnline.Controllers
             {
                 _energyController.gameEnergyDidChangeEvent += EnergyDidChangeEvent;
             }
+
+            _pauseMenuManager = FindObjectsOfType<PauseMenuManager>().First();
+
+            if (_pauseMenuManager != null)
+            {
+                _pauseMenuManager.GetPrivateField<Button>("_restartButton").interactable = false;
+            }
+
         }
         private void EnergyDidChangeEvent(float energy)
         {

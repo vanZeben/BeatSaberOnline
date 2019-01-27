@@ -20,8 +20,9 @@ namespace BeatSaberOnline.Data.Steam
         private Callback<LobbyDataUpdate_t> m_LobbyDataUpdate_t;
         protected Callback<P2PSessionRequest_t> m_P2PSessionRequest;
         protected Callback<P2PSessionConnectFail_t> m_P2PSessionConnectFail_t;
+        protected Callback<LobbyChatUpdate_t> m_LobbyChatUpdate_t;
 
-        private string currentScreen;
+        private LobbyInfo.SCREEN_TYPE currentScreen;
         public SteamCallbacks()
         {
 
@@ -30,6 +31,7 @@ namespace BeatSaberOnline.Data.Steam
             m_LobbyDataUpdate_t = Callback<LobbyDataUpdate_t>.Create(OnLobbyDataUpdate);
             m_P2PSessionRequest = Callback<P2PSessionRequest_t>.Create(OnP2PSessionRequest);
             m_P2PSessionConnectFail_t = Callback<P2PSessionConnectFail_t>.Create(OnP2PSessionFail);
+            m_LobbyChatUpdate_t = Callback<LobbyChatUpdate_t>.Create(OnLobbyChatUpdate);
         }
 
         private void OnGameLobbyJoinRequested(GameLobbyJoinRequested_t pCallback)
@@ -37,33 +39,37 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"Attempting to join {pCallback.m_steamIDFriend}'s lobby @ {pCallback.m_steamIDLobby}");
             SteamAPI.JoinLobby(pCallback.m_steamIDLobby);
         }
-        private bool DidScreenChange(string newScreen, string val)
+        private bool DidScreenChange(LobbyInfo.SCREEN_TYPE newScreen, LobbyInfo.SCREEN_TYPE val)
         {
             return currentScreen != val && val == newScreen;
         }
         public void OnLobbyDataUpdate(LobbyDataUpdate_t pCallback)
         {
+            Logger.Info("DATA UPDATE");
             if (pCallback.m_ulSteamIDLobby == pCallback.m_ulSteamIDMember)
             {
-                string songId = SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "SongId");
-                string songDifficulty = SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "SongDifficulty");
-                string screen = SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "Screen");
-                SteamAPI.UpdateSongData(songId, Encoding.ASCII.GetBytes(songDifficulty)[0]);
+                Logger.Info("SAME CLIENT");
+                Logger.Info(pCallback.m_ulSteamIDLobby);
+                if (pCallback.m_ulSteamIDLobby == 0) { return; }
+                LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
 
-                if (DidScreenChange(screen, "WAITING"))
+                if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
-                    Logger.Debug($"Song has been selected, going to the waiting screen");
 
-                    WaitingMenu.Instance.Present();
-                } else if (DidScreenChange(screen, "MENU"))
-                {
-                    Logger.Debug($"Song has finished, updating state to menu");
+                    if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
+                    {
+                        Logger.Debug($"Song has been selected, going to the waiting screen");
+                        WaitingMenu.Instance.Present();
+                    }
+                    else if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.MENU))
+                    {
+                        Logger.Debug($"Song has finished, updating state to menu");
+                        GameController.Instance.SongFinished(null, null, null, null);
+                    }
+                    else if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.PLAY_SONG))
+                    {
+                        Logger.Debug($"Host requested to play the current song {info.CurrentSongId}");
 
-                    GameController.Instance.SongFinished(null, null, null, null);
-                } else if (DidScreenChange(screen, "PLAY_SONG"))
-                {
-                    Logger.Debug($"Host requested to play the current song {songId}");
-                    
                         LevelSO song = WaitingMenu.GetInstalledSong();
                         if (SteamAPI.IsHost())
                         {
@@ -72,23 +78,40 @@ namespace BeatSaberOnline.Data.Steam
 
                         SteamAPI.ClearPlayerReady(new CSteamID(SteamAPI.GetUserID()), true);
                         SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
+                    }
 
-                }
-                currentScreen = screen;
-            }
-            else
-            {
-                string readyStatus = SteamMatchmaking.GetLobbyMemberData(new CSteamID(pCallback.m_ulSteamIDLobby), new CSteamID(pCallback.m_ulSteamIDMember), "ReadyStatus");
-                if (readyStatus == "Ready")
-                {
-                    Logger.Debug($"{pCallback.m_ulSteamIDMember} is now ready");
-
-                    SteamAPI.SetPlayerReady(new CSteamID(pCallback.m_ulSteamIDMember));
+                    SteamAPI.UpdateLobbyInfo(info);
+                    currentScreen = info.Screen;
                 } else
                 {
-                    Logger.Debug($"{pCallback.m_ulSteamIDMember} cleared their ready status");
-                    SteamAPI.ClearPlayerReady(new CSteamID(pCallback.m_ulSteamIDMember), false);
+                    if (SteamAPI.LobbyData[pCallback.m_ulSteamIDLobby] == null)
+                    {
+                        SteamAPI.LobbyData.Add(pCallback.m_ulSteamIDLobby, info);
+                    }
+                    SteamAPI.SetOtherLobbyData(pCallback.m_ulSteamIDLobby, info);
                 }
+            }
+        }
+
+        public static void OnLobbyChatUpdate(LobbyChatUpdate_t pCallback)
+        {
+            switch ((uint) pCallback.m_rgfChatMemberStateChange)
+            {
+                case (uint)EChatMemberStateChange.k_EChatMemberStateChangeEntered:
+                    Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} has joined the lobby");
+                    SteamAPI.PlayerConnected();
+                    break;
+                case (uint)EChatMemberStateChange.k_EChatMemberStateChangeDisconnected:
+                case (uint)EChatMemberStateChange.k_EChatMemberStateChangeLeft:
+                    Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} has left the lobby");
+                    SteamAPI.PlayerDisconnected();
+                    break;
+                case (uint)EChatMemberStateChange.k_EChatMemberStateChangeBanned:
+                    Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} banned {pCallback.m_ulSteamIDUserChanged} from the lobby");
+                    break;
+                case (uint)EChatMemberStateChange.k_EChatMemberStateChangeKicked:
+                    Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} kicked {pCallback.m_ulSteamIDUserChanged} from the lobby");
+                    break;
             }
         }
 

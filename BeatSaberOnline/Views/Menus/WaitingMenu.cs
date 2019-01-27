@@ -90,7 +90,7 @@ namespace BeatSaberOnline.Views.Menus
             try
             {
                 LevelSO song = GetInstalledSong();
-                Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "not" : "")} loaded");
+                Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "" : "not")} loaded");
                 if (song != null)
                 {
                     level.text = $"Queued: { song.songName} by { song.songAuthorName }";
@@ -114,7 +114,7 @@ namespace BeatSaberOnline.Views.Menus
 
                 if (Instance && Instance.isActiveAndEnabled)
                 {
-                    var status = SteamAPI.getAllPlayerStatusesInLobby();
+                    var status = Controllers.PlayerController.Instance.GetConnectedPlayerDownloadStatus();
                     middleViewController.Data.Clear();
                     foreach (KeyValuePair<string, bool> user in status.OrderBy(u => u.Value))
                     {

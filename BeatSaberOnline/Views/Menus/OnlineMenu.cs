@@ -16,6 +16,7 @@ using System.Text;
 using System.Linq;
 using VRUI;
 using System.Reflection;
+using BeatSaberOnline.Data.Steam;
 
 namespace BeatSaberOnline.Views.Menus
 {
@@ -24,42 +25,63 @@ namespace BeatSaberOnline.Views.Menus
         static Vector2 BASE = new Vector2(-40f, 30f);
         public static CustomMenu Instance = null;
         private static Dictionary<CSteamID, string[]> friends;
-        private static Dictionary<CSteamID, string> lobbies;
-
+        private static Dictionary<CSteamID, LobbyInfo> lobbies;
+        private static ListViewController middleViewController;
+        private static ListViewController rightViewController;
+        private static bool sorting = true;
+        private static Button refresh;
+        private static Button sortingBtn;
         public static void Init()
         {
             if (Instance == null)
             {
                 Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Online Multiplayer");
 
-                var middleViewController = BeatSaberUI.CreateViewController<ListViewController>();
-                var rightViewController = BeatSaberUI.CreateViewController<ListViewController>();
+                middleViewController = BeatSaberUI.CreateViewController<ListViewController>();
+                rightViewController = BeatSaberUI.CreateViewController<ListViewController>();
 
 
                 Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                 {
                     if (firstActivation)
                     {
-                        refreshAvailableLobbies(middleViewController);
                         middleViewController.CreateText("Available Lobbies", new Vector2(BASE.x + 60f, BASE.y));
-                        Button refresh = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
+                        refreshAvailableLobbies();
+
+                        refresh = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f - 10f), new Vector2(25f, 7f));
                         refresh.SetButtonText("Refresh");
                         refresh.SetButtonTextSize(3f);
                         refresh.ToggleWordWrapping(false);
                         refresh.onClick.AddListener(delegate ()
                         {
-                            refreshAvailableLobbies(middleViewController);
+                            refreshAvailableLobbies();
                         });
-                        Button host = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f), new Vector2(25f, 7f));
-                        host.SetButtonTextSize(3f);
-                        host.ToggleWordWrapping(false);
-                        if (!Config.Instance.AutoStartLobby)
+
+                        sortingBtn = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
+                        sortingBtn.SetButtonText(sorting ? "Friends Only" : "Public");
+                        sortingBtn.SetButtonTextSize(3f);
+                        sortingBtn.ToggleWordWrapping(false);
+                        sortingBtn.onClick.AddListener(delegate ()
                         {
-                            SetupHost(host);
-                        }
-                        else
+                            sorting = !sorting;
+                            sortingBtn.SetButtonText(sorting ? "Friends Only" : "Public");
+
+                            refreshAvailableLobbies();
+                        });
+                        if (!SteamAPI.isLobbyConnected())
                         {
-                            SetupDisconnect(host);
+                            Button host = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f), new Vector2(25f, 7f));
+                            host.SetButtonTextSize(3f);
+                            host.ToggleWordWrapping(false);
+
+                            host.onClick.RemoveAllListeners();
+                            host.SetButtonText("Host Lobby");
+                            host.onClick.AddListener(delegate ()
+                            {
+                                SteamAPI.CreateLobby();
+                                Instance.Dismiss();
+                                LobbyMenu.Instance.Present();
+                            });
                         }
                     }
                 });
@@ -67,7 +89,7 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     if (firstActivation)
                     {
-                        refreshFriendsList(rightViewController);
+                        refreshFriendsList();
                         rightViewController.CreateText("Invite Friends", new Vector2(BASE.x + 62.5f, BASE.y));
 
                         Button b = rightViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
@@ -76,7 +98,7 @@ namespace BeatSaberOnline.Views.Menus
                         b.ToggleWordWrapping(false);
                         b.onClick.AddListener(delegate ()
                         {
-                            refreshFriendsList(rightViewController);
+                            refreshFriendsList();
                         });
                     }
                 });
@@ -84,28 +106,8 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
         
-
-        private static void SetupDisconnect(Button host)
-        {
-            host.onClick.RemoveAllListeners();
-            host.SetButtonText("Disconnect");
-            host.onClick.AddListener(delegate {
-                SteamAPI.Disconnect();
-                SetupHost(host);
-            });
-        }
-
-        private static void SetupHost(Button host)
-        {
-            host.onClick.RemoveAllListeners();
-            host.SetButtonText("Host Lobby");
-            host.onClick.AddListener(delegate ()
-            {
-                SteamAPI.CreateLobby();
-                SetupDisconnect(host);
-            });
-        }
-        private static void refreshFriendsList(ListViewController rightViewController) 
+        
+        private static void refreshFriendsList() 
         {
             friends = SteamAPI.GetOnlineFriends();
             rightViewController.Data.Clear();
@@ -151,24 +153,38 @@ namespace BeatSaberOnline.Views.Menus
 
             };
         }
-        private static List<CSteamID> availableLobbies;
-        private static void refreshAvailableLobbies(ListViewController middleViewController)
+        private static void refreshAvailableLobbies()
         {
-            lobbies = SteamAPI.getAvailableLobbies();
-            availableLobbies = new List<CSteamID>();
+            lobbies = new Dictionary<CSteamID, LobbyInfo>();
+
+            if (refresh) refresh.interactable = true;
+            if (!sorting)
+            {
+                SteamAPI.RequestLobbies();
+            }
+            else
+            {
+                SteamAPI.RequestAvailableLobbies();
+            }
+        }
+
+        private static Dictionary<ulong, bool> availableLobbies = new Dictionary<ulong, bool>();
+        public static void refreshLobbyList()
+        {
+            availableLobbies.Clear();
             middleViewController.Data.Clear();
-            CGameID gameId = SteamAPI.GetGameID();
             try
             {
-                foreach (KeyValuePair<CSteamID, string> entry in lobbies)
+                Dictionary<ulong, LobbyInfo> lobbies = SteamAPI.LobbyData;
+                foreach (KeyValuePair<ulong, LobbyInfo> entry in lobbies)
                 {
-                    availableLobbies.Add(entry.Key);
-                    string status = SteamAPI.getLobbyStatus(entry.Key);
-
-                    if (status == null || status.Length == 0) status = "";
-                    middleViewController.Data.Add(new CustomCellInfo($"{entry.Value}'s Lobby", $"{status}"));
+                    LobbyInfo info = SteamAPI.LobbyData[entry.Key];
+                    availableLobbies.Add(entry.Key, info.Joinable);
+                    if (info == null) { continue; }
+                    middleViewController.Data.Add(new CustomCellInfo($"{(info.Joinable ? "":"[LOCKED]")}[{info.UsedSlots}/{info.TotalSlots}] {info.HostName}'s Lobby", $"{info.Status}"));
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Logger.Error(e);
             }
@@ -176,11 +192,13 @@ namespace BeatSaberOnline.Views.Menus
             middleViewController._customListTableView.ScrollToRow(0, false);
             middleViewController.DidSelectRowEvent = (TableView view, int row) =>
             {
-                CSteamID clickedID = availableLobbies[row];
-                if (clickedID != null && clickedID.m_SteamID != 0) {
-                    SteamAPI.JoinLobby(clickedID);
+                ulong clickedID = availableLobbies.Keys.ToArray()[row];
+                if (clickedID != 0 && availableLobbies.Values.ToArray()[row])
+                {
+                    SteamAPI.JoinLobby(new CSteamID(clickedID));
                 }
             };
+            if (refresh) refresh.interactable = true;
         }
     }
 }

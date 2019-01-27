@@ -7,6 +7,8 @@ using Steamworks;
 using BeatSaberOnline.Controllers;
 using BeatSaberOnline.Views.Menus;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
+using BeatSaberOnline.Data.Steam;
+
 namespace BeatSaberOnline
 {
     public class Plugin : IPlugin
@@ -39,7 +41,6 @@ namespace BeatSaberOnline
 
         public void OnLevelWasLoaded(int level)
         {
-
         }
 
         public void OnLevelWasInitialized(int level)

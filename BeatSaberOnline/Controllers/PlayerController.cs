@@ -24,6 +24,7 @@ namespace BeatSaberOnline.Controllers
         private Dictionary<ulong, PlayerInfo> _connectedPlayers = new Dictionary<ulong, PlayerInfo>();
         private Dictionary<ulong, AvatarController> _connectedPlayerAvatars = new Dictionary<ulong, AvatarController>();
         private string _currentScene;
+
         public static void Init(Scene to)
         {
             if (Instance != null)
@@ -92,10 +93,20 @@ namespace BeatSaberOnline.Controllers
                 _playerInfo.headRot = pos.headRot;
                 _playerInfo.leftHandPos = pos.leftHandPos;
                 _playerInfo.leftHandRot = pos.leftHandRot;
-               _playerInfo.rightHandPos = pos.rightHandPos;
-               _playerInfo.rightHandRot = pos.rightHandRot;
+                _playerInfo.rightHandPos = pos.rightHandPos;
+                _playerInfo.rightHandRot = pos.rightHandRot;
         }
-        
+        public Dictionary<string, bool> GetConnectedPlayerDownloadStatus()
+        {
+            Dictionary<string, bool> connectedPlayerStatus = new Dictionary<string, bool>();
+            connectedPlayerStatus.Add(_playerInfo.playerName, _playerInfo.Downloading);
+            for(int i = 0; i <  _connectedPlayers.Count;i++)
+            {
+                PlayerInfo info = _connectedPlayers.Values.ToArray()[i];
+                connectedPlayerStatus.Add(info.playerName, info.Downloading);
+            }
+            return connectedPlayerStatus;
+        }
         public void UpsertPlayer(PlayerInfo info)
         {
             try
@@ -110,8 +121,37 @@ namespace BeatSaberOnline.Controllers
                     Scoreboard.Instance.AddScoreboardEntry(info.playerId, info.playerName);
                     return;
                 }
+
                 if (_connectedPlayers.ContainsKey(info.playerId) && _connectedPlayerAvatars.ContainsKey(info.playerId))
                 {
+                    bool refresh = false;
+                    if (_connectedPlayers[info.playerId].Downloading != info.Downloading)
+                    {
+                        refresh = true;
+                        if (info.Downloading)
+                        {
+
+                            if (!SteamAPI.IsHost())
+                            {
+                                if (_connectedPlayers.Values.ToList().All(u => u.Downloading))
+                                {
+                                    Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
+                                    SteamAPI.StartPlaying();
+                                }
+                            }
+                        } else
+                        {
+                            if (SteamAPI.IsHost())
+                            {
+                                if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
+                                {
+                                    Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
+
+                                    SteamAPI.StartGame();
+                                }
+                            }
+                        }
+                    }
                     if (info.playerScore != _connectedPlayers[info.playerId].playerScore || info.playerComboBlocks != _connectedPlayers[info.playerId].playerComboBlocks)
                     {
                         Scoreboard.Instance.UpdateScoreboardEntry(info.playerId, (int)info.playerScore, (int)info.playerComboBlocks);
@@ -128,6 +168,10 @@ namespace BeatSaberOnline.Controllers
 
                     _connectedPlayers[info.playerId] = info;
                     _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
+                    if (refresh)
+                    {
+                        WaitingMenu.RefreshData(false);
+                    }
                 }
             } catch (Exception e)
             {

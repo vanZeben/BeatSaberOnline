@@ -24,8 +24,6 @@ namespace BeatSaberOnline.Data.Steam
             DISCONNECTED
         }
 
-        public const string GAME_ID = "beat-saber-online-multiplayer";
-
         static string userName;
         static ulong userID;
         private static CallResult<LobbyMatchList_t> OnLobbyMatchListCallResult;
@@ -33,7 +31,9 @@ namespace BeatSaberOnline.Data.Steam
 
         private static SteamCallbacks callbacks;
         static LobbyInfo _lobbyInfo;
-
+        public static Dictionary<CSteamID, bool> ReadyState = new Dictionary<CSteamID, bool>();
+        public static ConnectionState Connection { get; set; } = ConnectionState.UNDEFINED;
+        public static Dictionary<ulong, LobbyInfo> LobbyData { get; set; } = new Dictionary<ulong, LobbyInfo>();
 
         public static void Init()
         {
@@ -93,12 +93,12 @@ namespace BeatSaberOnline.Data.Steam
 
         public static ConnectionState GetConnectionState()
         {
-            return _lobbyInfo.Connection;
+            return Connection;
         }
 
-        public static void SetConnectionState(ConnectionState Connection)
+        public static void SetConnectionState(ConnectionState _connection)
         {
-            _lobbyInfo.Connection = Connection;
+            Connection = _connection;
         }
 
 
@@ -116,50 +116,39 @@ namespace BeatSaberOnline.Data.Steam
         {
             _lobbyInfo.Joinable = !_lobbyInfo.Joinable;
             SteamMatchmaking.SetLobbyJoinable(_lobbyInfo.LobbyID, _lobbyInfo.Joinable);
+            SendLobbyInfo(true);
         }
         public static void SetReady()
         {
-            if (!_lobbyInfo.ReadyState.ContainsKey(new CSteamID(GetUserID())))
+            Logger.Debug($"Broadcast to our lobby that we are ready");
+            Controllers.PlayerController.Instance._playerInfo.Downloading = true;
+
+            if (_lobbyInfo.UsedSlots == 1)
             {
-                Logger.Debug($"Broadcast to our lobby that we are ready");
-                SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "ReadyStatus", "Ready");
-                SetPlayerReady(new CSteamID(GetUserID()));
+                StartPlaying();
             }
             WaitingMenu.RefreshData(false);
         }
 
         public static void ClearPlayerReady(CSteamID steamId, bool push)
         {
-            _lobbyInfo.ReadyState.Remove(steamId);
+            ReadyState.Remove(steamId);
             if (push) {
                 Logger.Debug($"Broadcast to our lobby that our ready status should be cleared");
-                SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "ReadyStatus", "");
-            }
-            if (!IsHost()) return;
-            Dictionary<string, bool> status = SteamAPI.getAllPlayerStatusesInLobby();
-            bool allReady = status.All(u => !u.Value);
-            if (allReady)
-            {
-                Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
-
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "IN_GAME");
+                Controllers.PlayerController.Instance._playerInfo.Downloading = false;
             }
 
         }
-        public static void SetPlayerReady(CSteamID steamId)
+
+        public static void StartPlaying()
         {
-            _lobbyInfo.ReadyState.Add(steamId, true);
-            WaitingMenu.RefreshData(false); 
-            if (!IsHost()) return;  
-            Dictionary<string, bool> status = SteamAPI.getAllPlayerStatusesInLobby();
-            bool allReady = status.All(u => u.Value);
-
-            if (allReady)
-            {
-                Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
-
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "PLAY_SONG");
-            }
+            _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.PLAY_SONG;
+            SendLobbyInfo(true);
+        }
+        public static void StartGame()
+        {
+            _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.IN_GAME;
+            SendLobbyInfo(true);
         }
 
         public static Dictionary<string, bool> getAllPlayerStatusesInLobby()
@@ -170,7 +159,7 @@ namespace BeatSaberOnline.Data.Steam
             {
                 CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(_lobbyInfo.LobbyID, i);
                 string name =  SteamFriends.GetFriendPersonaName(member);
-                status.Add(name, _lobbyInfo.ReadyState.ContainsKey(member) && _lobbyInfo.ReadyState[member]);
+                status.Add(name, ReadyState.ContainsKey(member) && ReadyState[member]);
             }
             return status;
         }
@@ -185,33 +174,26 @@ namespace BeatSaberOnline.Data.Steam
                 {
                     setLobbyStatus("Loading " + song.songName + " by " + song.songAuthorName);
                 }
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "WAITING");
+                _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.WAITING;
+                SendLobbyInfo(true);
             }
-        }
-        public static void UpdateSongData(string songId, byte songDifficulty)
-        {
-            _lobbyInfo.SongId = songId;
-            _lobbyInfo.SongDifficulty = songDifficulty;
         }
 
         public static string GetSongId()
         {
-            return _lobbyInfo.SongId;
+            return _lobbyInfo.CurrentSongId;
         }
         public static byte GetSongDifficulty()
         {
-            return _lobbyInfo.SongDifficulty;
+            return _lobbyInfo.CurrentSongDifficulty;
         }
 
-        public static void SetSong(string songId)
+        public static void SetSong(string songId, string songName)
         {
-            _lobbyInfo.SongId = songId;
-            if (IsHost())
-            {
-                Logger.Debug($"broadcast that we want to play {songId}");
-
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "SongId", songId);
-            }
+            _lobbyInfo.CurrentSongId = songId;
+            _lobbyInfo.CurrentSongName = songName;
+            Logger.Debug($"We want to play {songId} - {songName}");
+            SendLobbyInfo(true);
         }
 
         public static bool IsHost()
@@ -225,31 +207,26 @@ namespace BeatSaberOnline.Data.Steam
 
         public static void SetDifficulty(byte songDifficulty)
         {
-            _lobbyInfo.SongDifficulty = songDifficulty;
-            if (IsHost())
-            {
-                Logger.Debug($"Broadcast to our lobby that we want to play on {songDifficulty}");
-
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "SongDifficulty", Encoding.ASCII.GetString(new[] { songDifficulty }));
-            }
+            Logger.Debug($"We want to play on {songDifficulty}");
+            _lobbyInfo.CurrentSongDifficulty = songDifficulty;
+            SendLobbyInfo(true);
         }
 
         public static void StopSong()
         {
             Logger.Debug($"Broadcast to the lobby that we are back on the menu");
 
-            SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "MENU");
+            _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.MENU;
+            SendLobbyInfo(true);
             setLobbyStatus("Waiting In Menu");
         }
 
         public static void ResetScreen()
         {
-            if (IsHost())
-            {
                 Logger.Debug($"Clear the current screen from the lobby");
 
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "");
-            }
+                _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.NONE;
+                SendLobbyInfo(true);
         }
 
         public static int getUserCount()
@@ -260,11 +237,19 @@ namespace BeatSaberOnline.Data.Steam
         {
             Logger.Debug($"We have finished the song");
 
-            _lobbyInfo.ReadyState.Clear();
-            _lobbyInfo.SongDifficulty = 0;
-            _lobbyInfo.SongId = null;
+            ReadyState.Clear();
+            _lobbyInfo.CurrentSongDifficulty = 0;
+            _lobbyInfo.CurrentSongId = null;
+
+            SendLobbyInfo(true);
             setLobbyStatus("Waiting In Menu");
 
+        }
+
+        private static void SendLobbyInfo(bool reqHost = false)
+        {
+             if (reqHost && !IsHost()) return;
+             SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "LOBBY_INFO", _lobbyInfo.Serialize());
         }
         public static void IncreaseSlots()
         {
@@ -275,6 +260,7 @@ namespace BeatSaberOnline.Data.Steam
             }
             Logger.Debug($"Increasing the lobby slots to {_lobbyInfo.TotalSlots}");
 
+            SendLobbyInfo(true);
             SteamMatchmaking.SetLobbyMemberLimit(_lobbyInfo.LobbyID, _lobbyInfo.TotalSlots);
         }
 
@@ -285,7 +271,7 @@ namespace BeatSaberOnline.Data.Steam
             return fgi.m_gameID;
         }
 
-        public static void GetServers()
+        public static void RequestLobbies()
         {
             if (!SteamManager.Initialized)
             {
@@ -294,6 +280,7 @@ namespace BeatSaberOnline.Data.Steam
             }
             Logger.Debug($"Requesting list of all lobbies from steam");
 
+            SteamMatchmaking.AddRequestLobbyListFilterSlotsAvailable(1);
             SteamAPICall_t apiCall = SteamMatchmaking.RequestLobbyList();
             OnLobbyMatchListCallResult.Set(apiCall);
         }
@@ -336,6 +323,16 @@ namespace BeatSaberOnline.Data.Steam
             }
             SteamFriends.ActivateGameOverlayInviteDialog(_lobbyInfo.LobbyID);
         }
+        public static void PlayerConnected()
+        {
+            _lobbyInfo.UsedSlots += 1;
+            SendLobbyInfo(true);
+        }
+        public static void PlayerDisconnected()
+        {
+            _lobbyInfo.UsedSlots -= 1;
+            SendLobbyInfo(true);
+        }
 
         public static void OnLobbyMatchList(LobbyMatchList_t pCallback, bool bIOFailure)
         {
@@ -345,7 +342,18 @@ namespace BeatSaberOnline.Data.Steam
                 return;
             }
             uint numLobbies = pCallback.m_nLobbiesMatching;
-
+            Logger.Info($"Found {numLobbies} total lobbies");
+            LobbyData.Clear();
+            for (int i = 0; i < numLobbies; i++)
+            {
+                CSteamID lobbyId = SteamMatchmaking.GetLobbyByIndex(i);
+                LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(lobbyId, "LOBBY_INFO"));
+                
+                LobbyData.Add(lobbyId.m_SteamID, info);
+                Logger.Info($"{info.HostName} has {info.UsedSlots} users in it and is currently {info.Status}");
+            }
+            
+            OnlineMenu.refreshLobbyList();
         }
 
         public static void CreateLobby()
@@ -370,7 +378,7 @@ namespace BeatSaberOnline.Data.Steam
 
         public static bool isLobbyConnected()
         {
-            return SteamManager.Initialized && _lobbyInfo.Connection == ConnectionState.CONNECTED;
+            return SteamManager.Initialized && Connection == ConnectionState.CONNECTED && _lobbyInfo.LobbyID.m_SteamID > 0;
         }
         private static void OnLobbyCreated(LobbyCreated_t pCallback, bool bIOFailure)
         {
@@ -382,15 +390,16 @@ namespace BeatSaberOnline.Data.Steam
             }
             if (!bIOFailure) {
                 _lobbyInfo.LobbyID = new CSteamID(pCallback.m_ulSteamIDLobby);
-
+                _lobbyInfo.HostName = GetUserName();
                 Logger.Debug($"Lobby has been created");
                 var hostUserId = SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID);
                 var me = SteamUser.GetSteamID();
+                Connection = ConnectionState.CONNECTED;
                 if (hostUserId.m_SteamID == me.m_SteamID)
                 {
                     setLobbyStatus("Waiting In Menu");
-                    SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "game", GAME_ID);
-   
+                        
+                    SendLobbyInfo(true);
                 }
             }
         }
@@ -399,7 +408,7 @@ namespace BeatSaberOnline.Data.Steam
         {
             if (!SteamManager.Initialized)
             {
-                _lobbyInfo.Connection = ConnectionState.FAILED;
+                Connection = ConnectionState.FAILED;
                 Logger.Error("CONNECTION FAILED");
                 return;
             }
@@ -409,22 +418,21 @@ namespace BeatSaberOnline.Data.Steam
                 Logger.Debug($"We are already in another lobby, lets disconnect first");
                 Disconnect();
             }
-            _lobbyInfo.Connection = ConnectionState.CONNECTING;
+            Connection = ConnectionState.CONNECTING;
             _lobbyInfo.LobbyID = lobbyId;
 
             Logger.Debug($"Joining a new steam lobby {lobbyId}");
             SteamMatchmaking.JoinLobby(lobbyId);
         }
         
-        public static Dictionary<CSteamID, string> getAvailableLobbies()
+        public static void RequestAvailableLobbies()
         {
-            Dictionary<CSteamID, string> availableLobbies = new Dictionary<CSteamID, string>();
-
             if (!SteamManager.Initialized)
             {
                 Logger.Error("CONNECTION FAILED");
-                return availableLobbies;
+                return;
             }
+            LobbyData.Clear();
             int cFriends = SteamFriends.GetFriendCount(EFriendFlags.k_EFriendFlagImmediate);
                 for (int i = 0; i < cFriends; i++)
                 {
@@ -432,10 +440,9 @@ namespace BeatSaberOnline.Data.Steam
                     CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
                     if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && friendGameInfo.m_steamIDLobby != _lobbyInfo.LobbyID)
                     {
-                        availableLobbies.Add(friendGameInfo.m_steamIDLobby, SteamFriends.GetFriendPersonaName(steamIDFriend));
+                        SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
                     }
                 }
-            return availableLobbies;
         }
 
         public static bool IsMemberInSteamLobby(CSteamID steamUser)
@@ -478,15 +485,15 @@ namespace BeatSaberOnline.Data.Steam
             return members;
         }
 
+        public static void UpdateLobbyInfo(LobbyInfo info)
+        {
+            _lobbyInfo = info;
+        }
         public static void setLobbyStatus(string value)
         {
             Logger.Debug($"Update lobby status to {value}");
-            SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "status", value);
-        }
-
-        public static string getLobbyStatus(CSteamID lobbyID)
-        {
-            return SteamMatchmaking.GetLobbyData(lobbyID, "status");
+            _lobbyInfo.Status = value;
+            SendLobbyInfo(true);
         }
         
         public static void SendPlayerInfo(PlayerInfo playerInfo)
@@ -511,10 +518,19 @@ namespace BeatSaberOnline.Data.Steam
         public static void Disconnect()
         {
             Logger.Debug($"Disconnect from current lobby");
-            SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
+            _lobbyInfo.HostName = "";
+            SendLobbyInfo(true);
+            Connection = ConnectionState.DISCONNECTED;
             _lobbyInfo.LobbyID = new CSteamID(0);
-            _lobbyInfo.Connection = ConnectionState.DISCONNECTED;
+            SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
             Controllers.PlayerController.Instance.DestroyAvatars();
+        }
+        public static void SetOtherLobbyData(ulong lobbyId, LobbyInfo info)
+        {
+            LobbyData.Clear();
+            LobbyData.Add(lobbyId, info);
+
+            OnlineMenu.refreshLobbyList();
         }
     }
 }
