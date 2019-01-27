@@ -134,23 +134,20 @@ namespace BeatSaberOnline.Data.Steam
             bool allReady = status.All(u => !u.Value);
             if (allReady)
             {
-                Logger.Info("CLEARING EVERYONE");
                 SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "IN_GAME");
             }
 
         }
         public static void SetPlayerReady(CSteamID steamId)
         {
-            Logger.Info(steamId.m_SteamID + " is now ready. We are "+(IsHost() ? "Host" : "not host"));
             _lobbyInfo.ReadyState.Add(steamId, true);
             WaitingMenu.RefreshData(false); 
             if (!IsHost()) return;  
             Dictionary<string, bool> status = SteamAPI.getAllPlayerStatusesInLobby();
             bool allReady = status.All(u => u.Value);
-            Logger.Info(status.Count + " members and " + (allReady ? "all are ready" : "none are ready"));
+
             if (allReady)
             {
-                Logger.Info("LETS ASK TO START PLAYING");
                 SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "PLAY_SONG");
             }
         }
