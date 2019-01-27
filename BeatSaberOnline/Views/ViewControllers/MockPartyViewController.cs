@@ -43,19 +43,28 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         private void toggleButtons(bool val)
         {   
-            var play = ReflectionUtil.GetPrivateField<Button>(detail, "_playButton");
-            var practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
-            if (play && play.gameObject && play.gameObject.activeSelf != val)
+            Button play = ReflectionUtil.GetPrivateField<Button>(detail, "_playButton");
+            Button practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
+            Logger.Info(play + ", " + play.gameObject.activeSelf);
+            if (play && play.gameObject)
             {
                 play.gameObject.SetActive(val);
+                play.gameObject.SetActiveRecursively(false);
+                play.interactable = false;
             }
-            if (practice && practice.gameObject && practice.gameObject.activeSelf != val)
+            if (practice && practice.gameObject)
             {
                 practice.gameObject.SetActive(val);
+                practice.interactable = false;
             }
-            if (mPlay && mPlay.gameObject && mPlay.gameObject.activeSelf == val)
+            if (mPlay && mPlay.gameObject)
             {
                 mPlay.gameObject.SetActive(!val);
+            }
+            if (mPlay && !SteamAPI.IsHost())
+            {
+                mPlay.SetButtonText("You need to be host");
+                mPlay.interactable = false;
             }
         }
 
