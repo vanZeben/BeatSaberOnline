@@ -53,7 +53,7 @@ namespace BeatSaberOnline.Views.Menus
             {
                 Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Waiting for players");
                 middleViewController = BeatSaberUI.CreateViewController<ListViewController>();
-                
+
                 Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                 {
                     try
@@ -80,13 +80,14 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
+
         private static void downloadedSong(Song song)
         {
             Logger.Info("Finished downloading " + song.songName);
         }
         private static void ReadyUp(LevelSO song, bool ready)
         {
-            Logger.Info("Ready up - "+ready);
+            Logger.Info("ReadyUp " + ready);
             if (ready) { SteamAPI.SetReady(); }
             PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
         }
@@ -95,7 +96,6 @@ namespace BeatSaberOnline.Views.Menus
             try
             {
                 LevelSO song = GetInstalledSong();
-
                 if (song != null)
                 {
                     level.text = $"Queued: { song.songName} by { song.songAuthorName }";

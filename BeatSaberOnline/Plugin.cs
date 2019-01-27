@@ -56,9 +56,9 @@ namespace BeatSaberOnline
 
         private void SceneLoaded(Scene to, LoadSceneMode mode)
         {
-            if (SteamAPI.getLobbyID().m_SteamID > 0) {
-                SteamAPI.JoinLobby(SteamAPI.getLobbyID());
-            }
+         //   if (SteamAPI.getLobbyID().m_SteamID > 0) {
+          //      SteamAPI.JoinLobby(SteamAPI.getLobbyID());
+           // }
         }
         private void ActiveSceneChanged(Scene from, Scene to)
         {

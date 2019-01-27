@@ -143,9 +143,6 @@ namespace BeatSaberOnline.Utils
 
                 foreach (JSONObject song in result["songs"].AsArray)
                 {
-                    string currentHash = song["hashMd5"].Value.ToLower();
-                    if (currentHash == levelId.ToLower())
-                    {
                         EmptyDirectory(".mpdownloadcache");
 
                         string zipPath = Path.Combine(Environment.CurrentDirectory, ".mpdownloadcache", $"{song["version"].Value}.zip");
@@ -158,7 +155,6 @@ namespace BeatSaberOnline.Utils
                         
                         songDownloaded?.Invoke();
                         break;
-                    }
                 }
             }
         }

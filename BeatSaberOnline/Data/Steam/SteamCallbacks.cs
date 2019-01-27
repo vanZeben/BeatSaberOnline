@@ -21,7 +21,7 @@ namespace BeatSaberOnline.Data.Steam
         protected Callback<P2PSessionRequest_t> m_P2PSessionRequest;
         protected Callback<P2PSessionConnectFail_t> m_P2PSessionConnectFail_t;
 
-
+        private string currentScreen;
         public SteamCallbacks()
         {
 
@@ -36,7 +36,10 @@ namespace BeatSaberOnline.Data.Steam
         {
             SteamAPI.JoinLobby(pCallback.m_steamIDLobby);
         }
-
+        private bool DidScreenChange(string newScreen, string val)
+        {
+            return currentScreen != val && val == newScreen;
+        }
         public void OnLobbyDataUpdate(LobbyDataUpdate_t pCallback)
         {
             if (pCallback.m_ulSteamIDLobby == pCallback.m_ulSteamIDMember)
@@ -45,23 +48,28 @@ namespace BeatSaberOnline.Data.Steam
                 string songDifficulty = SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "SongDifficulty");
                 string screen = SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "Screen");
                 SteamAPI.UpdateSongData(songId, Encoding.ASCII.GetBytes(songDifficulty)[0]);
-                if (screen == "WAITING")
+
+                if (DidScreenChange(screen, "WAITING"))
                 {
                     WaitingMenu.Instance.Present();
-                } else if (screen == "MENU")
+                } else if (DidScreenChange(screen, "MENU"))
                 {
                     GameController.Instance.SongFinished(null, null, null, null);
-                } else if (screen == "PLAY_SONG")
+                } else if (DidScreenChange(screen, "PLAY_SONG"))
                 {
-                    LevelSO song = WaitingMenu.GetInstalledSong();
-                    if (SteamAPI.IsHost())
-                    {
-                        SteamAPI.setLobbyStatus("Playing " + song.songName + " by " + song.songAuthorName);
-                    }
+                    Logger.Info("Host asked to play song ");
+                    
+                        LevelSO song = WaitingMenu.GetInstalledSong();
+                        if (SteamAPI.IsHost())
+                        {
+                            SteamAPI.setLobbyStatus("Playing " + song.songName + " by " + song.songAuthorName);
+                        }
 
-                    SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
-                    SteamAPI.ResetScreen();
+                        SteamAPI.ClearPlayerReady(new CSteamID(SteamAPI.GetUserID()), true);
+                        SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
+
                 }
+                currentScreen = screen;
             }
             else
             {
@@ -69,6 +77,9 @@ namespace BeatSaberOnline.Data.Steam
                 if (readyStatus == "Ready")
                 {
                     SteamAPI.SetPlayerReady(new CSteamID(pCallback.m_ulSteamIDMember));
+                } else
+                {
+                    SteamAPI.ClearPlayerReady(new CSteamID(pCallback.m_ulSteamIDMember), false);
                 }
             }
         }

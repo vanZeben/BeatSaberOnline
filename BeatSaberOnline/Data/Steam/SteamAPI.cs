@@ -125,22 +125,33 @@ namespace BeatSaberOnline.Data.Steam
             WaitingMenu.RefreshData(false);
         }
 
-        public static void ClearPlayerReady(CSteamID steamId)
+        public static void ClearPlayerReady(CSteamID steamId, bool push)
         {
-            _lobbyInfo.ReadyState.Add(steamId, true);
-            WaitingMenu.RefreshData(false);
+            _lobbyInfo.ReadyState.Remove(steamId);
+            if (push) { SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "ReadyStatus", ""); }
+            if (!IsHost()) return;
+            Dictionary<string, bool> status = SteamAPI.getAllPlayerStatusesInLobby();
+            bool allReady = status.All(u => !u.Value);
+            if (allReady)
+            {
+                Logger.Info("CLEARING EVERYONE");
+                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "IN_GAME");
+            }
+
         }
         public static void SetPlayerReady(CSteamID steamId)
         {
+            Logger.Info(steamId.m_SteamID + " is now ready. We are "+(IsHost() ? "Host" : "not host"));
             _lobbyInfo.ReadyState.Add(steamId, true);
             WaitingMenu.RefreshData(false); 
             if (!IsHost()) return;  
             Dictionary<string, bool> status = SteamAPI.getAllPlayerStatusesInLobby();
             bool allReady = status.All(u => u.Value);
-            
+            Logger.Info(status.Count + " members and " + (allReady ? "all are ready" : "none are ready"));
             if (allReady)
             {
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "SCREEN", "PLAY_SONG");
+                Logger.Info("LETS ASK TO START PLAYING");
+                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "Screen", "PLAY_SONG");
             }
         }
 
