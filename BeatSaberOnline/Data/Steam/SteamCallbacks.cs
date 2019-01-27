@@ -47,10 +47,12 @@ namespace BeatSaberOnline.Data.Steam
         {
             if (pCallback.m_ulSteamIDLobby == pCallback.m_ulSteamIDMember)
             {
-                if (pCallback.m_ulSteamIDLobby == 0) { return; }
                 LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
+
+                if (pCallback.m_ulSteamIDLobby == 0) { return; }
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
+
                     if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
                         {
                         Logger.Debug($"Song has been selected, going to the waiting screen");
@@ -79,6 +81,7 @@ namespace BeatSaberOnline.Data.Steam
                     currentScreen = info.Screen;
                 } else
                 {
+
                     if (SteamAPI.LobbyData[pCallback.m_ulSteamIDLobby] == null)
                     {
                         SteamAPI.LobbyData.Add(pCallback.m_ulSteamIDLobby, info);

@@ -357,13 +357,21 @@ namespace BeatSaberOnline.Data.Steam
             uint numLobbies = pCallback.m_nLobbiesMatching;
             Logger.Info($"Found {numLobbies} total lobbies");
             LobbyData.Clear();
-            for (int i = 0; i < numLobbies; i++)
+            OnlineMenu.refreshLobbyList();
+            try
             {
-                CSteamID lobbyId = SteamMatchmaking.GetLobbyByIndex(i);
-                LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(lobbyId, "LOBBY_INFO"));
-                
-                LobbyData.Add(lobbyId.m_SteamID, info);
-                Logger.Info($"{info.HostName} has {info.UsedSlots} users in it and is currently {info.Status}");
+                for (int i = 0; i < numLobbies; i++)
+                {
+                    CSteamID lobbyId = SteamMatchmaking.GetLobbyByIndex(i);
+                    if (lobbyId.m_SteamID == _lobbyInfo.LobbyID.m_SteamID) { continue; }
+                    LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(lobbyId, "LOBBY_INFO"));
+
+                    LobbyData.Add(lobbyId.m_SteamID, info);
+                    Logger.Info($"{info.HostName} has {info.UsedSlots} users in it and is currently {info.Status}");
+                }
+            } catch (Exception e)
+            {
+                Logger.Info(e);
             }
             
             OnlineMenu.refreshLobbyList();
@@ -446,14 +454,15 @@ namespace BeatSaberOnline.Data.Steam
                 return;
             }
             LobbyData.Clear();
+            OnlineMenu.refreshLobbyList();
             int cFriends = SteamFriends.GetFriendCount(EFriendFlags.k_EFriendFlagImmediate);
                 for (int i = 0; i < cFriends; i++)
                 {
                     FriendGameInfo_t friendGameInfo;
                     CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
-                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && friendGameInfo.m_steamIDLobby != _lobbyInfo.LobbyID)
-                    {
-                        SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
+                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
+                   {
+                       SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
                     }
                 }
         }
