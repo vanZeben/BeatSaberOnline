@@ -7,6 +7,7 @@ using BeatSaberOnline.Controllers;
 using System.Text;
 using BeatSaberOnline.Views.Menus;
 using System.Linq;
+using UnityEngine;
 
 namespace BeatSaberOnline.Data.Steam
 {
@@ -130,6 +131,10 @@ namespace BeatSaberOnline.Data.Steam
             WaitingMenu.RefreshData(false);
         }
 
+        public static GameplayModifiers GetGameplayModifiers()
+        {
+            return _lobbyInfo.GameplayModifiers;
+        }
         public static void ClearPlayerReady(CSteamID steamId, bool push)
         {
             ReadyState.Remove(steamId);
@@ -163,19 +168,26 @@ namespace BeatSaberOnline.Data.Steam
             }
             return status;
         }
-        public static void RequestPlay()
+        public static void RequestPlay(GameplayModifiers gameplayModifiers)
         {
             if (IsHost())
             {
-                Logger.Debug($"update the current screen to the waiting screen while people download the song");
-
-                LevelSO song = WaitingMenu.GetInstalledSong();
-                if (song != null)
+                try
                 {
-                    setLobbyStatus("Loading " + song.songName + " by " + song.songAuthorName);
+                    Logger.Debug($"update the current screen to the waiting screen while people download the song");
+
+                    LevelSO song = WaitingMenu.GetInstalledSong();
+                    if (song != null)
+                    {
+                        setLobbyStatus("Loading " + song.songName + " by " + song.songAuthorName);
+                    }
+                    _lobbyInfo.GameplayModifiers = gameplayModifiers;
+                    _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.WAITING;
+                    SendLobbyInfo(true);
+                } catch (Exception e)
+                {
+                    Logger.Error(e);
                 }
-                _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.WAITING;
-                SendLobbyInfo(true);
             }
         }
 

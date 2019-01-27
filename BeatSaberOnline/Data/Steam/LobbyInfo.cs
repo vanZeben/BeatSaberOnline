@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using UnityEngine;
 using ConnectionState = BeatSaberOnline.Data.Steam.SteamAPI.ConnectionState;
 
 namespace BeatSaberOnline.Data.Steam
@@ -18,6 +19,7 @@ namespace BeatSaberOnline.Data.Steam
             PLAY_SONG,
             IN_GAME,
         }
+
         public string HostName { get; set; }
         public CSteamID LobbyID { get; set; }
 
@@ -27,13 +29,19 @@ namespace BeatSaberOnline.Data.Steam
         public int UsedSlots { get; set; } = 1;
         public int TotalSlots { get; set; } = 5;
         public int MaxSlots { get; private set; } = 10;
-        
+
         public string CurrentSongId { get; set; }
         public string CurrentSongName { get; set; }
         public byte CurrentSongDifficulty { get; set; }
 
         public SCREEN_TYPE Screen { get; set; }
+        private string _gameplayModifiers = "";
 
+        public GameplayModifiers GameplayModifiers
+        {
+            get => new GameplayModifers(JsonUtility.FromJson<GameplayModifiers>(_gameplayModifiers));
+            set => _gameplayModifiers = JsonUtility.ToJson(value);
+        }
         public LobbyInfo() { }
         public LobbyInfo(string data)
         {
@@ -65,61 +73,43 @@ namespace BeatSaberOnline.Data.Steam
             CurrentSongDifficulty = data[37 + currentStringPadding];
 
             Screen = (SCREEN_TYPE) data[38 + currentStringPadding];
+
+            statusLength = BitConverter.ToInt32(data, 39 + currentStringPadding);
+            _gameplayModifiers = Encoding.UTF8.GetString(data, 43 + currentStringPadding, statusLength);
+            currentStringPadding += statusLength;
         }
 
         private byte[] ToBytes(bool includeSize = true)
         {
-            Logger.Info($"\nHostName={HostName}" +
-                $"\nLobbyId: {LobbyID.m_SteamID}" +
-                $"\nStatus: {Status}" +
-                $"\nJoinable: {Joinable}" +
-                $"\nUsedSlots: {UsedSlots}" +
-                $"\nTotalSlots: {TotalSlots} " +
-                $"\nMaxSlots: {MaxSlots}" +
-                $"\nCurrentSongId: {CurrentSongId}" +
-                $"\nCurrentSongDifficulty: {CurrentSongDifficulty}" +
-                $"\nCurrentSongName: {CurrentSongName}" +
-                $"\nScreen: {Screen}");
-            Logger.Info(0);
             List<byte> buffer = new List<byte>();
-            Logger.Info(1);
             byte[] nameBuffer = Encoding.UTF8.GetBytes(HostName);
             buffer.AddRange(BitConverter.GetBytes(nameBuffer.Length));
             buffer.AddRange(nameBuffer);
-            Logger.Info(2);
 
             buffer.AddRange(BitConverter.GetBytes(LobbyID.m_SteamID));
 
-            Logger.Info(4);
             nameBuffer = Encoding.UTF8.GetBytes(Status);
             buffer.AddRange(BitConverter.GetBytes(nameBuffer.Length));
             buffer.AddRange(nameBuffer);
 
-            Logger.Info(4);
             buffer.AddRange(BitConverter.GetBytes(Joinable));
-            Logger.Info(5);
             buffer.AddRange(BitConverter.GetBytes(UsedSlots));
-            Logger.Info(6);
             buffer.AddRange(BitConverter.GetBytes(TotalSlots));
-            Logger.Info(7);
             buffer.AddRange(BitConverter.GetBytes(MaxSlots));
-            Logger.Info(8);
 
             nameBuffer = Encoding.UTF8.GetBytes(CurrentSongId);
             buffer.AddRange(BitConverter.GetBytes(nameBuffer.Length));
             buffer.AddRange(nameBuffer);
-            Logger.Info(9);
 
             nameBuffer = Encoding.UTF8.GetBytes(CurrentSongName);
             buffer.AddRange(BitConverter.GetBytes(nameBuffer.Length));
             buffer.AddRange(nameBuffer);
-            Logger.Info(10);
             buffer.Add(CurrentSongDifficulty);
-            Logger.Info(11);
             buffer.Add((byte) Screen);
-            Logger.Info(12);
-
-
+            
+            nameBuffer = Encoding.UTF8.GetBytes(_gameplayModifiers);
+            buffer.AddRange(BitConverter.GetBytes(nameBuffer.Length));
+            buffer.AddRange(nameBuffer);
 
             if (includeSize)
                 buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count));

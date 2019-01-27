@@ -51,17 +51,13 @@ namespace BeatSaberOnline.Utils
             }
         }
 
-        public static void StartSong(LevelSO level, byte difficulty, bool noFail)
+        public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers)
         {
             try
             {
                 MenuSceneSetupDataSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuSceneSetupDataSO>().FirstOrDefault();
                 if (menuSceneSetupData != null)
                 {
-                    GameplayModifiers gameplayModifiers = new GameplayModifiers();
-                    gameplayModifiers.noFail = noFail;
-                    
-
                     PlayerSpecificSettings playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().currentLocalPlayer.playerSpecificSettings;
                     IDifficultyBeatmap difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
                     

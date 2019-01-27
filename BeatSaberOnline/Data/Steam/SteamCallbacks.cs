@@ -45,19 +45,14 @@ namespace BeatSaberOnline.Data.Steam
         }
         public void OnLobbyDataUpdate(LobbyDataUpdate_t pCallback)
         {
-            Logger.Info("DATA UPDATE");
             if (pCallback.m_ulSteamIDLobby == pCallback.m_ulSteamIDMember)
             {
-                Logger.Info("SAME CLIENT");
-                Logger.Info(pCallback.m_ulSteamIDLobby);
                 if (pCallback.m_ulSteamIDLobby == 0) { return; }
                 LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
-
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
-
                     if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
-                    {
+                        {
                         Logger.Debug($"Song has been selected, going to the waiting screen");
                         WaitingMenu.Instance.Present();
                     }
@@ -77,7 +72,7 @@ namespace BeatSaberOnline.Data.Steam
                         }
 
                         SteamAPI.ClearPlayerReady(new CSteamID(SteamAPI.GetUserID()), true);
-                        SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), Config.Instance.NoFailMode);
+                        SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), info.GameplayModifiers);
                     }
 
                     SteamAPI.UpdateLobbyInfo(info);

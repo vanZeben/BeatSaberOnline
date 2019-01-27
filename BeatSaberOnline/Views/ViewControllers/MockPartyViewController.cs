@@ -2,7 +2,9 @@
 using BeatSaberOnline.Data.Steam;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
+using System;
 using System.Linq;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.UI;
 using Logger = BeatSaberOnline.Data.Logger;
@@ -12,7 +14,8 @@ namespace BeatSaberOnline.Views.ViewControllers
     class MockPartyViewController
     {
         private PartyFreePlayFlowCoordinator _partyFlowCoordinator;
-        StandardLevelDetailViewController detail;
+        private StandardLevelDetailViewController detail;
+        private GameplaySetupViewController _gameplaySetupViewController;
         private Button mPlay;
 
         public MockPartyViewController()
@@ -22,7 +25,8 @@ namespace BeatSaberOnline.Views.ViewControllers
             LevelListViewController level = ReflectionUtil.GetPrivateField<LevelListViewController>(_partyFlowCoordinator, "_levelListViewController");
              detail = ReflectionUtil.GetPrivateField<StandardLevelDetailViewController>(_partyFlowCoordinator, "_levelDetailViewController");
             BeatmapDifficultyViewController beatmap = ReflectionUtil.GetPrivateField<BeatmapDifficultyViewController>(_partyFlowCoordinator, "_beatmapDifficultyViewController");
-
+             _gameplaySetupViewController = ReflectionUtil.GetPrivateField<GameplaySetupViewController>(_partyFlowCoordinator, "_gameplaySetupViewController");
+            
             ReflectionUtil.SetField(level, "didSelectLevelEvent", null);
             level.didSelectLevelEvent += didSelectLevel;
             
@@ -56,15 +60,21 @@ namespace BeatSaberOnline.Views.ViewControllers
         }
 
         private void didSelectPlay()
-        {
-            Logger.Debug("Custom play button selected");
-            if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
+        {try
             {
-                toggleButtons(true);
-                return;
+                var practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
+                Logger.Debug("Custom play button selected");
+                if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
+                {
+                    toggleButtons(true);
+                    return;
+                }
+                toggleButtons(false);
+                SteamAPI.RequestPlay(new GameplayModifiers(_gameplaySetupViewController.gameplayModifiers));
+            } catch (Exception e)
+            {
+                Logger.Error(e);
             }
-            toggleButtons(false);
-            SteamAPI.RequestPlay();
         }
 
         private void didSelectBeatmap(BeatmapDifficultyViewController controller, IDifficultyBeatmap beatmap)
