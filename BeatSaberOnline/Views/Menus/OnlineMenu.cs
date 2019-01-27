@@ -144,7 +144,6 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     if (d.text.Equals(pair.Value[0]))
                     {
-                        Logger.Info("Sending invite to " + pair.Value[0]);
                         SteamAPI.InviteUserToLobby(pair.Key);
                         break;
                     }

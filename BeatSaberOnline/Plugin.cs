@@ -6,7 +6,7 @@ using System;
 using Steamworks;
 using BeatSaberOnline.Controllers;
 using BeatSaberOnline.Views.Menus;
-
+using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 namespace BeatSaberOnline
 {
     public class Plugin : IPlugin
@@ -27,6 +27,7 @@ namespace BeatSaberOnline
             Config.Init();
             Sprites.Init();
 
+            SceneManager.sceneLoaded += SceneLoaded;
             SceneManager.activeSceneChanged += ActiveSceneChanged;
         }
 
@@ -53,7 +54,9 @@ namespace BeatSaberOnline
         {
         }
 
-
+        private void SceneLoaded(Scene to, LoadSceneMode mode)
+        {
+        }
         private void ActiveSceneChanged(Scene from, Scene to)
         {
             Logger.Debug($"Active scene changed from \"{from.name}\" to \"{to.name}\"");

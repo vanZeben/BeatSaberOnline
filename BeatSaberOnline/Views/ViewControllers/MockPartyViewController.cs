@@ -57,6 +57,7 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         private void didSelectPlay()
         {
+            Logger.Debug("Custom play button selected");
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
                 toggleButtons(true);
@@ -68,6 +69,8 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         private void didSelectBeatmap(BeatmapDifficultyViewController controller, IDifficultyBeatmap beatmap)
         {
+            Logger.Debug($"beatmap {beatmap.difficulty} selected");
+
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
                 toggleButtons(true);
@@ -80,6 +83,8 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         protected void didSelectLevel(LevelListViewController controller, IBeatmapLevel level)
         {
+            Logger.Debug($"level {level.levelID} selected");
+
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
                 toggleButtons(true);

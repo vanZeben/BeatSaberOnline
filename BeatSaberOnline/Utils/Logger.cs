@@ -17,10 +17,8 @@ namespace BeatSaberOnline.Data
 
         public static void Debug(object message)
         {
-#if DEBUG
             Console.ForegroundColor = ConsoleColor.Gray;
             Write("Debug", message);
-#endif
         }
         public static void Info(object message)
         {
@@ -42,8 +40,11 @@ namespace BeatSaberOnline.Data
 
         private static void Write(string type, object message)
         {
-            Console.WriteLine($"[{loggerName} - {type}] ${message}");
-            logWriter.WriteLine($"[{loggerName} - {type}] ${message}");
+            if ((type == "Debug" && Config.Instance.DebugMode) || type != "Debug")
+            {
+                Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} [{loggerName}] [{type}] ${message}");
+            }
+            logWriter.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} [{type}] ${message}");
         }
 
     }
