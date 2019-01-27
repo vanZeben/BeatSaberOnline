@@ -104,9 +104,9 @@ namespace BeatSaberOnline.Views
                 Config.Instance.MaxLobbySize = value;
             };
             
-            var FailMode = settingsMenu.AddBool("No Fail");
-            FailMode.GetValue += delegate { return Config.Instance.NoFailMode; };
-            FailMode.SetValue += delegate (bool value) { Config.Instance.NoFailMode = value; };
+            var DebugMode = settingsMenu.AddBool("Debug Mode");
+            DebugMode.GetValue += delegate { return Config.Instance.DebugMode; };
+            DebugMode.SetValue += delegate (bool value) { Config.Instance.DebugMode = value; };
         }
 
         private void CreateMainMenuButton()
@@ -115,7 +115,14 @@ namespace BeatSaberOnline.Views
             {
                 try
                 {
-                    OnlineMenu.Instance.Present();
+                    if (SteamAPI.isLobbyConnected())
+                    {
+                        LobbyMenu.Instance.Present();
+                    }
+                    else
+                    {
+                        OnlineMenu.Instance.Present();
+                    }
                 }
                 catch (Exception e)
                 {

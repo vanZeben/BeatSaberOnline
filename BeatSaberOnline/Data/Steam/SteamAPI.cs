@@ -210,6 +210,7 @@ namespace BeatSaberOnline.Data.Steam
 
         public static bool IsHost()
         {
+            if (_lobbyInfo.LobbyID.m_SteamID == 0) { return true;  }
             bool host = SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID).m_SteamID == GetUserID();
             if (host) {
                 Logger.Debug($"We are the host");
@@ -529,13 +530,19 @@ namespace BeatSaberOnline.Data.Steam
         }
         public static void Disconnect()
         {
-            Logger.Debug($"Disconnect from current lobby");
-            _lobbyInfo.HostName = "";
-            SendLobbyInfo(true);
-            Connection = ConnectionState.DISCONNECTED;
-            _lobbyInfo.LobbyID = new CSteamID(0);
-            SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
-            Controllers.PlayerController.Instance.DestroyAvatars();
+            try
+            {
+                Logger.Debug($"Disconnect from current lobby");
+                _lobbyInfo.HostName = "";
+                SendLobbyInfo(true);
+                Connection = ConnectionState.DISCONNECTED;
+                _lobbyInfo.LobbyID = new CSteamID(0);
+                SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
+                Controllers.PlayerController.Instance.DestroyAvatars();
+            } catch (Exception e)
+            {
+                Logger.Error(e);
+            }
         }
         public static void SetOtherLobbyData(ulong lobbyId, LobbyInfo info)
         {

@@ -10,33 +10,32 @@ namespace BeatSaberOnline.Data
 
     public class PlayerInfo
     {
-        public string playerName;
-        public ulong playerId;
+        public string playerName = "";
+        public ulong playerId = 0;
 
-        public uint playerScore;
-        public uint playerCutBlocks;
-        public uint playerComboBlocks;
-        public uint playerTotalBlocks;
-        public float playerEnergy;
+        public uint playerScore = 0;
+        public uint playerCutBlocks = 0;
+        public uint playerComboBlocks = 0;
+        public uint playerTotalBlocks = 0;
+        public float playerEnergy = 0;
 
-        public float playerProgress;
+        public float playerProgress = 0f;
 
-        public Vector3 headPos;
-        public Vector3 rightHandPos;
-        public Vector3 leftHandPos;
+        public Vector3 headPos = new Vector3(0, 0, 0);
+        public Vector3 rightHandPos = new Vector3(0, 0, 0);
+        public Vector3 leftHandPos = new Vector3(0, 0, 0);
 
-        public Quaternion headRot;
-        public Quaternion rightHandRot;
-        public Quaternion leftHandRot;
+        public Quaternion headRot = new Quaternion();
+        public Quaternion rightHandRot = new Quaternion();
+        public Quaternion leftHandRot = new Quaternion();
         
-        public string avatarHash;
-        public bool Downloading;
+        public string avatarHash = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
+        public bool Downloading = false;
 
         public PlayerInfo(string _name, ulong _id)
         {
             playerName = _name;
             playerId = _id;
-            avatarHash = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
         }
         public PlayerInfo(string data)
         {

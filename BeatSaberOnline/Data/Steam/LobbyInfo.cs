@@ -20,21 +20,21 @@ namespace BeatSaberOnline.Data.Steam
             IN_GAME,
         }
 
-        public string HostName { get; set; }
-        public CSteamID LobbyID { get; set; }
+        public string HostName { get; set; } = "";
+        public CSteamID LobbyID { get; set; } = new CSteamID(0);
 
-        public string Status { get; set; }
+        public string Status { get; set; } = "";
         public bool Joinable { get; set; } = true;
 
         public int UsedSlots { get; set; } = 1;
         public int TotalSlots { get; set; } = 5;
         public int MaxSlots { get; private set; } = 10;
 
-        public string CurrentSongId { get; set; }
-        public string CurrentSongName { get; set; }
-        public byte CurrentSongDifficulty { get; set; }
+        public string CurrentSongId { get; set; } = "";
+        public string CurrentSongName { get; set; } = "";
+        public byte CurrentSongDifficulty { get; set; } = 0;
 
-        public SCREEN_TYPE Screen { get; set; }
+        public SCREEN_TYPE Screen { get; set; } = SCREEN_TYPE.NONE;
         private string _gameplayModifiers = "";
 
         public GameplayModifiers GameplayModifiers
@@ -42,7 +42,9 @@ namespace BeatSaberOnline.Data.Steam
             get => new GameplayModifers(JsonUtility.FromJson<GameplayModifiers>(_gameplayModifiers));
             set => _gameplayModifiers = JsonUtility.ToJson(value);
         }
-        public LobbyInfo() { }
+        public LobbyInfo() {
+            GameplayModifiers = new GameplayModifiers();
+        }
         public LobbyInfo(string data)
         {
             FromBytes(DeSerialize(data));

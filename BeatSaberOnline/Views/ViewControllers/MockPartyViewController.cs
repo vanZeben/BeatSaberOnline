@@ -42,14 +42,23 @@ namespace BeatSaberOnline.Views.ViewControllers
         }
 
         private void toggleButtons(bool val)
-        {   
+        {
             Button play = ReflectionUtil.GetPrivateField<Button>(detail, "_playButton");
             Button practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
-            Logger.Info(play + ", " + play.gameObject.activeSelf);
+            if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED)
+            {
+                play.gameObject.SetActive(true);
+                play.gameObject.SetActiveRecursively(true); // something else in another plugin/base game is calling this and we need to forcibly override it 
+                practice.gameObject.SetActive(true);
+                play.interactable = true;
+                practice.interactable = true;
+                mPlay.gameObject.SetActive(false);
+                return;
+            }
             if (play && play.gameObject)
             {
                 play.gameObject.SetActive(val);
-                play.gameObject.SetActiveRecursively(false);
+                play.gameObject.SetActiveRecursively(false); // something else in another plugin/base game is calling this and we need to forcibly override it 
                 play.interactable = false;
             }
             if (practice && practice.gameObject)
