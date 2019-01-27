@@ -296,6 +296,7 @@ namespace BeatSaberOnline.Data.Steam
 
         public static void CreateLobby()
         {
+            Logger.Info("CREATE LOBBY NOW");
             SteamAPICall_t handle = SteamMatchmaking.CreateLobby(Config.Instance.IsPublic ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeFriendsOnly, Config.Instance.MaxLobbySize);
             OnLobbyCreatedCallResult.Set(handle);
         }
@@ -327,8 +328,14 @@ namespace BeatSaberOnline.Data.Steam
 
             var hostUserId = SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID);
             var me = SteamUser.GetSteamID();
+            if (bIOFailure)
+            {
+                Logger.Info("FAILED TO CREATE");
+            }
+            Logger.Info("NOW HOSTING LOBBY WITH ID "+_lobbyInfo.LobbyID);
             if (hostUserId.m_SteamID == me.m_SteamID)
             {
+                setLobbyStatus("Waiting In Menu");
                 SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "game", GAME_ID);
             }
         }
@@ -340,6 +347,10 @@ namespace BeatSaberOnline.Data.Steam
                 _lobbyInfo.Connection = ConnectionState.FAILED;
                 Logger.Error("CONNECTION FAILED");
                 return;
+            }
+            if (_lobbyInfo.LobbyID.m_SteamID > 0)
+            {
+                Disconnect();
             }
             _lobbyInfo.Connection = ConnectionState.CONNECTING;
             _lobbyInfo.LobbyID = lobbyId;
@@ -359,8 +370,8 @@ namespace BeatSaberOnline.Data.Steam
                 for (int i = 0; i < cFriends; i++)
                 {
                     FriendGameInfo_t friendGameInfo;
-                    CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate);
-                    if (SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo) && friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && friendGameInfo.m_steamIDLobby != _lobbyInfo.LobbyID)
+                    CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
+                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && friendGameInfo.m_steamIDLobby != _lobbyInfo.LobbyID)
                     {
                         availableLobbies.Add(friendGameInfo.m_steamIDLobby, SteamFriends.GetFriendPersonaName(steamIDFriend));
                     }
@@ -417,25 +428,7 @@ namespace BeatSaberOnline.Data.Steam
         {
             return SteamMatchmaking.GetLobbyData(lobbyID, "status");
         }
-
-        public static Dictionary<CSteamID, string> GetMembersInLobby(CSteamID lobbyID)
-        {
-            Dictionary<CSteamID, string> members = new Dictionary<CSteamID, string>();
-            if (!SteamManager.Initialized)
-            {
-                Logger.Error("CONNECTION FAILED");
-                return members;
-            }
-            int numMembers = SteamMatchmaking.GetNumLobbyMembers(lobbyID);
-            for (int i = 0; i < numMembers; i++)
-            {
-                CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(lobbyID, i);
-                members.Add(member, SteamFriends.GetFriendPersonaName(member));
-            }
-
-            return members;
-        }
-
+        
         public static void SendPlayerInfo(PlayerInfo playerInfo)
         {
             var message = playerInfo.Serialize().Trim();
@@ -458,6 +451,8 @@ namespace BeatSaberOnline.Data.Steam
         public static void Disconnect()
         {
             SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
+            _lobbyInfo.LobbyID = new CSteamID(0);
+            _lobbyInfo.Connection = ConnectionState.DISCONNECTED;
             Controllers.PlayerController.Instance.DestroyAvatars();
         }
     }

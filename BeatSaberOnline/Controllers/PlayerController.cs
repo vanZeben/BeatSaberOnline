@@ -154,7 +154,7 @@ namespace BeatSaberOnline.Controllers
                     {
                         var message = Encoding.UTF8.GetString(buffer).Replace(" ", "");
                         PlayerInfo info = new PlayerInfo(message);
-                        if (info.playerId != SteamAPI.GetUserID())
+                        if (info.playerId != SteamAPI.GetUserID() && SteamAPI.getLobbyID().m_SteamID != 0)
                         {
                             UpsertPlayer(info);
                         }

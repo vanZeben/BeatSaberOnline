@@ -31,11 +31,11 @@ namespace BeatSaberOnline.Views.Menus
             if (Instance == null)
             {
                 Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Online Multiplayer");
-                
+
                 var middleViewController = BeatSaberUI.CreateViewController<ListViewController>();
                 var rightViewController = BeatSaberUI.CreateViewController<ListViewController>();
 
-              
+
                 Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                 {
                     if (firstActivation)
@@ -83,22 +83,25 @@ namespace BeatSaberOnline.Views.Menus
 
             }
         }
+        
 
         private static void SetupDisconnect(Button host)
         {
+            host.onClick.RemoveAllListeners();
             host.SetButtonText("Disconnect");
-            host.onClick.AddListener(delegate ()
-            {
+            host.onClick.AddListener(delegate {
                 SteamAPI.Disconnect();
                 SetupHost(host);
             });
         }
+
         private static void SetupHost(Button host)
         {
+            host.onClick.RemoveAllListeners();
             host.SetButtonText("Host Lobby");
             host.onClick.AddListener(delegate ()
             {
-                SteamAPI.GetServers();
+                SteamAPI.CreateLobby();
                 SetupDisconnect(host);
             });
         }
@@ -149,41 +152,35 @@ namespace BeatSaberOnline.Views.Menus
 
             };
         }
-
+        private static List<CSteamID> availableLobbies;
         private static void refreshAvailableLobbies(ListViewController middleViewController)
         {
             lobbies = SteamAPI.getAvailableLobbies();
+            availableLobbies = new List<CSteamID>();
             middleViewController.Data.Clear();
             CGameID gameId = SteamAPI.GetGameID();
-            foreach (KeyValuePair<CSteamID, string> entry in lobbies)
+            try
             {
-                Dictionary<CSteamID, string> members = SteamAPI.GetMembersInLobby(entry.Key);
-                string status = SteamAPI.getLobbyStatus(entry.Key);
-                if (status == null) status = "Lobby";
-                string membersStr = "";
-                string[] memberStrs = members.Values.ToArray();
-                for (int i = 0; i < memberStrs.Length;i++)
+                foreach (KeyValuePair<CSteamID, string> entry in lobbies)
                 {
-                    membersStr += memberStrs[i] + (i >= memberStrs.Length - 1? "" : ", ");
-                }
-                middleViewController.Data.Add(new CustomCellInfo($"{status}", $"{membersStr}"));
-            }
+                    availableLobbies.Add(entry.Key);
+                    string status = SteamAPI.getLobbyStatus(entry.Key);
 
+                    if (status == null || status.Length == 0) status = "";
+                    middleViewController.Data.Add(new CustomCellInfo($"{entry.Value}'s Lobby", $"{status}"));
+                }
+            } catch (Exception e)
+            {
+                Logger.Error(e);
+            }
             middleViewController._customListTableView.ReloadData();
             middleViewController._customListTableView.ScrollToRow(0, false);
             middleViewController.DidSelectRowEvent = (TableView view, int row) =>
             {
-                var d = middleViewController.Data[row];
-                foreach (KeyValuePair<CSteamID, string> pair in lobbies)
-                {
-                    if (d.subtext.Equals($"~ {pair.Value}"))
-                    {
-                        Logger.Info("Joining " + pair.Value);
-                        SteamAPI.JoinLobby(pair.Key);
-                        break;
-                    }
+                CSteamID clickedID = availableLobbies[row];
+                if (clickedID != null && clickedID.m_SteamID != 0) {
+                    SteamAPI.JoinLobby(clickedID);
                 }
-
             };
         }
     }
