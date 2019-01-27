@@ -30,7 +30,6 @@ namespace BeatSaberOnline.Views.Menus
         private static ListViewController middleViewController;
         public static TMPro.TextMeshProUGUI level = null;
         public static bool firstInit = true;
-        private static Song downloadingSong;
         private static SongPreviewPlayer _songPreviewPlayer;
 
         public static SongPreviewPlayer PreviewPlayer
@@ -80,14 +79,9 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
-
-        private static void downloadedSong(Song song)
-        {
-            Logger.Info("Finished downloading " + song.songName);
-        }
+       
         private static void ReadyUp(LevelSO song, bool ready)
         {
-            Logger.Info("ReadyUp " + ready);
             if (ready) { SteamAPI.SetReady(); }
             PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
         }
@@ -96,6 +90,7 @@ namespace BeatSaberOnline.Views.Menus
             try
             {
                 LevelSO song = GetInstalledSong();
+                Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "not" : "")} loaded");
                 if (song != null)
                 {
                     level.text = $"Queued: { song.songName} by { song.songAuthorName }";
@@ -103,6 +98,8 @@ namespace BeatSaberOnline.Views.Menus
                     {
                         SongLoader.Instance.LoadAudioClipForLevel((CustomLevel) song, (customLevel) =>
                         {
+                            Logger.Debug($"Loading audio Clip for {song.songName}");
+
                             ReadyUp(customLevel, ready);
                         });
                     } else
@@ -110,7 +107,9 @@ namespace BeatSaberOnline.Views.Menus
                         ReadyUp(song, ready);
                     }
                 } else {
-                   Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), () => { RefreshData(true); }));
+                    Logger.Debug($"We do not have the song in our library, lets start downloading it.");
+
+                    Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), () => {  RefreshData(true); }));
                 }
 
                 if (Instance && Instance.isActiveAndEnabled)

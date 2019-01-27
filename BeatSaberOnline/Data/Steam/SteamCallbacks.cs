@@ -34,6 +34,7 @@ namespace BeatSaberOnline.Data.Steam
 
         private void OnGameLobbyJoinRequested(GameLobbyJoinRequested_t pCallback)
         {
+            Logger.Debug($"Attempting to join {pCallback.m_steamIDFriend}'s lobby @ {pCallback.m_steamIDLobby}");
             SteamAPI.JoinLobby(pCallback.m_steamIDLobby);
         }
         private bool DidScreenChange(string newScreen, string val)
@@ -51,13 +52,17 @@ namespace BeatSaberOnline.Data.Steam
 
                 if (DidScreenChange(screen, "WAITING"))
                 {
+                    Logger.Debug($"Song has been selected, going to the waiting screen");
+
                     WaitingMenu.Instance.Present();
                 } else if (DidScreenChange(screen, "MENU"))
                 {
+                    Logger.Debug($"Song has finished, updating state to menu");
+
                     GameController.Instance.SongFinished(null, null, null, null);
                 } else if (DidScreenChange(screen, "PLAY_SONG"))
                 {
-                    Logger.Info("Host asked to play song ");
+                    Logger.Debug($"Host requested to play the current song {songId}");
                     
                         LevelSO song = WaitingMenu.GetInstalledSong();
                         if (SteamAPI.IsHost())
@@ -76,9 +81,12 @@ namespace BeatSaberOnline.Data.Steam
                 string readyStatus = SteamMatchmaking.GetLobbyMemberData(new CSteamID(pCallback.m_ulSteamIDLobby), new CSteamID(pCallback.m_ulSteamIDMember), "ReadyStatus");
                 if (readyStatus == "Ready")
                 {
+                    Logger.Debug($"{pCallback.m_ulSteamIDMember} is now ready");
+
                     SteamAPI.SetPlayerReady(new CSteamID(pCallback.m_ulSteamIDMember));
                 } else
                 {
+                    Logger.Debug($"{pCallback.m_ulSteamIDMember} cleared their ready status");
                     SteamAPI.ClearPlayerReady(new CSteamID(pCallback.m_ulSteamIDMember), false);
                 }
             }
@@ -86,6 +94,8 @@ namespace BeatSaberOnline.Data.Steam
 
         public static void OnLobbyEnter(LobbyEnter_t pCallback)
         {
+
+            Logger.Debug($"You have entered lobby {pCallback.m_ulSteamIDLobby}");
             SteamAPI.SetConnectionState(SteamAPI.ConnectionState.CONNECTED);
             SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);            
         }
@@ -99,12 +109,15 @@ namespace BeatSaberOnline.Data.Steam
         {
             try
             {
+                Logger.Debug($"{pCallback.m_steamIDRemote} requested a P2P session");
+
                 int numMembers = SteamMatchmaking.GetNumLobbyMembers(SteamAPI.getLobbyID());
                 for (int i = 0; i < numMembers; i++)
                 {
                     var member = SteamMatchmaking.GetLobbyMemberByIndex(SteamAPI.getLobbyID(), i);
                     if (member.m_SteamID == pCallback.m_steamIDRemote.m_SteamID)
                     {
+                        Logger.Debug($"{pCallback.m_steamIDRemote} is in our lobby, lets accept their P2P session");
                         bool ret = SteamNetworking.AcceptP2PSessionWithUser(pCallback.m_steamIDRemote);
                     }
                 }

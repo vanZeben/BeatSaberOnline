@@ -77,7 +77,7 @@ namespace BeatSaberOnline.Controllers
                 pauseMenu?.MenuButtonPressed();
                 SteamAPI.StopSong();
             }
-            Logger.Info("Finished song: " + levelCompletionResults.levelEndStateType + " - " +levelCompletionResults.songDuration+" - - "+levelCompletionResults.endSongTime);
+            Logger.Debug("Finished song: " + levelCompletionResults.levelEndStateType + " - " +levelCompletionResults.songDuration+" - - "+levelCompletionResults.endSongTime);
             WaitingMenu.firstInit = true;
             WaitingMenu.Instance.Dismiss();
             SteamAPI.FinishSong();

@@ -71,7 +71,7 @@ namespace BeatSaberOnline.Controllers
 
 
             }
-            Logger.Info($"Found avatar, isLoaded={defaultAvatarInstance.IsLoaded}");
+            Logger.Debug($"Found avatar, isLoaded={defaultAvatarInstance.IsLoaded}");
             if (!defaultAvatarInstance.IsLoaded)
             {
                 defaultAvatarInstance.Load(null);
@@ -85,7 +85,7 @@ namespace BeatSaberOnline.Controllers
                     if (CustomExtensions.CreateMD5FromFile(avatar.FullPath, out hash))
                     {
                         ModelSaberAPI.cachedAvatars.Add(hash, avatar);
-                        Logger.Info("Hashed avatar " + avatar.Name + "! Hash: " + hash);
+                        Logger.Debug("Hashed avatar " + avatar.Name + "! Hash: " + hash);
                     }
                 }).ConfigureAwait(false);
 
@@ -101,7 +101,7 @@ namespace BeatSaberOnline.Controllers
         {
             if (!defaultAvatarInstance.IsLoaded)
             {
-                Logger.Info("Waiting for avatar to load");
+                Logger.Debug("Waiting for avatar to load");
                 yield return new WaitWhile(delegate () { return !defaultAvatarInstance.IsLoaded; });
             }
             else
@@ -109,7 +109,7 @@ namespace BeatSaberOnline.Controllers
                 yield return null;
             }
 
-            Logger.Info("Spawning avatar");
+            Logger.Debug("Spawning avatar");
             _centerAdjust = FindObjectOfType<VRCenterAdjust>();
 
             avatar = AvatarSpawner.SpawnAvatar(defaultAvatarInstance, this);

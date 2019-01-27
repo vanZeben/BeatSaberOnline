@@ -104,10 +104,10 @@ namespace BeatSaberOnline.Utils
 
                 if (www.isNetworkError || www.isHttpError)
                 {
-                    Data.Logger.Info($"Http request error! {www.error}");
+                    Data.Logger.Error($"Http request error! {www.error}");
                     yield break;
                 }
-                Data.Logger.Info($"Success downloading \"{url}\"");
+                Data.Logger.Debug($"Success downloading \"{url}\"");
                 byte[] data = www.downloadHandler.data;
                 try
                 {
@@ -115,11 +115,11 @@ namespace BeatSaberOnline.Utils
                         Directory.CreateDirectory(Path.GetDirectoryName(path));
 
                     File.WriteAllBytes(path, data);
-                    Data.Logger.Info("Downloaded file!");
+                    Data.Logger.Debug("Downloaded file!");
                 }
                 catch (Exception)
                 {
-                    Data.Logger.Info("Failed to download file!");
+                    Data.Logger.Error("Failed to download file!");
                     yield break;
                 }
             }
@@ -127,14 +127,14 @@ namespace BeatSaberOnline.Utils
 
         public IEnumerator DownloadSong(string levelId, Action songDownloaded)
         {
-            if (levelId.Length > 32) { levelId = levelId.Substring(0, 32); }
+            levelId = levelId.Substring(0, 32);
             
             using (UnityWebRequest www = UnityWebRequest.Get($"https://beatsaver.com/api/songs/search/hash/{levelId}"))
             {
                 yield return www.SendWebRequest();
                 if (www.isNetworkError || www.isHttpError)
                 {
-                    Data.Logger.Info(www.error);
+                    Data.Logger.Error(www.error);
                     yield break;
                 }
                 
@@ -146,7 +146,7 @@ namespace BeatSaberOnline.Utils
                         EmptyDirectory(".mpdownloadcache");
 
                         string zipPath = Path.Combine(Environment.CurrentDirectory, ".mpdownloadcache", $"{song["version"].Value}.zip");
-                        Data.Logger.Info($"ZipPath: {zipPath}");
+                        Data.Logger.Debug($"ZipPath: {zipPath}");
                         yield return DownloadFile(song["downloadUrl"].Value, zipPath);
                         yield return ExtractZip(zipPath, Path.Combine(Environment.CurrentDirectory, "CustomSongs", song["version"].Value));
 
