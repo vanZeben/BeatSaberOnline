@@ -107,12 +107,10 @@ namespace BeatSaberOnline.Views
             var FailMode = settingsMenu.AddBool("No Fail");
             FailMode.GetValue += delegate { return Config.Instance.NoFailMode; };
             FailMode.SetValue += delegate (bool value) { Config.Instance.NoFailMode = value; };
-
         }
 
         private void CreateMainMenuButton()
         {
-
             MenuButtonUI.AddButton("Multiplayer", delegate ()
             {
                 try
@@ -125,6 +123,5 @@ namespace BeatSaberOnline.Views
                 }
             });
         }
-
     }
 }

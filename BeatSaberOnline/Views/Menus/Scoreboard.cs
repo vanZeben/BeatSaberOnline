@@ -127,8 +127,8 @@ namespace BeatSaberOnline.Views.Menus
             });
 
             // Set the scoreboard position
-            _canvas.transform.position = new Vector3(0.3362783f, 3.322219f, 4.523799f);
-            _canvas.transform.rotation = Quaternion.Euler(316.5302f, 3.251378f, 357.9613f);
+            _canvas.transform.position = new Vector3(0f, 4f, 5f);
+            _canvas.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
         }
         
