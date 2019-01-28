@@ -8,6 +8,7 @@ using System.Text;
 using BeatSaberOnline.Views.Menus;
 using System.Linq;
 using UnityEngine;
+using BeatSaberOnline.Utils;
 
 namespace BeatSaberOnline.Data.Steam
 {
@@ -175,7 +176,7 @@ namespace BeatSaberOnline.Data.Steam
                 try
                 {
                     Logger.Debug($"update the current screen to the waiting screen while people download the song");
-                    LevelSO song = WaitingMenu.GetInstalledSong();
+                    LevelSO song = SongListUtils.GetInstalledSong();
                     if (song != null)
                     {
                         setLobbyStatus("Loading " + song.songName + " by " + song.songAuthorName);
