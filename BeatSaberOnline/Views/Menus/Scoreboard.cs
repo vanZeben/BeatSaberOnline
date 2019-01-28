@@ -27,9 +27,9 @@ namespace BeatSaberOnline.Views.Menus
 
         public void UpdateText(int place)
         {
-            this.place = place + 1;
+            this.place = place;
             if (this.text)
-                this.text.text = $"{this.place}.  <align=left>{name} - [{combo} combo]<line-height=0>\r\n<align=right>{score}<line-height=1em>";
+                this.text.text = $"{place+1}.  <align=left>{name} - [{combo} combo]<line-height=0>\r\n<align=right>{score}<line-height=1em>";
         }
     }
 
@@ -166,7 +166,7 @@ namespace BeatSaberOnline.Views.Menus
             for (int i = 0; i < _scoreboardEntries.Count; i++)
             {
                 // Only update the text if their place changed
-                if(i != _scoreboardEntries[i].place-1)
+                if(i != _scoreboardEntries[i].place)
                     _scoreboardEntries[i].UpdateText(i);
             }
             UpdateScoreboardUI();
