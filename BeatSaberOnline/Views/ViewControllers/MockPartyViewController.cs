@@ -44,14 +44,9 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         private void toggleButtons(bool val)
         {
-            if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
-            {
-                mPlay.gameObject.SetActive(!val);
-                return;
-            }
             Button play = ReflectionUtil.GetPrivateField<Button>(detail, "_playButton");
             Button practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
-            if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED)
+            if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED || (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated))
             {
                 play.gameObject.SetActive(true);
                 play.gameObject.SetActiveRecursively(true); // something else in another plugin/base game is calling this and we need to forcibly override it 

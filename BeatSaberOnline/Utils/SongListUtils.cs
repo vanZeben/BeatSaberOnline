@@ -1,4 +1,5 @@
 ﻿using BeatSaberOnline.Controllers;
+using BeatSaberOnline.Data.Steam;
 using BeatSaverDownloader.UI;
 using HMUI;
 using IllusionInjector;
@@ -73,6 +74,25 @@ namespace BeatSaberOnline.Utils
                 Data.Logger.Error(e);
             }
         }
-        
+
+        public static LevelSO GetInstalledSong()
+        {
+            string levelId = SteamAPI.GetSongId();
+            LevelSO level;
+            if (levelId.Length > 32)
+            {
+                if (SongLoader.CustomLevels == null) { return null; }
+                LevelSO[] levels = SongLoader.CustomLevels.Where(l => l.levelID.StartsWith(levelId.Substring(0, 32))).ToArray();
+                level = levels.Length > 0 ? levels[0] : null;
+            }
+            else
+            {
+                if (SongLoader.CustomLevelCollectionSO.levels == null) { return null; }
+                LevelSO[] levels = SongLoader.CustomLevelCollectionSO.levels.Where(l => l.levelID.StartsWith(levelId)).ToArray();
+                level = levels.Length > 0 ? levels[0] : null;
+            }
+            return level;
+        }
+
     }
 }

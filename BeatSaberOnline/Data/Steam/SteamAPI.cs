@@ -543,9 +543,12 @@ namespace BeatSaberOnline.Data.Steam
                 _lobbyInfo.HostName = "";
                 SendLobbyInfo(true);
                 Connection = ConnectionState.DISCONNECTED;
-                _lobbyInfo.LobbyID = new CSteamID(0);
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
                 Controllers.PlayerController.Instance.DestroyAvatars();
+                _lobbyInfo = new LobbyInfo();
+                Controllers.PlayerController.Instance._playerInfo = new PlayerInfo(GetUserName(), GetUserID());
+                LobbyData.Clear();
+                ReadyState.Clear();
             } catch (Exception e)
             {
                 Logger.Error(e);

@@ -89,7 +89,7 @@ namespace BeatSaberOnline.Views.Menus
         {
             try
             {
-                LevelSO song = GetInstalledSong();
+                LevelSO song = SongListUtils.GetInstalledSong();
                 Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "" : "not")} loaded");
                 if (song != null)
                 {
@@ -130,22 +130,5 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
-        public static LevelSO GetInstalledSong()
-        {
-            string levelId = SteamAPI.GetSongId();
-            LevelSO level;
-            if (levelId.Length > 32)
-            {
-                if (SongLoader.CustomLevels == null) { return null;  }
-                LevelSO[] levels = SongLoader.CustomLevels.Where(l => l.levelID.StartsWith(levelId.Substring(0, 32))).ToArray();
-                level = levels.Length > 0 ? levels[0] : null;
-            } else
-            {
-                if (SongLoader.CustomLevelCollectionSO.levels == null) { return null; }
-                LevelSO[] levels = SongLoader.CustomLevelCollectionSO.levels.Where(l => l.levelID.StartsWith(levelId)).ToArray();
-                level = levels.Length > 0 ? levels[0] : null;
-            }
-            return level;
-        }
     }
 }

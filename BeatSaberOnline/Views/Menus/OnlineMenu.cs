@@ -175,7 +175,6 @@ namespace BeatSaberOnline.Views.Menus
             middleViewController.Data.Clear();
             try
             {
-                Logger.Info(SteamAPI.LobbyData.Count);
                 Dictionary<ulong, LobbyInfo> lobbies = SteamAPI.LobbyData;
                 foreach (KeyValuePair<ulong, LobbyInfo> entry in lobbies)
                 {
