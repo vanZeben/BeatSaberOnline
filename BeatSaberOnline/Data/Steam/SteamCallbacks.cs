@@ -25,7 +25,6 @@ namespace BeatSaberOnline.Data.Steam
         private LobbyInfo.SCREEN_TYPE currentScreen;
         public SteamCallbacks()
         {
-
             m_GameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
             m_LobbyEnter_t = Callback<LobbyEnter_t>.Create(OnLobbyEnter);
             m_LobbyDataUpdate_t = Callback<LobbyDataUpdate_t>.Create(OnLobbyDataUpdate);
