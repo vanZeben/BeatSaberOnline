@@ -175,12 +175,12 @@ namespace BeatSaberOnline.Views.Menus
             middleViewController.Data.Clear();
             try
             {
+                Logger.Info(SteamAPI.LobbyData.Count);
                 Dictionary<ulong, LobbyInfo> lobbies = SteamAPI.LobbyData;
                 foreach (KeyValuePair<ulong, LobbyInfo> entry in lobbies)
                 {
                     LobbyInfo info = SteamAPI.LobbyData[entry.Key];
                     availableLobbies.Add(entry.Key, info.Joinable);
-                    if (info == null) { continue; }
                     middleViewController.Data.Add(new CustomCellInfo($"{(info.Joinable ? "":"[LOCKED]")}[{info.UsedSlots}/{info.TotalSlots}] {info.HostName}'s Lobby", $"{info.Status}"));
                 }
             }
@@ -195,6 +195,9 @@ namespace BeatSaberOnline.Views.Menus
                 ulong clickedID = availableLobbies.Keys.ToArray()[row];
                 if (clickedID != 0 && availableLobbies.Values.ToArray()[row])
                 {
+
+                    Instance.Dismiss();
+                    LobbyMenu.Instance.Present();
                     SteamAPI.JoinLobby(new CSteamID(clickedID));
                 }
             };

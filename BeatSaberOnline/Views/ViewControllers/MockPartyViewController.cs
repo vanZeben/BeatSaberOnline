@@ -36,6 +36,7 @@ namespace BeatSaberOnline.Views.ViewControllers
 
             mPlay.SetButtonText("Play with Lobby");
             mPlay.SetButtonTextSize(5f);
+            mPlay.gameObject.SetActive(false);
             mPlay.ToggleWordWrapping(false);
 
             mPlay.onClick.AddListener(didSelectPlay);
@@ -43,6 +44,11 @@ namespace BeatSaberOnline.Views.ViewControllers
 
         private void toggleButtons(bool val)
         {
+            if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
+            {
+                mPlay.gameObject.SetActive(!val);
+                return;
+            }
             Button play = ReflectionUtil.GetPrivateField<Button>(detail, "_playButton");
             Button practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
             if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED)

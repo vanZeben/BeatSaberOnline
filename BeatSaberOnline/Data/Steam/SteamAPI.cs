@@ -175,7 +175,6 @@ namespace BeatSaberOnline.Data.Steam
                 try
                 {
                     Logger.Debug($"update the current screen to the waiting screen while people download the song");
-
                     LevelSO song = WaitingMenu.GetInstalledSong();
                     if (song != null)
                     {
@@ -251,8 +250,6 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"We have finished the song");
 
             ReadyState.Clear();
-            _lobbyInfo.CurrentSongDifficulty = 0;
-            _lobbyInfo.CurrentSongId = null;
 
             SendLobbyInfo(true);
             setLobbyStatus("Waiting In Menu");
@@ -366,21 +363,21 @@ namespace BeatSaberOnline.Data.Steam
                     if (lobbyId.m_SteamID == _lobbyInfo.LobbyID.m_SteamID) { continue; }
                     LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(lobbyId, "LOBBY_INFO"));
 
-                    LobbyData.Add(lobbyId.m_SteamID, info);
+                    SetOtherLobbyData(lobbyId.m_SteamID, info, false);
                     Logger.Info($"{info.HostName} has {info.UsedSlots} users in it and is currently {info.Status}");
                 }
             } catch (Exception e)
             {
                 Logger.Info(e);
             }
-            
+
             OnlineMenu.refreshLobbyList();
         }
 
         public static void CreateLobby()
         {
+            if (isLobbyConnected()) { return; }
             Logger.Debug($"Creating a lobby");
-
             SteamAPICall_t handle = SteamMatchmaking.CreateLobby(Config.Instance.IsPublic ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeFriendsOnly, Config.Instance.MaxLobbySize);
             OnLobbyCreatedCallResult.Set(handle);
         }
@@ -460,8 +457,9 @@ namespace BeatSaberOnline.Data.Steam
                 {
                     FriendGameInfo_t friendGameInfo;
                     CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
+
                     if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
-                   {
+                    {
                        SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
                     }
                 }
@@ -553,12 +551,15 @@ namespace BeatSaberOnline.Data.Steam
                 Logger.Error(e);
             }
         }
-        public static void SetOtherLobbyData(ulong lobbyId, LobbyInfo info)
+        public static void SetOtherLobbyData(ulong lobbyId, LobbyInfo info, bool refresh = true)
         {
-            LobbyData.Clear();
-            LobbyData.Add(lobbyId, info);
+            info.UsedSlots = SteamMatchmaking.GetNumLobbyMembers(new CSteamID(lobbyId));
+            if (info.UsedSlots > 0 && info.HostName != "")
+            {
+                LobbyData.Add(lobbyId, info);
 
-            OnlineMenu.refreshLobbyList();
+                OnlineMenu.refreshLobbyList();
+            }
         }
     }
 }

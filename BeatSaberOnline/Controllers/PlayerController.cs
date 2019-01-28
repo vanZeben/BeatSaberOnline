@@ -8,10 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.XR;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 
 namespace BeatSaberOnline.Controllers
@@ -124,34 +122,6 @@ namespace BeatSaberOnline.Controllers
 
                 if (_connectedPlayers.ContainsKey(info.playerId) && _connectedPlayerAvatars.ContainsKey(info.playerId))
                 {
-                    bool refresh = false;
-                    if (_connectedPlayers[info.playerId].Downloading != info.Downloading)
-                    {
-                        refresh = true;
-                        if (info.Downloading)
-                        {
-
-                            if (!SteamAPI.IsHost())
-                            {
-                                if (_connectedPlayers.Values.ToList().All(u => u.Downloading))
-                                {
-                                    Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
-                                    SteamAPI.StartPlaying();
-                                }
-                            }
-                        } else
-                        {
-                            if (SteamAPI.IsHost())
-                            {
-                                if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
-                                {
-                                    Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
-
-                                    SteamAPI.StartGame();
-                                }
-                            }
-                        }
-                    }
                     if (info.playerScore != _connectedPlayers[info.playerId].playerScore || info.playerComboBlocks != _connectedPlayers[info.playerId].playerComboBlocks)
                     {
                         Scoreboard.Instance.UpdateScoreboardEntry(info.playerId, (int)info.playerScore, (int)info.playerComboBlocks);
@@ -165,11 +135,34 @@ namespace BeatSaberOnline.Controllers
                         Array.Sort(playerInfosByID);
                         offset = (Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3;
                     }
-
+                    bool isDownloading = false;
+                    if (SteamAPI.IsHost())
+                    {
+                        if (_connectedPlayers[info.playerId].Downloading != info.Downloading)
+                        {
+                            isDownloading = true;
+                        }
+                    }
                     _connectedPlayers[info.playerId] = info;
                     _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
-                    if (refresh)
-                    {
+                    if (isDownloading) {
+                        if (info.Downloading)
+                        {
+                            if (_connectedPlayers.Values.ToList().All(u => u.Downloading))
+                            {
+                                Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
+                                SteamAPI.StartPlaying();
+                            }
+                        }
+                        else
+                        {
+
+                            if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
+                            {
+                                Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
+                                SteamAPI.StartGame();
+                            }
+                        }
                         WaitingMenu.RefreshData(false);
                     }
                 }

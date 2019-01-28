@@ -48,7 +48,8 @@ namespace BeatSaberOnline.Data.Steam
             {
                 LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
 
-                if (pCallback.m_ulSteamIDLobby == 0) { return; }
+                if (pCallback.m_ulSteamIDLobby == 0) return;
+               
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
 
@@ -80,11 +81,6 @@ namespace BeatSaberOnline.Data.Steam
                     currentScreen = info.Screen;
                 } else
                 {
-
-                    if (SteamAPI.LobbyData[pCallback.m_ulSteamIDLobby] == null)
-                    {
-                        SteamAPI.LobbyData.Add(pCallback.m_ulSteamIDLobby, info);
-                    }
                     SteamAPI.SetOtherLobbyData(pCallback.m_ulSteamIDLobby, info);
                 }
             }

@@ -106,10 +106,10 @@
     <Compile Include="Views\ViewControllers\MockPartyViewController.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\TextShader" />
+    <EmbeddedResource Include="Resources\TextShader" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetDir)$(TargetFileName)" "C:\Program Files (x86)\Steam\steamapps\common\Beat Saber\Plugins"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetDir)$(TargetFileName)" "D:\Games\Steam\SteamApps\common\Beat Saber\Plugins"</PostBuildEvent>
   </PropertyGroup>
 </Project>
