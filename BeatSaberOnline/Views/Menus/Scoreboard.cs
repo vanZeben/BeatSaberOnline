@@ -157,18 +157,13 @@ namespace BeatSaberOnline.Views.Menus
 
         public void UpdateScoreboardEntry(ulong clientIndex, int score, int combo)
         {
-            ScoreboardEntry entry = _scoreboardEntries.First(s => s.clientIndex == clientIndex);
+            ScoreboardEntry entry= _scoreboardEntries.First(s => s.clientIndex == clientIndex);
             if (entry == null) return;
 
             entry.score = score;
             entry.combo = combo;
             _scoreboardEntries.Sort(_scoreComparison);
-            for (int i = 0; i < _scoreboardEntries.Count; i++)
-            {
-                // Only update the text if their place changed
-                if(i != _scoreboardEntries[i].place)
-                    _scoreboardEntries[i].UpdateText(i);
-            }
+            entry.UpdateText(_scoreboardEntries.IndexOf(entry));
             UpdateScoreboardUI();
         }
 
@@ -176,6 +171,13 @@ namespace BeatSaberOnline.Views.Menus
         {
             if (_scoreboardEntries.Count > 0)
             {
+                for (int i = 0; i < _scoreboardEntries.Count; i++)
+                {
+                    // Only update the text if their place changed
+                    if (i != _scoreboardEntries[i].place)
+                        _scoreboardEntries[i].UpdateText(i);
+                }
+
                 // Update the position of each scoreboard entry
                 float currentYValue = 0;
                 float initialYValue = currentYValue;
