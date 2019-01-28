@@ -17,6 +17,7 @@ namespace BeatSaberOnline.Views.Menus
         public int combo;
         public TextMeshProUGUI text;
         public ulong clientIndex;
+        public int place;
 
         public ScoreboardEntry(ulong clientIndex, string name)
         {
@@ -26,8 +27,9 @@ namespace BeatSaberOnline.Views.Menus
 
         public void UpdateText(int place)
         {
+            this.place = place + 1;
             if (this.text)
-                this.text.text = $"{place+1}.  <align=left>{name} - [{combo} combo]<line-height=0>\r\n<align=right>{score}<line-height=1em>";
+                this.text.text = $"{this.place}.  <align=left>{name} - [{combo} combo]<line-height=0>\r\n<align=right>{score}<line-height=1em>";
         }
     }
 
@@ -161,8 +163,12 @@ namespace BeatSaberOnline.Views.Menus
             entry.score = score;
             entry.combo = combo;
             _scoreboardEntries.Sort(_scoreComparison);
-            for(int i=0; i<_scoreboardEntries.Count; i++)
-                _scoreboardEntries[i].UpdateText(i);
+            for (int i = 0; i < _scoreboardEntries.Count; i++)
+            {
+                // Only update the text if their place changed
+                if(i != _scoreboardEntries[i].place-1)
+                    _scoreboardEntries[i].UpdateText(i);
+            }
             UpdateScoreboardUI();
         }
 

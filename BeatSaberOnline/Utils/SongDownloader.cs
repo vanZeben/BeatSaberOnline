@@ -143,18 +143,23 @@ namespace BeatSaberOnline.Utils
 
                 foreach (JSONObject song in result["songs"].AsArray)
                 {
-                        EmptyDirectory(".mpdownloadcache");
+                    EmptyDirectory(".mpdownloadcache");
 
-                        string zipPath = Path.Combine(Environment.CurrentDirectory, ".mpdownloadcache", $"{song["version"].Value}.zip");
-                        Data.Logger.Debug($"ZipPath: {zipPath}");
-                        yield return DownloadFile(song["downloadUrl"].Value, zipPath);
-                        yield return ExtractZip(zipPath, Path.Combine(Environment.CurrentDirectory, "CustomSongs", song["version"].Value));
+                    string zipPath = Path.Combine(Environment.CurrentDirectory, ".mpdownloadcache", $"{song["version"].Value}.zip");
+                    string finalPath = Path.Combine(Environment.CurrentDirectory, "CustomSongs", song["version"].Value);
 
-                        SongLoader.Instance.RefreshSongs(false);
-                        EmptyDirectory(".mpdownloadcache", true);
+                    if(Directory.Exists(finalPath))
+                        Directory.Delete(finalPath, true);
+
+                    Data.Logger.Debug($"ZipPath: {zipPath}");
+                    yield return DownloadFile(song["downloadUrl"].Value, zipPath);
+                    yield return ExtractZip(zipPath, finalPath);
+
+                    SongLoader.Instance.RefreshSongs(false);
+                    EmptyDirectory(".mpdownloadcache", true);
                         
-                        songDownloaded?.Invoke();
-                        break;
+                    songDownloaded?.Invoke();
+                    break;
                 }
             }
         }
