@@ -137,8 +137,8 @@ namespace BeatSaberOnline.Views.Menus
         public void AddScoreboardEntry(ulong clientIndex, string name)
         {
             if (_scoreboardEntries.Find(m => m.name == name && m.clientIndex == clientIndex) != null) return;
-
             ScoreboardEntry entry = new ScoreboardEntry(clientIndex, name);
+            entry.place = 0;
             entry.text = _textPool.Alloc();
             entry.text.text = name;
             _scoreboardEntries.Add(entry);
@@ -157,7 +157,7 @@ namespace BeatSaberOnline.Views.Menus
 
         public void UpdateScoreboardEntry(ulong clientIndex, int score, int combo)
         {
-            ScoreboardEntry entry= _scoreboardEntries.First(s => s.clientIndex == clientIndex);
+            ScoreboardEntry entry = _scoreboardEntries.First(s => s.clientIndex == clientIndex);
             if (entry == null) return;
 
             entry.score = score;

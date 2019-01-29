@@ -125,10 +125,10 @@ namespace BeatSaberOnline.Utils
             }
         }
 
-        public IEnumerator DownloadSong(string levelId, Action songDownloaded)
+        public IEnumerator DownloadSong(string levelId, Action<string> songDownloaded)
         {
             levelId = levelId.Substring(0, 32);
-            
+
             using (UnityWebRequest www = UnityWebRequest.Get($"https://beatsaver.com/api/songs/search/hash/{levelId}"))
             {
                 yield return www.SendWebRequest();
@@ -137,7 +137,7 @@ namespace BeatSaberOnline.Utils
                     Data.Logger.Error(www.error);
                     yield break;
                 }
-                
+
                 JSONNode result = JSON.Parse(www.downloadHandler.text);
                 if (result["total"].AsInt == 0) yield break;
 
@@ -148,7 +148,7 @@ namespace BeatSaberOnline.Utils
                     string zipPath = Path.Combine(Environment.CurrentDirectory, ".mpdownloadcache", $"{song["version"].Value}.zip");
                     string finalPath = Path.Combine(Environment.CurrentDirectory, "CustomSongs", song["version"].Value);
 
-                    if(Directory.Exists(finalPath))
+                    if (Directory.Exists(finalPath))
                         Directory.Delete(finalPath, true);
 
                     Data.Logger.Debug($"ZipPath: {zipPath}");
@@ -156,9 +156,10 @@ namespace BeatSaberOnline.Utils
                     yield return ExtractZip(zipPath, finalPath);
 
                     SongLoader.Instance.RefreshSongs(false);
+                    while (SongLoader.AreSongsLoading) yield return null;
                     EmptyDirectory(".mpdownloadcache", true);
-                        
-                    songDownloaded?.Invoke();
+
+                    songDownloaded?.Invoke(song["hashMd5"]);
                     break;
                 }
             }

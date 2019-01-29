@@ -85,32 +85,37 @@ namespace BeatSaberOnline.Views.Menus
             if (ready) { SteamAPI.SetReady(); }
             PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
         }
-        public static void RefreshData(bool ready)
+        public static void RefreshData(bool ready, LevelSO song = null)
         {
             try
             {
-                LevelSO song = SongListUtils.GetInstalledSong();
-                Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "" : "not")} loaded");
-                if (song != null)
+                if (song == null)
                 {
-                    level.text = $"Queued: { song.songName} by { song.songAuthorName }";
-                    if (song is CustomLevel)
-                    {
-                        SongLoader.Instance.LoadAudioClipForLevel((CustomLevel) song, (customLevel) =>
-                        {
-                            Logger.Debug($"Loading audio Clip for {song.songName}");
-
-                            ReadyUp(customLevel, ready);
-                        });
-                    } else
-                    {
-                        ReadyUp(song, ready);
-                    }
-                } else {
-                    Logger.Debug($"We do not have the song in our library, lets start downloading it.");
-
-                    Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), () => {  RefreshData(true); }));
+                    song = SongListUtils.GetInstalledSong();
                 }
+                    Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "not" : "")} loaded");
+                    if (song != null)
+                    {
+                        level.text = $"Queued: { song.songName} by { song.songAuthorName }";
+                        if (song is CustomLevel)
+                        {
+                            SongLoader.Instance.LoadAudioClipForLevel((CustomLevel)song, (customLevel) =>
+                            {
+                                Logger.Debug($"Loading audio Clip for {song.songName}");
+
+                                ReadyUp(customLevel, ready);
+                            });
+                        }
+                        else
+                        {
+                            ReadyUp(song, ready);
+                        }
+                    }
+                    else
+                    {
+                        Logger.Debug($"We do not have the song in our library, lets start downloading it.");
+                        Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), LevelDownloaded));
+                    }
 
                 if (Instance && Instance.isActiveAndEnabled)
                 {
@@ -118,17 +123,30 @@ namespace BeatSaberOnline.Views.Menus
                     middleViewController.Data.Clear();
                     foreach (KeyValuePair<string, bool> user in status.OrderBy(u => u.Value))
                     {
-                        CustomCellInfo cell = new CustomCellInfo(user.Key,  user.Value ? "Ready" : "Downloading song", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
+                        CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value ? "Ready" : "Downloading song", user.Value ? Sprites.checkmarkIcon : Sprites.crossIcon);
                         middleViewController.Data.Add(cell);
                     }
                     middleViewController._customListTableView.ReloadData();
                     middleViewController._customListTableView.ScrollToRow(0, false);
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Logger.Error(e);
             }
         }
 
+        public static void LevelDownloaded(string hash)
+        {
+            try
+            {
+                LevelSO level = SongListUtils.GetInstalledSong(hash.ToUpper());
+                RefreshData(true, level);
+            } catch (Exception e)
+            {
+                Logger.Error(e);
+            }
+            
+        }
     }
 }

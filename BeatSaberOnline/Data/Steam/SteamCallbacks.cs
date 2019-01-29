@@ -52,7 +52,6 @@ namespace BeatSaberOnline.Data.Steam
                
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
-
                     if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
                         {
                         Logger.Debug($"Song has been selected, going to the waiting screen");

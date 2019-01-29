@@ -68,8 +68,8 @@ namespace BeatSaberOnline.Views
 
                 AvatarController.LoadAvatars();
                 SongListUtils.Initialize();
-                OnlineMenu.Init();
-                LobbyMenu.Init();
+                MultiplayerListing.Init();
+                MultiplayerLobby.Init();
                 WaitingMenu.Init();
                 CreateMainMenuButton(); 
                 CreateSettingsMenu();
@@ -117,11 +117,11 @@ namespace BeatSaberOnline.Views
                 {
                     if (SteamAPI.isLobbyConnected())
                     {
-                        LobbyMenu.Instance.Present();
+                        MultiplayerLobby.Instance.Present();
                     }
                     else
                     {
-                        OnlineMenu.Instance.Present();
+                        MultiplayerListing.Instance.Present();
                     }
                 }
                 catch (Exception e)

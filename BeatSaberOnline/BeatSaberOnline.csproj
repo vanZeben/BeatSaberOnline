@@ -41,11 +41,9 @@
     <Reference Include="BeatSaberCustomUI" />
     <Reference Include="BeatSaverDownloader" />
     <Reference Include="CustomAvatar" />
-    <Reference Include="CustomSaber" />
     <Reference Include="IllusionInjector, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="IllusionPlugin" />
     <Reference Include="Newtonsoft.Json" />
-    <Reference Include="SongBrowserPlugin" />
     <Reference Include="SongLoaderPlugin" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -61,6 +59,10 @@
     <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="UnityEngine.CoreModule" />
     <Reference Include="UnityEngine.ImageConversionModule" />
+    <Reference Include="UnityEngine.InputModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\UnityEngine.InputModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="UnityEngine.PhysicsModule" />
     <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
@@ -94,16 +96,17 @@
     <Compile Include="Utils\HexConverter.cs" />
     <Compile Include="Utils\ModelSaberAPI.cs" />
     <Compile Include="Utils\ObjectPool.cs" />
-    <Compile Include="Views\Menus\LobbyMenu.cs" />
+    <Compile Include="Views\Menus\MultiplayerLobby.cs" />
     <Compile Include="Views\Menus\Scoreboard.cs" />
     <Compile Include="Utils\Serialization.cs" />
     <Compile Include="Utils\SongDownloader.cs" />
     <Compile Include="Utils\SongListUtils.cs" />
     <Compile Include="Views\Menus\WaitingMenu.cs" />
-    <Compile Include="Views\Menus\OnlineMenu.cs" />
+    <Compile Include="Views\Menus\MultiplayerListing.cs" />
     <Compile Include="Views\PluginUI.cs" />
     <Compile Include="Views\ViewControllers\ListViewController.cs" />
     <Compile Include="Views\ViewControllers\MockPartyViewController.cs" />
+    <Compile Include="Workers\VoiceChatWorker.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\TextShader" />

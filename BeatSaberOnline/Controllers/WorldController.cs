@@ -66,6 +66,7 @@ namespace BeatSaberOnline.Controllers
         {
             HandOffset leftOffs = GetLeftHandOffs();
             return new CharacterPosition
+            
             {
                 headPos = WorldController.GetXRNodeWorldPosRot(XRNode.Head).Position,
                 headRot = WorldController.GetXRNodeWorldPosRot(XRNode.Head).Rotation,

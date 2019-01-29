@@ -8,6 +8,7 @@ using BeatSaberOnline.Controllers;
 using BeatSaberOnline.Views.Menus;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 using BeatSaberOnline.Data.Steam;
+using BeatSaberOnline.Workers;
 
 namespace BeatSaberOnline
 {
@@ -15,8 +16,9 @@ namespace BeatSaberOnline
     {
         public static Plugin instance;
         public string Name => "BeatSaberOnline";
-        public string Version => "0.0.1";
+        public string Version => "1.0.1";
         public string CurrentScene { get; set; }
+
         public void OnApplicationStart()
         {
             Init();
@@ -35,7 +37,7 @@ namespace BeatSaberOnline
 
         public void OnApplicationQuit()
         {
-
+            SteamAPI.Disconnect();
             SceneManager.activeSceneChanged -= ActiveSceneChanged;
         }
 
@@ -57,6 +59,18 @@ namespace BeatSaberOnline
 
         private void SceneLoaded(Scene to, LoadSceneMode mode)
         {
+            try
+            {
+                if (to.name == "Menu" && SteamAPI.getLobbyID().m_SteamID > 0)
+                {
+                    Logger.Info("Creating new lobby");
+                    SteamAPI.CreateLobby();
+                    Controllers.PlayerController.Instance.DestroyAvatars();
+                }
+            } catch (Exception e)
+            {
+                Logger.Error(e);
+            }
         }
         private void ActiveSceneChanged(Scene from, Scene to)
         {
@@ -69,6 +83,7 @@ namespace BeatSaberOnline
                 Controllers.GameController.Init(to);
                 Controllers.LeaderboardController.Init(to);
                 Controllers.PlayerController.Init(to);
+                VoiceChatWorker.Init();
             }
             else
             { 

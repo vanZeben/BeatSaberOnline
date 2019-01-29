@@ -1,16 +1,9 @@
 ﻿using BeatSaberOnline.Controllers;
 using BeatSaberOnline.Data.Steam;
-using BeatSaverDownloader.UI;
-using HMUI;
 using IllusionInjector;
 using IllusionPlugin;
-using SongBrowserPlugin;
-using SongBrowserPlugin.DataAccess;
 using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
@@ -20,7 +13,6 @@ namespace BeatSaberOnline.Utils
     {
         private static LevelListViewController _standardLevelListViewController = null;
         private static bool _initialized = false;
-        private static bool _songBrowserInstalled = false;
         private static bool _songDownloaderInstalled = false;
 
         public static bool IsModInstalled(string modName)
@@ -42,7 +34,6 @@ namespace BeatSaberOnline.Utils
             {
                 try
                 {
-                    _songBrowserInstalled = IsModInstalled("Song Browser");
                     _songDownloaderInstalled = IsModInstalled("BeatSaver Downloader");
                     _initialized = true;
                 } catch (Exception e)
@@ -75,23 +66,33 @@ namespace BeatSaberOnline.Utils
             }
         }
 
-        public static LevelSO GetInstalledSong()
+        public static LevelSO GetInstalledSong(string levelId = null)
         {
-            string levelId = SteamAPI.GetSongId();
-            LevelSO level;
-            if (levelId.Length > 32)
+            try
             {
-                if (SongLoader.CustomLevels == null) { return null; }
-                LevelSO[] levels = SongLoader.CustomLevels.Where(l => l.levelID.StartsWith(levelId.Substring(0, 32))).ToArray();
-                level = levels.Length > 0 ? levels[0] : null;
-            }
-            else
-            {
+                if (levelId == null)
+                {
+                    levelId = SteamAPI.GetSongId();
+                }
+                 LevelSO level;
+                 if (levelId.Length > 32)
+                 {
+                     if (SongLoader.CustomLevels == null) { return null; }
+                     LevelSO[] levels = SongLoader.CustomLevels.Where(l => l.levelID.StartsWith(levelId.Substring(0, 32))).ToArray();
+                     level = levels.Length > 0 ? levels[0] : null;
+                 }
+                 else
+                 {
                 if (SongLoader.CustomLevelCollectionSO.levels == null) { return null; }
                 LevelSO[] levels = SongLoader.CustomLevelCollectionSO.levels.Where(l => l.levelID.StartsWith(levelId)).ToArray();
                 level = levels.Length > 0 ? levels[0] : null;
+                 }
+                return level;
             }
-            return level;
+            catch (Exception e) {
+                Data.Logger.Error(e);
+                return null;
+            }
         }
 
     }

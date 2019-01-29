@@ -32,8 +32,7 @@ namespace BeatSaberOnline.Data.Steam
         private static CallResult<LobbyCreated_t> OnLobbyCreatedCallResult;
 
         private static SteamCallbacks callbacks;
-        static LobbyInfo _lobbyInfo;
-        public static Dictionary<CSteamID, bool> ReadyState = new Dictionary<CSteamID, bool>();
+        static LobbyInfo _lobbyInfo = new LobbyInfo();
         public static ConnectionState Connection { get; set; } = ConnectionState.UNDEFINED;
         public static Dictionary<ulong, LobbyInfo> LobbyData { get; set; } = new Dictionary<ulong, LobbyInfo>();
 
@@ -124,7 +123,6 @@ namespace BeatSaberOnline.Data.Steam
         {
             Logger.Debug($"Broadcast to our lobby that we are ready");
             Controllers.PlayerController.Instance._playerInfo.Downloading = true;
-
             if (_lobbyInfo.UsedSlots == 1)
             {
                 StartPlaying();
@@ -138,12 +136,10 @@ namespace BeatSaberOnline.Data.Steam
         }
         public static void ClearPlayerReady(CSteamID steamId, bool push)
         {
-            ReadyState.Remove(steamId);
             if (push) {
                 Logger.Debug($"Broadcast to our lobby that our ready status should be cleared");
                 Controllers.PlayerController.Instance._playerInfo.Downloading = false;
             }
-
         }
 
         public static void StartPlaying()
@@ -156,19 +152,7 @@ namespace BeatSaberOnline.Data.Steam
             _lobbyInfo.Screen = LobbyInfo.SCREEN_TYPE.IN_GAME;
             SendLobbyInfo(true);
         }
-
-        public static Dictionary<string, bool> getAllPlayerStatusesInLobby()
-        {
-            Dictionary<string, bool> status = new Dictionary<string, bool>();
-            int numMembers = SteamMatchmaking.GetNumLobbyMembers(_lobbyInfo.LobbyID);
-            for (int i = 0; i < numMembers; i++)
-            {
-                CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(_lobbyInfo.LobbyID, i);
-                string name =  SteamFriends.GetFriendPersonaName(member);
-                status.Add(name, ReadyState.ContainsKey(member) && ReadyState[member]);
-            }
-            return status;
-        }
+        
         public static void RequestPlay(GameplayModifiers gameplayModifiers)
         {
             if (IsHost())
@@ -249,8 +233,6 @@ namespace BeatSaberOnline.Data.Steam
         public static void FinishSong()
         {
             Logger.Debug($"We have finished the song");
-
-            ReadyState.Clear();
 
             SendLobbyInfo(true);
             setLobbyStatus("Waiting In Menu");
@@ -355,7 +337,7 @@ namespace BeatSaberOnline.Data.Steam
             uint numLobbies = pCallback.m_nLobbiesMatching;
             Logger.Info($"Found {numLobbies} total lobbies");
             LobbyData.Clear();
-            OnlineMenu.refreshLobbyList();
+            MultiplayerListing.refreshLobbyList();
             try
             {
                 for (int i = 0; i < numLobbies; i++)
@@ -372,7 +354,7 @@ namespace BeatSaberOnline.Data.Steam
                 Logger.Info(e);
             }
 
-            OnlineMenu.refreshLobbyList();
+            MultiplayerListing.refreshLobbyList();
         }
 
         public static void CreateLobby()
@@ -433,7 +415,6 @@ namespace BeatSaberOnline.Data.Steam
             }
             if (_lobbyInfo.LobbyID.m_SteamID > 0)
             {
-
                 Logger.Debug($"We are already in another lobby, lets disconnect first");
                 Disconnect();
             }
@@ -452,7 +433,7 @@ namespace BeatSaberOnline.Data.Steam
                 return;
             }
             LobbyData.Clear();
-            OnlineMenu.refreshLobbyList();
+            MultiplayerListing.refreshLobbyList();
             int cFriends = SteamFriends.GetFriendCount(EFriendFlags.k_EFriendFlagImmediate);
                 for (int i = 0; i < cFriends; i++)
                 {
@@ -547,9 +528,10 @@ namespace BeatSaberOnline.Data.Steam
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
                 Controllers.PlayerController.Instance.DestroyAvatars();
                 _lobbyInfo = new LobbyInfo();
+                userID = 0;
+                UpdateUserInfo();
                 Controllers.PlayerController.Instance._playerInfo = new PlayerInfo(GetUserName(), GetUserID());
                 LobbyData.Clear();
-                ReadyState.Clear();
             } catch (Exception e)
             {
                 Logger.Error(e);
@@ -562,7 +544,7 @@ namespace BeatSaberOnline.Data.Steam
             {
                 LobbyData.Add(lobbyId, info);
 
-                OnlineMenu.refreshLobbyList();
+                MultiplayerListing.refreshLobbyList();
             }
         }
     }

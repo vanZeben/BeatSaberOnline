@@ -22,14 +22,19 @@ namespace BeatSaberOnline.Controllers
         private Dictionary<ulong, PlayerInfo> _connectedPlayers = new Dictionary<ulong, PlayerInfo>();
         private Dictionary<ulong, AvatarController> _connectedPlayerAvatars = new Dictionary<ulong, AvatarController>();
         private string _currentScene;
+        private GameObject m_VoiceLoopback;
+        public bool VoipEnabled = false;
 
+        public void clearVoiceLoopback()
+        {
+            m_VoiceLoopback = null;
+        }
         public static void Init(Scene to)
         {
             if (Instance != null)
             {
                 return;
             }
-
             new GameObject("PlayerController").AddComponent<PlayerController>();
         }
 
@@ -42,8 +47,8 @@ namespace BeatSaberOnline.Controllers
 
                 _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
                 _currentScene = SceneManager.GetActiveScene().name;
-                Scoreboard.Instance.AddScoreboardEntry(_playerInfo.playerId, _playerInfo.playerName);
 
+                Scoreboard.Instance.AddScoreboardEntry(_playerInfo.playerId, _playerInfo.playerName);
                 InvokeRepeating("BroadcastPlayerInfo", 0f, GameController.TPS);
             }
         }
@@ -107,6 +112,7 @@ namespace BeatSaberOnline.Controllers
         }
         public void UpsertPlayer(PlayerInfo info)
         {
+            if (info.playerId == _playerInfo.playerId) { return; }
             try
             {
                 if (!_connectedPlayerAvatars.Keys.Contains(info.playerId) && !_connectedPlayers.Keys.Contains(info.playerId))
@@ -156,7 +162,6 @@ namespace BeatSaberOnline.Controllers
                         }
                         else
                         {
-
                             if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
                             {
                                 Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
@@ -173,8 +178,19 @@ namespace BeatSaberOnline.Controllers
         }
         void BroadcastPlayerInfo()
         {
-            UpdatePlayerInfo();
-            SteamAPI.SendPlayerInfo(_playerInfo);
+            try
+            {
+                UpdatePlayerInfo();
+                SteamAPI.SendPlayerInfo(_playerInfo);
+                if (_playerInfo.voip != null && _playerInfo.voip.Length > 0)
+                {
+                    PlayVoip(_playerInfo.voip);
+                    _playerInfo.voip = new byte[0];
+                }
+            } catch (Exception e)
+            {
+                Data.Logger.Error(e);
+            }
         }
 
         void Update()
@@ -191,6 +207,13 @@ namespace BeatSaberOnline.Controllers
                     {
                         var message = Encoding.UTF8.GetString(buffer).Replace(" ", "");
                         PlayerInfo info = new PlayerInfo(message);
+                        if (info.voip != null && info.voip.Length > 0)
+                        {
+                           if (PlayVoip(info.voip))
+                            {
+                                info.voip = new byte[0];
+                            }
+                        }
                         if (info.playerId != SteamAPI.GetUserID() && SteamAPI.getLobbyID().m_SteamID != 0)
                         {
                             UpsertPlayer(info);
@@ -203,6 +226,37 @@ namespace BeatSaberOnline.Controllers
                 Data.Logger.Error(e);
             }
         }
+        bool PlayVoip(byte[] voipPacket)
+        {
+            byte[] voipBuffer = new byte[11025 * 2];
+            uint byteLength;
 
+            if (SteamUser.DecompressVoice(voipPacket, (uint)voipPacket.Length, voipBuffer, (uint)voipBuffer.Length, out byteLength, 11025) == EVoiceResult.k_EVoiceResultOK && byteLength > 0)
+            {
+                AudioSource source;
+                if (!m_VoiceLoopback)
+                {
+                    m_VoiceLoopback = new GameObject("Voice Loopback");
+                    source = m_VoiceLoopback.AddComponent<AudioSource>();
+                    DontDestroyOnLoad(source.gameObject);
+                    source.clip = AudioClip.Create("Voice Clip", 11025, 1, 11025, false);
+                    source.volume = 1.0f;
+                }
+                else
+                {
+                    source = m_VoiceLoopback.GetComponent<AudioSource>();
+                }
+
+                float[] voip = new float[11025];
+                for (int i = 0; i < voip.Length; ++i)
+                {
+                    voip[i] = (short)(voipBuffer[i * 2] | voipBuffer[i * 2 + 1] << 8) / 32768.0f;
+                }
+                source.clip.SetData(voip, 0);
+                source.Play();
+                return true;
+            }
+            return false;
+        }
     }
 }
