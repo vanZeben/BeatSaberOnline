@@ -49,21 +49,25 @@ namespace BeatSaberOnline.Data.Steam
                 LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
 
                 if (pCallback.m_ulSteamIDLobby == 0) return;
-               
+                Logger.Debug($"Received: {info.ToString()}");
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
+                    SteamAPI.UpdateLobbyInfo(info);
                     if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
                     {
+                        currentScreen = info.Screen;
                         Logger.Debug($"Song has been selected, going to the waiting screen");
                         WaitingMenu.Instance.Present();
                     }
                     else if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.MENU))
                     {
+                        currentScreen = info.Screen;
                         Logger.Debug($"Song has finished, updating state to menu");
                         GameController.Instance.SongFinished(null, null, null, null);
                     }
                     else if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.PLAY_SONG))
                     {
+                        currentScreen = info.Screen;
                         Logger.Debug($"Host requested to play the current song {info.CurrentSongId}");
 
                         LevelSO song = SongListUtils.GetInstalledSong();
@@ -75,9 +79,6 @@ namespace BeatSaberOnline.Data.Steam
                         SteamAPI.ClearPlayerReady(new CSteamID(SteamAPI.GetUserID()), true);
                         SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), info.GameplayModifiers);
                     }
-
-                    SteamAPI.UpdateLobbyInfo(info);
-                    currentScreen = info.Screen;
                 } else
                 {
                     SteamAPI.SetOtherLobbyData(pCallback.m_ulSteamIDLobby, info);

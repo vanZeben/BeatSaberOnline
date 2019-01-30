@@ -134,6 +134,10 @@ namespace BeatSaberOnline.Data.Steam
         {
             return unchecked(this.LobbyID.m_SteamID.GetHashCode() * 17 + this.HostName.GetHashCode());
         }
+        public string ToString()
+        {
+            return $"lobbyId={LobbyID},hostname={HostName},status={Status},joinable={Joinable},UsedSlots={UsedSlots},TotalSlots={TotalSlots},MaxSlots={MaxSlots},CurrentSongId={CurrentSongId},CurrentSongDifficulty={CurrentSongDifficulty},CurretnSongName={CurrentSongName},Screen={Screen},gameplayModifiers={_gameplayModifiers}";
+        }
 
         public string Serialize()
         {

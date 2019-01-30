@@ -245,6 +245,7 @@ namespace BeatSaberOnline.Data.Steam
         private static void SendLobbyInfo(bool reqHost = false)
         {
              if (reqHost && !IsHost()) return;
+             Logger.Debug($"Sending {_lobbyInfo.ToString()}");
              SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "LOBBY_INFO", _lobbyInfo.Serialize());
         }
         public static void IncreaseSlots()

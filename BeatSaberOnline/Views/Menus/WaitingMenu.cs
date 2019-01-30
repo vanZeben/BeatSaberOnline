@@ -82,21 +82,12 @@ namespace BeatSaberOnline.Views.Menus
        
         private static void ReadyUp(LevelSO song)
         {
-            try
+            if (queuedSong != null || (queuedSong == null && song == null)) { return; }
+            if (queuedSong == null && song != null)
             {
-                Data.Logger.Info("RU queued song " + (queuedSong == null ? "is null" : "is not null"));
-                Data.Logger.Info("RU song " + (queuedSong == null ? "is null" : "is not null"));
-
-                if (queuedSong != null || (queuedSong == null && song == null)) { return; }
-                if (queuedSong == null && song != null)
-                {
-                    queuedSong = song;
-                    SteamAPI.SetReady();
-                    PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
-                }
-            } catch (Exception e)
-            {
-                Data.Logger.Error(e);
+                queuedSong = song;
+                SteamAPI.SetReady();
+                PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
             }
         }
         public static void RefreshData(LevelSO song = null)
@@ -164,7 +155,6 @@ namespace BeatSaberOnline.Views.Menus
             {
                 Logger.Error(e);
             }
-            
         }
     }
 }
