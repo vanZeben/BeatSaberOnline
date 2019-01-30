@@ -129,7 +129,7 @@ namespace BeatSaberOnline.Data.Steam
             {
                 StartPlaying();
             }
-            WaitingMenu.RefreshData(false);
+            WaitingMenu.RefreshData();
         }
 
         public static GameplayModifiers GetGameplayModifiers()
@@ -181,6 +181,11 @@ namespace BeatSaberOnline.Data.Steam
         {
             return _lobbyInfo.CurrentSongId;
         }
+        public static string GetSongName()
+        {
+            return _lobbyInfo.CurrentSongName;
+        }
+
         public static byte GetSongDifficulty()
         {
             return _lobbyInfo.CurrentSongDifficulty;
@@ -397,10 +402,11 @@ namespace BeatSaberOnline.Data.Steam
             if (!bIOFailure) {
                 Scoreboard.Instance.UpsertScoreboardEntry(Controllers.PlayerController.Instance._playerInfo.playerId, Controllers.PlayerController.Instance._playerInfo.playerName);
                 _lobbyInfo.LobbyID = new CSteamID(pCallback.m_ulSteamIDLobby);
+                _lobbyInfo.TotalSlots = SteamMatchmaking.GetLobbyMemberLimit(_lobbyInfo.LobbyID);
                 _lobbyInfo.HostName = GetUserName();
                 Logger.Debug($"Lobby has been created");
                 var hostUserId = SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID);
-                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "version", Plugin.instance.Version);
+                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "version", PACKET_VERSION);
 
                 var me = SteamUser.GetSteamID();
                 Connection = ConnectionState.CONNECTED;
@@ -412,7 +418,6 @@ namespace BeatSaberOnline.Data.Steam
                 }
             }
         }
-        
         public static void JoinLobby(CSteamID lobbyId)
         {
             if (!SteamManager.Initialized)
@@ -448,8 +453,7 @@ namespace BeatSaberOnline.Data.Steam
                 {
                     FriendGameInfo_t friendGameInfo;
                     CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
-                    string version = SteamMatchmaking.GetLobbyData(friendGameInfo.m_steamIDLobby, "version");
-                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && (version != null && version == PACKET_VERSION))
+                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
                     {
                        SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
                     }
@@ -563,6 +567,7 @@ namespace BeatSaberOnline.Data.Steam
                 userID = 0;
                 UpdateUserInfo();
                 Scoreboard.Instance.RemoveAll();
+                SongListUtils.InSong = false;
                 Controllers.PlayerController.Instance._playerInfo = new PlayerInfo(GetUserName(), GetUserID());
                 LobbyData.Clear();
             } catch (Exception e)
@@ -572,8 +577,10 @@ namespace BeatSaberOnline.Data.Steam
         }
         public static void SetOtherLobbyData(ulong lobbyId, LobbyInfo info, bool refresh = true)
         {
+            string version = SteamMatchmaking.GetLobbyData(new CSteamID(lobbyId), "version");
+
             info.UsedSlots = SteamMatchmaking.GetNumLobbyMembers(new CSteamID(lobbyId));
-            if (info.UsedSlots > 0 && info.HostName != "")
+            if (info.UsedSlots > 0 && info.HostName != "" && version == PACKET_VERSION)
             {
                 LobbyData.Add(lobbyId, info);
 

@@ -18,8 +18,6 @@ namespace BeatSaberOnline.Controllers
     {
         public static PlayerController Instance;
 
-
-
         public PlayerInfo _playerInfo;
         private Dictionary<ulong, PlayerInfo> _connectedPlayers = new Dictionary<ulong, PlayerInfo>();
         private Dictionary<ulong, AvatarController> _connectedPlayerAvatars = new Dictionary<ulong, AvatarController>();
@@ -116,36 +114,43 @@ namespace BeatSaberOnline.Controllers
             if (info.playerId == _playerInfo.playerId) { return; }
             try
             {
-                if (!_connectedPlayerAvatars.Keys.Contains(info.playerId) && !_connectedPlayers.Keys.Contains(info.playerId))
+                if (!_connectedPlayers.Keys.Contains(info.playerId))
                 {
                     _connectedPlayers.Add(info.playerId, info);
-                    AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
-                    avatar.SetPlayerInfo(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
-                    _connectedPlayerAvatars.Add(info.playerId, avatar);
+                    if (Config.Instance.AvatarsInLobby)
+                    {
+                        AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
+                        avatar.SetPlayerInfo(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
+                        _connectedPlayerAvatars.Add(info.playerId, avatar);
+                    }
 
                     Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName);
                     return;
                 }
 
-                if (_connectedPlayers.ContainsKey(info.playerId) && _connectedPlayerAvatars.ContainsKey(info.playerId))
+                if (_connectedPlayers.ContainsKey(info.playerId))
                 {
                     if (info.playerScore != _connectedPlayers[info.playerId].playerScore || info.playerComboBlocks != _connectedPlayers[info.playerId].playerComboBlocks)
                     {
                         Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName, (int)info.playerScore, (int)info.playerComboBlocks);
                     }
-                    Vector3 offset = new Vector3(0, 0, 0);
-                    if (Plugin.instance.CurrentScene == "GameCore")
+                    if (Config.Instance.AvatarsInLobby)
                     {
-                        ulong[] playerInfosByID = new ulong[_connectedPlayers.Count + 1];
-                        playerInfosByID[0] = _playerInfo.playerId;
-                        _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
-                        Array.Sort(playerInfosByID);
-                        offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 2), 0, Math.Abs(Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 3));
+                        Vector3 offset = new Vector3(0, 0, 0);
+                        if (Plugin.instance.CurrentScene == "GameCore")
+                        {
+                            ulong[] playerInfosByID = new ulong[_connectedPlayers.Count + 1];
+                            playerInfosByID[0] = _playerInfo.playerId;
+                            _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
+                            Array.Sort(playerInfosByID);
+                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 3f), 0, Math.Abs(Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 3f));
+                        }
+
+                        _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                     }
                     bool changedDownloading = (_connectedPlayers[info.playerId].Downloading != info.Downloading);
-                    
+
                     _connectedPlayers[info.playerId] = info;
-                    _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                     if (changedDownloading) {
                         if (SteamAPI.IsHost())
                         {
@@ -156,7 +161,7 @@ namespace BeatSaberOnline.Controllers
                                     Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
                                     SteamAPI.StartPlaying();
                                 }
-                                WaitingMenu.RefreshData(false);
+                                WaitingMenu.RefreshData();
                             }
                             else
                             {
@@ -169,7 +174,7 @@ namespace BeatSaberOnline.Controllers
                         }
                         else
                         {
-                            WaitingMenu.RefreshData(false);
+                            WaitingMenu.RefreshData();
                         }
                     }
                 }

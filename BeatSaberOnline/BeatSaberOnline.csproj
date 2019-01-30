@@ -82,7 +82,6 @@
     <Compile Include="Controllers\PlayerController.cs" />
     <Compile Include="Controllers\WorldController.cs" />
     <Compile Include="Data\PlayerInfo.cs" />
-    <Compile Include="Data\Steam\GameplayModifers.cs" />
     <Compile Include="Utils\Config.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\HexConverter.cs" />

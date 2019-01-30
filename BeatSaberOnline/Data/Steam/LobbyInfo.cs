@@ -39,7 +39,7 @@ namespace BeatSaberOnline.Data.Steam
 
         public GameplayModifiers GameplayModifiers
         {
-            get => new GameplayModifers(JsonUtility.FromJson<GameplayModifiers>(_gameplayModifiers));
+            get => new GameplayModifiers(JsonUtility.FromJson<GameplayModifiers>(_gameplayModifiers));
             set => _gameplayModifiers = JsonUtility.ToJson(value);
         }
         public LobbyInfo() {

@@ -103,7 +103,11 @@ namespace BeatSaberOnline.Views
                 SteamMatchmaking.SetLobbyMemberLimit(SteamAPI.getLobbyID(), value);
                 Config.Instance.MaxLobbySize = value;
             };
-            
+
+            var AvatarsInLobby = settingsMenu.AddBool("Enable Avatars");
+            AvatarsInLobby.GetValue += delegate { return Config.Instance.AvatarsInLobby; };
+            AvatarsInLobby.SetValue += delegate (bool value) { Config.Instance.AvatarsInLobby = value; };
+
             var DebugMode = settingsMenu.AddBool("Debug Mode");
             DebugMode.GetValue += delegate { return Config.Instance.DebugMode; };
             DebugMode.SetValue += delegate (bool value) { Config.Instance.DebugMode = value; };

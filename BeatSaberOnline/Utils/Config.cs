@@ -11,7 +11,7 @@ namespace BeatSaberOnline.Data
         private int _maxLobbySize;
         private bool _noFailMode;
         private bool _debugMode;
-
+        private bool _avatarsInLobby;
         private static Config _instance;
 
         private static FileInfo FileLocation { get; } = new FileInfo($"./UserData/{Plugin.instance.Name}.json");
@@ -124,6 +124,15 @@ namespace BeatSaberOnline.Data
                 MarkDirty();
             }
         }
+        public bool AvatarsInLobby
+        {
+            get { return _avatarsInLobby; }
+            set
+            {
+                _avatarsInLobby = value;
+                MarkDirty();
+            }
+        }
 
 
         Config()
@@ -133,6 +142,7 @@ namespace BeatSaberOnline.Data
             _maxLobbySize = 5;
             _noFailMode = true;
             _debugMode = false;
+            _avatarsInLobby = true;
             IsDirty = true;
         }
 

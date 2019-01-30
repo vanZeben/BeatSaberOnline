@@ -31,6 +31,7 @@ namespace BeatSaberOnline.Views.Menus
         public static TMPro.TextMeshProUGUI level = null;
         public static bool firstInit = true;
         private static SongPreviewPlayer _songPreviewPlayer;
+        public static LevelSO queuedSong;
 
         public static SongPreviewPlayer PreviewPlayer
         {
@@ -62,13 +63,12 @@ namespace BeatSaberOnline.Views.Menus
                             level = middleViewController.CreateText("", new Vector2(BASE.x + 40f, BASE.y));
                             level.alignment = TMPro.TextAlignmentOptions.Center;
 
-                            Controllers.PlayerController.Instance.UpdatePlayerScoring("playerScore", 0);
                             SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);
                         }
                         if (firstInit)
                         {
                             firstInit = false;
-                            RefreshData(true);
+                            RefreshData();
                         }
                     } catch (Exception e)
                     {
@@ -80,43 +80,61 @@ namespace BeatSaberOnline.Views.Menus
         }
 
        
-        private static void ReadyUp(LevelSO song, bool ready)
-        {
-            if (ready) { SteamAPI.SetReady(); }
-            PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
-        }
-        public static void RefreshData(bool ready, LevelSO song = null)
+        private static void ReadyUp(LevelSO song)
         {
             try
             {
-                if (song == null)
+                Data.Logger.Info("RU queued song " + (queuedSong == null ? "is null" : "is not null"));
+                Data.Logger.Info("RU song " + (queuedSong == null ? "is null" : "is not null"));
+
+                if (queuedSong != null || (queuedSong == null && song == null)) { return; }
+                if (queuedSong == null && song != null)
                 {
-                    song = SongListUtils.GetInstalledSong();
+                    queuedSong = song;
+                    SteamAPI.SetReady();
+                    PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
                 }
+            } catch (Exception e)
+            {
+                Data.Logger.Error(e);
+            }
+        }
+        public static void RefreshData(LevelSO song = null)
+        {
+            try
+            {
+                if (queuedSong == null)
+                {
+                    if (song == null)
+                    {
+                        song = SongListUtils.GetInstalledSong();
+                    }
                     Logger.Debug($"Refresh Waiting Menu data - Song is {(song != null ? "not" : "")} loaded");
                     if (song != null)
                     {
+
                         level.text = $"Queued: { song.songName} by { song.songAuthorName }";
                         if (song is CustomLevel)
                         {
                             SongLoader.Instance.LoadAudioClipForLevel((CustomLevel)song, (customLevel) =>
                             {
-                                Logger.Debug($"Loading audio Clip for {song.songName}");
-
-                                ReadyUp(customLevel, ready);
+                                Logger.Debug($"Loaded audio Clip for {song.songName}");
+                                ReadyUp(customLevel);
                             });
                         }
                         else
                         {
-                            ReadyUp(song, ready);
+                            ReadyUp(song);
                         }
                     }
                     else
                     {
+                        level.text = $"Downloading: { SteamAPI.GetSongName()}";
+
                         Logger.Debug($"We do not have the song in our library, lets start downloading it.");
                         Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), LevelDownloaded));
                     }
-
+                }
                 if (Instance && Instance.isActiveAndEnabled)
                 {
                     var status = Controllers.PlayerController.Instance.GetConnectedPlayerDownloadStatus();
@@ -140,8 +158,8 @@ namespace BeatSaberOnline.Views.Menus
         {
             try
             {
-                LevelSO level = SongListUtils.GetInstalledSong(hash.ToUpper());
-                RefreshData(true, level);
+                LevelSO song = SongListUtils.GetInstalledSong(hash.ToUpper());
+                RefreshData(song);
             } catch (Exception e)
             {
                 Logger.Error(e);

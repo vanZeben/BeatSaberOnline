@@ -51,7 +51,7 @@ namespace BeatSaberOnline.Utils
                     string finalPath = Path.Combine(Environment.CurrentDirectory);
                 
                     yield return FileUtils.DownloadFile(result[0]["files"]["steam"]["url"].Value, zipPath);
-                    yield return FileUtils.ExtractZip(zipPath, finalPath, ".pluginupdatecache");
+                    yield return FileUtils.ExtractZip(zipPath, finalPath, ".pluginupdatecache", true);
 
                     FileUtils.EmptyDirectory(".pluginupdatecache");
                     Data.Logger.Debug($"Updated {Plugin.instance.Name} to version {version}. Please restart your game now");

@@ -68,7 +68,7 @@ namespace BeatSaberOnline.Utils
 
                     Data.Logger.Debug($"ZipPath: {zipPath}");
                     yield return FileUtils.DownloadFile(song["downloadUrl"].Value, zipPath);
-                    yield return FileUtils.ExtractZip(zipPath, finalPath, "mpdownloadcache");
+                    yield return FileUtils.ExtractZip(zipPath, finalPath, ".mpdownloadcache", false);
 
                     SongLoader.Instance.RefreshSongs(false);
                     while (SongLoader.AreSongsLoading) yield return null;

@@ -1,5 +1,6 @@
 ﻿using BeatSaberOnline.Controllers;
 using BeatSaberOnline.Data.Steam;
+using BeatSaberOnline.Views.Menus;
 using IllusionInjector;
 using IllusionPlugin;
 using SongLoaderPlugin;
@@ -42,7 +43,7 @@ namespace BeatSaberOnline.Utils
                 }
             }
         }
-        private static bool InSong = false;
+        public static bool InSong = false;
         public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers)
         {
             if (InSong) { return; }
@@ -53,14 +54,14 @@ namespace BeatSaberOnline.Utils
                 {
                     PlayerSpecificSettings playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().currentLocalPlayer.playerSpecificSettings;
                     IDifficultyBeatmap difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
-                    
+
                     Data.Logger.Info($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={difficultyBeatmap.difficulty}");
                     InSong = true;
                     menuSceneSetupData.StartStandardLevel(difficultyBeatmap, gameplayModifiers, playerSettings, null, null, 
                         (StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults) =>
                         {
                             InSong = false;
-
+                            WaitingMenu.queuedSong = null;
                             GameController.Instance.SongFinished(sender, levelCompletionResults, difficultyBeatmap, gameplayModifiers);
                     });
                 }

@@ -14,23 +14,24 @@ namespace BeatSaberOnline.Utils
     public class FileUtils
     {
 
-        public static void MoveFilesRecursively(DirectoryInfo source, DirectoryInfo target, string cacheFolder)
+        public static void MoveFilesRecursively(DirectoryInfo source, DirectoryInfo target, bool moveOld)
         {
             try
             {
                 foreach (DirectoryInfo dir in source.GetDirectories())
                 {
-                    MoveFilesRecursively(dir, target.CreateSubdirectory(dir.Name), cacheFolder);
+                    MoveFilesRecursively(dir, target.CreateSubdirectory(dir.Name), moveOld);
                 }
                 foreach (FileInfo file in source.GetFiles())
                 {
-                    if (File.Exists(Path.Combine(target.FullName, file.Name)))
+                    if (moveOld && File.Exists(Path.Combine(target.FullName, file.Name)))
                     {
                         File.Move(Path.Combine(target.FullName, file.Name), Path.Combine(target.FullName, $"{file.Name}.old"));
                     }
                     file.MoveTo(Path.Combine(target.FullName, file.Name));
                 }
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 Data.Logger.Error(e);
             }
@@ -48,7 +49,7 @@ namespace BeatSaberOnline.Utils
             }
         }
 
-        public static IEnumerator ExtractZip(string zipPath, string extractPath, string cachePath)
+        public static IEnumerator ExtractZip(string zipPath, string extractPath, string cachePath, bool moveOld)
         {
             if (File.Exists(zipPath))
             {
@@ -58,9 +59,10 @@ namespace BeatSaberOnline.Utils
                     ZipFile.ExtractToDirectory(zipPath, $"{cachePath}");
                     extracted = true;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
                     Data.Logger.Info($"An error occured while trying to extract \"{zipPath}\"!");
+                    Data.Logger.Error(e);
                     yield break;
                 }
 
@@ -75,12 +77,13 @@ namespace BeatSaberOnline.Utils
                         if (!Directory.Exists(extractPath))
                             Directory.CreateDirectory(extractPath);
 
-                        MoveFilesRecursively(new DirectoryInfo($"{Environment.CurrentDirectory}\\{ cachePath }"), new DirectoryInfo(extractPath), $"{Environment.CurrentDirectory}\\{ cachePath }");
+                        MoveFilesRecursively(new DirectoryInfo($"{Environment.CurrentDirectory}\\{ cachePath }"), new DirectoryInfo(extractPath), moveOld);
                     }
                 }
                 catch (Exception e)
                 {
                     Data.Logger.Info($"An exception occured while trying to move files into their final directory! {e.ToString()}");
+                    Data.Logger.Error(e);
                 }
             }
         }
