@@ -42,9 +42,10 @@ namespace BeatSaberOnline.Utils
                 }
             }
         }
-
+        private static bool InSong = false;
         public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers)
         {
+            if (InSong) { return; }
             try
             {
                 MenuSceneSetupDataSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuSceneSetupDataSO>().FirstOrDefault();
@@ -54,10 +55,13 @@ namespace BeatSaberOnline.Utils
                     IDifficultyBeatmap difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
                     
                     Data.Logger.Info($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={difficultyBeatmap.difficulty}");
+                    InSong = true;
                     menuSceneSetupData.StartStandardLevel(difficultyBeatmap, gameplayModifiers, playerSettings, null, null, 
                         (StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults) =>
-                    {
-                        GameController.Instance.SongFinished(sender, levelCompletionResults, difficultyBeatmap, gameplayModifiers);
+                        {
+                            InSong = false;
+
+                            GameController.Instance.SongFinished(sender, levelCompletionResults, difficultyBeatmap, gameplayModifiers);
                     });
                 }
             } catch (Exception e)

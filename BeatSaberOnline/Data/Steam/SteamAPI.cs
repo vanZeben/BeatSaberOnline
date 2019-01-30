@@ -26,6 +26,8 @@ namespace BeatSaberOnline.Data.Steam
             DISCONNECTED
         }
 
+        public static string PACKET_VERSION = "1.0.0";
+
         static string userName;
         static ulong userID;
         private static CallResult<LobbyMatchList_t> OnLobbyMatchListCallResult;
@@ -195,11 +197,7 @@ namespace BeatSaberOnline.Data.Steam
         public static bool IsHost()
         {
             if (_lobbyInfo.LobbyID.m_SteamID == 0) { return true;  }
-            bool host = SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID).m_SteamID == GetUserID();
-            if (host) {
-                Logger.Debug($"We are the host");
-            }
-            return host;
+            return SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID).m_SteamID == GetUserID();
         }
 
         public static void SetDifficulty(byte songDifficulty)
@@ -274,6 +272,7 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"Requesting list of all lobbies from steam");
 
             SteamMatchmaking.AddRequestLobbyListFilterSlotsAvailable(1);
+            SteamMatchmaking.AddRequestLobbyListStringFilter("version", PACKET_VERSION, ELobbyComparison.k_ELobbyComparisonEqual);
             SteamAPICall_t apiCall = SteamMatchmaking.RequestLobbyList();
             OnLobbyMatchListCallResult.Set(apiCall);
         }
@@ -319,12 +318,18 @@ namespace BeatSaberOnline.Data.Steam
         public static void PlayerConnected()
         {
             _lobbyInfo.UsedSlots += 1;
-            SendLobbyInfo(true);
+            if (IsHost())
+            {
+                SendLobbyInfo(true);
+            }
         }
         public static void PlayerDisconnected()
         {
             _lobbyInfo.UsedSlots -= 1;
-            SendLobbyInfo(true);
+            if (IsHost())
+            {
+                SendLobbyInfo(true);
+            }
         }
 
         public static void OnLobbyMatchList(LobbyMatchList_t pCallback, bool bIOFailure)
@@ -357,11 +362,11 @@ namespace BeatSaberOnline.Data.Steam
             MultiplayerListing.refreshLobbyList();
         }
 
-        public static void CreateLobby()
+        public static void CreateLobby(bool privateLobby)
         {
             if (isLobbyConnected()) { return; }
             Logger.Debug($"Creating a lobby");
-            SteamAPICall_t handle = SteamMatchmaking.CreateLobby(Config.Instance.IsPublic ? ELobbyType.k_ELobbyTypePublic : ELobbyType.k_ELobbyTypeFriendsOnly, Config.Instance.MaxLobbySize);
+            SteamAPICall_t handle = SteamMatchmaking.CreateLobby(privateLobby ? ELobbyType.k_ELobbyTypeFriendsOnly : ELobbyType.k_ELobbyTypePublic, Config.Instance.MaxLobbySize);
             OnLobbyCreatedCallResult.Set(handle);
         }
 
@@ -390,10 +395,13 @@ namespace BeatSaberOnline.Data.Steam
                 return;
             }
             if (!bIOFailure) {
+                Scoreboard.Instance.UpsertScoreboardEntry(Controllers.PlayerController.Instance._playerInfo.playerId, Controllers.PlayerController.Instance._playerInfo.playerName);
                 _lobbyInfo.LobbyID = new CSteamID(pCallback.m_ulSteamIDLobby);
                 _lobbyInfo.HostName = GetUserName();
                 Logger.Debug($"Lobby has been created");
                 var hostUserId = SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID);
+                SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "version", Plugin.instance.Version);
+
                 var me = SteamUser.GetSteamID();
                 Connection = ConnectionState.CONNECTED;
                 if (hostUserId.m_SteamID == me.m_SteamID)
@@ -420,6 +428,7 @@ namespace BeatSaberOnline.Data.Steam
             }
             Connection = ConnectionState.CONNECTING;
             _lobbyInfo.LobbyID = lobbyId;
+            Scoreboard.Instance.UpsertScoreboardEntry(Controllers.PlayerController.Instance._playerInfo.playerId, Controllers.PlayerController.Instance._playerInfo.playerName);
 
             Logger.Debug($"Joining a new steam lobby {lobbyId}");
             SteamMatchmaking.JoinLobby(lobbyId);
@@ -439,8 +448,8 @@ namespace BeatSaberOnline.Data.Steam
                 {
                     FriendGameInfo_t friendGameInfo;
                     CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
-
-                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
+                    string version = SteamMatchmaking.GetLobbyData(friendGameInfo.m_steamIDLobby, "version");
+                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid() && (version != null && version == PACKET_VERSION))
                     {
                        SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
                     }
@@ -517,19 +526,43 @@ namespace BeatSaberOnline.Data.Steam
                 }
             }
         }
+
+        public static void DisconnectPlayer(ulong playerId)
+        {
+            Logger.Debug($"{playerId} disconnected from current lobby");
+            _lobbyInfo.UsedSlots -= 1;
+            Scoreboard.Instance.RemoveScoreboardEntry(playerId);
+            Controllers.PlayerController.Instance.RemoveConnectedPlayer(playerId);
+            SendLobbyInfo(true);
+        }
+
+        public static void KickAll()
+        {
+            List<ulong> connectedUsers = Controllers.PlayerController.Instance.GetConnectedPlayers();
+            for (int i = 0; i < connectedUsers.Count; i++)
+            {
+                SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "STATUS", $"KICK={connectedUsers[i]}");
+            }
+        }
+
         public static void Disconnect()
         {
             try
             {
                 Logger.Debug($"Disconnect from current lobby");
+                SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "STATUS", "DISCONNECTED");
+
                 _lobbyInfo.HostName = "";
                 SendLobbyInfo(true);
+
+                
                 Connection = ConnectionState.DISCONNECTED;
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
                 Controllers.PlayerController.Instance.DestroyAvatars();
                 _lobbyInfo = new LobbyInfo();
                 userID = 0;
                 UpdateUserInfo();
+                Scoreboard.Instance.RemoveAll();
                 Controllers.PlayerController.Instance._playerInfo = new PlayerInfo(GetUserName(), GetUserID());
                 LobbyData.Clear();
             } catch (Exception e)

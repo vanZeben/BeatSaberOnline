@@ -7,7 +7,7 @@ namespace BeatSaberOnline.Utils
 
     static class HexConverter
     {
-        //https://codereview.stackexchange.com/questions/53839/convert-hex-string-to-byte-array
+        // sourced from https://codereview.stackexchange.com/questions/53839/convert-hex-string-to-byte-array
         private static readonly byte[,] ByteLookup = new byte[,]
         {
             // low nibble

@@ -18,6 +18,8 @@ namespace BeatSaberOnline.Controllers
     {
         public static PlayerController Instance;
 
+
+
         public PlayerInfo _playerInfo;
         private Dictionary<ulong, PlayerInfo> _connectedPlayers = new Dictionary<ulong, PlayerInfo>();
         private Dictionary<ulong, AvatarController> _connectedPlayerAvatars = new Dictionary<ulong, AvatarController>();
@@ -48,7 +50,6 @@ namespace BeatSaberOnline.Controllers
                 _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
                 _currentScene = SceneManager.GetActiveScene().name;
 
-                Scoreboard.Instance.AddScoreboardEntry(_playerInfo.playerId, _playerInfo.playerName);
                 InvokeRepeating("BroadcastPlayerInfo", 0f, GameController.TPS);
             }
         }
@@ -79,7 +80,7 @@ namespace BeatSaberOnline.Controllers
             ReflectionUtil.SetField(_playerInfo, fieldName, (fieldName == "playerTotalBlocks" || fieldName == "playerCutBlocks" ? ReflectionUtil.GetField<uint>(_playerInfo, fieldName) + value : value));
             if (fieldName == "playerScore")
             {
-                Scoreboard.Instance.UpdateScoreboardEntry(_playerInfo.playerId, (int)_playerInfo.playerScore, (int)_playerInfo.playerComboBlocks);
+                Scoreboard.Instance.UpsertScoreboardEntry(_playerInfo.playerId, _playerInfo.playerName, (int)_playerInfo.playerScore, (int)_playerInfo.playerComboBlocks);
             }
         }
 
@@ -119,10 +120,10 @@ namespace BeatSaberOnline.Controllers
                 {
                     _connectedPlayers.Add(info.playerId, info);
                     AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
-                    avatar.SetPlayerInfo(info, 0, info.playerId == _playerInfo.playerId);
+                    avatar.SetPlayerInfo(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
                     _connectedPlayerAvatars.Add(info.playerId, avatar);
 
-                    Scoreboard.Instance.AddScoreboardEntry(info.playerId, info.playerName);
+                    Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName);
                     return;
                 }
 
@@ -130,51 +131,57 @@ namespace BeatSaberOnline.Controllers
                 {
                     if (info.playerScore != _connectedPlayers[info.playerId].playerScore || info.playerComboBlocks != _connectedPlayers[info.playerId].playerComboBlocks)
                     {
-                        Scoreboard.Instance.UpdateScoreboardEntry(info.playerId, (int)info.playerScore, (int)info.playerComboBlocks);
+                        Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName, (int)info.playerScore, (int)info.playerComboBlocks);
                     }
-                    int offset = 0;
+                    Vector3 offset = new Vector3(0, 0, 0);
                     if (Plugin.instance.CurrentScene == "GameCore")
                     {
                         ulong[] playerInfosByID = new ulong[_connectedPlayers.Count + 1];
                         playerInfosByID[0] = _playerInfo.playerId;
                         _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
                         Array.Sort(playerInfosByID);
-                        offset = (Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3;
+                        offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 2), 0, Math.Abs(Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 3));
                     }
-                    bool isDownloading = false;
-                    if (SteamAPI.IsHost())
-                    {
-                        if (_connectedPlayers[info.playerId].Downloading != info.Downloading)
-                        {
-                            isDownloading = true;
-                        }
-                    }
+                    bool changedDownloading = (_connectedPlayers[info.playerId].Downloading != info.Downloading);
+                    
                     _connectedPlayers[info.playerId] = info;
                     _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
-                    if (isDownloading) {
-                        if (info.Downloading)
+                    if (changedDownloading) {
+                        if (SteamAPI.IsHost())
                         {
-                            if (_connectedPlayers.Values.ToList().All(u => u.Downloading))
+                            if (info.Downloading)
                             {
-                                Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
-                                SteamAPI.StartPlaying();
+                                if (_connectedPlayers.Values.ToList().All(u => u.Downloading))
+                                {
+                                    Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
+                                    SteamAPI.StartPlaying();
+                                }
+                                WaitingMenu.RefreshData(false);
+                            }
+                            else
+                            {
+                                if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
+                                {
+                                    Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
+                                    SteamAPI.StartGame();
+                                }
                             }
                         }
                         else
                         {
-                            if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
-                            {
-                                Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
-                                SteamAPI.StartGame();
-                            }
+                            WaitingMenu.RefreshData(false);
                         }
-                        WaitingMenu.RefreshData(false);
                     }
                 }
             } catch (Exception e)
             {
                 Data.Logger.Error(e);
             }
+        }
+
+        public List<ulong> GetConnectedPlayers()
+        {
+            return _connectedPlayers.Keys.ToList();
         }
         void BroadcastPlayerInfo()
         {
@@ -184,7 +191,6 @@ namespace BeatSaberOnline.Controllers
                 SteamAPI.SendPlayerInfo(_playerInfo);
                 if (_playerInfo.voip != null && _playerInfo.voip.Length > 0)
                 {
-                    PlayVoip(_playerInfo.voip);
                     _playerInfo.voip = new byte[0];
                 }
             } catch (Exception e)
@@ -192,7 +198,16 @@ namespace BeatSaberOnline.Controllers
                 Data.Logger.Error(e);
             }
         }
-
+        public void RemoveConnectedPlayer(ulong playerId)
+        {
+            _connectedPlayers.Remove(playerId);
+            AvatarController avatar = _connectedPlayerAvatars[playerId];
+            if (avatar != null)
+            {
+                Destroy(avatar.gameObject);
+            }
+            _connectedPlayerAvatars.Remove(playerId);
+        }
         void Update()
         {
             uint size;
@@ -209,10 +224,11 @@ namespace BeatSaberOnline.Controllers
                         PlayerInfo info = new PlayerInfo(message);
                         if (info.voip != null && info.voip.Length > 0)
                         {
-                           if (PlayVoip(info.voip))
+                           if (VoipEnabled) 
                             {
-                                info.voip = new byte[0];
+                                PlayVoip(info.voip);
                             }
+                            info.voip = new byte[0];
                         }
                         if (info.playerId != SteamAPI.GetUserID() && SteamAPI.getLobbyID().m_SteamID != 0)
                         {

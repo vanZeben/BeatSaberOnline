@@ -10,6 +10,7 @@ namespace BeatSaberOnline.Data
 
     public class PlayerInfo
     {
+        // Based on https://github.com/andruzzzhka/BeatSaberMultiplayer/blob/master/BeatSaberMultiplayer/Data/PlayerInfo.cs
         public string playerName = "";
         public ulong playerId = 0;
 
@@ -74,9 +75,8 @@ namespace BeatSaberOnline.Data
                 voip = data.Skip(141 + nameLength).Take(voipLength).ToArray();
         }
 
-        private byte[] ToBytes(bool includeSize = true)
+        private byte[] GetBytes()
         {
-            
             List<byte> buffer = new List<byte>();
 
             byte[] nameBuffer = Encoding.UTF8.GetBytes(playerName);
@@ -105,36 +105,23 @@ namespace BeatSaberOnline.Data
             buffer.AddRange(BitConverter.GetBytes(Downloading));
             buffer.AddRange(BitConverter.GetBytes(voip.Length));
             buffer.AddRange(voip);
-
-            if (includeSize)
-                buffer.InsertRange(0, BitConverter.GetBytes(buffer.Count));
-
+            
             return buffer.ToArray();
         }
 
         public override bool Equals(object obj)
         {
-            if (obj is PlayerInfo)
-            {
-                return (playerId == (obj as PlayerInfo).playerId) && (playerName == (obj as PlayerInfo).playerName);
-            }
-            else
-            {
-                return false;
-            }
+            return obj is PlayerInfo && (playerId == (obj as PlayerInfo).playerId);
         }
 
         public override int GetHashCode()
         {
-            var hashCode = -2041759944;
-            hashCode = hashCode * -1521134295 + EqualityComparer<string>.Default.GetHashCode(playerName);
-            hashCode = hashCode * -1521134295 + playerId.GetHashCode();
-            return hashCode;
+            return unchecked(this.playerId.GetHashCode() * 17 + this.playerName.GetHashCode());
         }
 
         public string Serialize()
         {
-            return Convert.ToBase64String(ToBytes(false));
+            return Convert.ToBase64String(GetBytes());
         }
 
         public byte[] DeSerialize(string body)

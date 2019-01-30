@@ -107,7 +107,6 @@ namespace BeatSaberOnline.Views.ViewControllers
             }
             toggleButtons(false);
             SteamAPI.SetDifficulty((byte)beatmap.difficulty);
-
         }
 
         protected void didSelectLevel(LevelListViewController controller, IBeatmapLevel level)

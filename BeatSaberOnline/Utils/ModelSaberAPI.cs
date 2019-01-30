@@ -11,6 +11,7 @@ namespace BeatSaberOnline.Utils
 {
     public static class ModelSaberAPI
     {
+        // Sourced from https://github.com/andruzzzhka/BeatSaberMultiplayer/blob/master/BeatSaberMultiplayer/AvatarController.cs
         public static event Action<string, CustomAvatar.CustomAvatar> avatarDownloaded;
 
         public static Dictionary<string, CustomAvatar.CustomAvatar> cachedAvatars = new Dictionary<string, CustomAvatar.CustomAvatar>();
@@ -116,7 +117,7 @@ namespace BeatSaberOnline.Utils
 
                     File.WriteAllBytes(customAvatarPath, data);
 
-                    CustomAvatar.CustomAvatar downloadedAvatar = CustomExtensions.CreateInstance<CustomAvatar.CustomAvatar>(customAvatarPath);
+                    CustomAvatar.CustomAvatar downloadedAvatar = Controllers.AvatarController.CreateInstance<CustomAvatar.CustomAvatar>(customAvatarPath);
 
                     queuedAvatars.Remove(hash);
                     cachedAvatars.Add(hash, downloadedAvatar);

@@ -7,6 +7,7 @@ namespace BeatSaberOnline.Controllers
     class WorldController
     {
 
+        // Sourced from https://github.com/andruzzzhka/BeatSaberMultiplayer/blob/master/BeatSaberMultiplayer/AvatarController.cs
         public static Quaternion oculusTouchRotOffset = Quaternion.Euler(-40f, 0f, 0f);
         public static Vector3 oculusTouchPosOffset = new Vector3(0f, 0f, 0.055f);
         public static Quaternion openVrRotOffset = Quaternion.Euler(-4.3f, 0f, 0f);

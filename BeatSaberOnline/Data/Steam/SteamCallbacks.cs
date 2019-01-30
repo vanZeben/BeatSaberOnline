@@ -53,7 +53,7 @@ namespace BeatSaberOnline.Data.Steam
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
                     if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
-                        {
+                    {
                         Logger.Debug($"Song has been selected, going to the waiting screen");
                         WaitingMenu.Instance.Present();
                     }
@@ -82,6 +82,19 @@ namespace BeatSaberOnline.Data.Steam
                 {
                     SteamAPI.SetOtherLobbyData(pCallback.m_ulSteamIDLobby, info);
                 }
+            } else {
+                string status = SteamMatchmaking.GetLobbyMemberData(new CSteamID(pCallback.m_ulSteamIDLobby), new CSteamID(pCallback.m_ulSteamIDMember), "STATUS");
+                if (status == "DISCONNECTED")
+                {
+                    SteamAPI.DisconnectPlayer(pCallback.m_ulSteamIDMember);
+                } else if (status.StartsWith("KICKED"))
+                {
+                    ulong playerId = Convert.ToUInt64(status.Substring(7));
+                    if (playerId != 0 && playerId == SteamAPI.GetUserID())
+                    {
+                        SteamAPI.Disconnect();
+                    }
+                }
             }
         }
 
@@ -96,13 +109,15 @@ namespace BeatSaberOnline.Data.Steam
                 case (uint)EChatMemberStateChange.k_EChatMemberStateChangeDisconnected:
                 case (uint)EChatMemberStateChange.k_EChatMemberStateChangeLeft:
                     Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} has left the lobby");
-                    SteamAPI.PlayerDisconnected();
+                    SteamAPI.DisconnectPlayer(pCallback.m_ulSteamIDMakingChange);
                     break;
                 case (uint)EChatMemberStateChange.k_EChatMemberStateChangeBanned:
                     Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} banned {pCallback.m_ulSteamIDUserChanged} from the lobby");
+                    SteamAPI.DisconnectPlayer(pCallback.m_ulSteamIDUserChanged);
                     break;
                 case (uint)EChatMemberStateChange.k_EChatMemberStateChangeKicked:
                     Logger.Debug($"{pCallback.m_ulSteamIDMakingChange} kicked {pCallback.m_ulSteamIDUserChanged} from the lobby");
+                    SteamAPI.DisconnectPlayer(pCallback.m_ulSteamIDUserChanged);
                     break;
             }
         }

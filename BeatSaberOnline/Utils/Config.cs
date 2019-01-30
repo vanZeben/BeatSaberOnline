@@ -4,15 +4,13 @@ using UnityEngine;
 
 namespace BeatSaberOnline.Data
 {
-    [Serializable]
     public class Config
     {
-
-        [SerializeField] private bool _autoStartLobby;
-        [SerializeField] private bool _isPublic;
-        [SerializeField] private int _maxLobbySize;
-        [SerializeField] private bool _noFailMode;
-        [SerializeField] private bool _debugMode;
+        private bool _autoStartLobby;
+        private bool _isPublic;
+        private int _maxLobbySize;
+        private bool _noFailMode;
+        private bool _debugMode;
 
         private static Config _instance;
 

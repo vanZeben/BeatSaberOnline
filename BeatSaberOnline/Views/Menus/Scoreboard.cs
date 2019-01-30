@@ -39,7 +39,7 @@ namespace BeatSaberOnline.Views.Menus
 
         private ObjectPool<TextMeshProUGUI> _textPool;
         private Canvas _canvas;
-
+        private readonly Vector3 _basePosition = new Vector3(0f, 4f, 5f);
         private float _scale = 2.0f;
         private float _width = 200f;
         private float _padding = 4f;
@@ -52,7 +52,7 @@ namespace BeatSaberOnline.Views.Menus
         private float _backgroundHeight = 0f;
         private Color _backgroundColor = Color.black.ColorWithAlpha(0.8f);
         
-        private List<ScoreboardEntry> _scoreboardEntries = new List<ScoreboardEntry>();
+        public Dictionary<ulong, ScoreboardEntry> _scoreboardEntries = new Dictionary<ulong, ScoreboardEntry>();
 
         private Material _noGlowMaterial = null;
         public Material NoGlowMaterial
@@ -95,7 +95,6 @@ namespace BeatSaberOnline.Views.Menus
             _background.rectTransform.sizeDelta = new Vector2(_width + _padding, 0);
             _background.rectTransform.localPosition = new Vector3(0 - (_width + _padding) / 2, 0, 0);
             _background.material = NoGlowMaterial;
-
             _textPool = new ObjectPool<TextMeshProUGUI>(0, 
             // FirstAlloc
             (text) =>
@@ -120,6 +119,7 @@ namespace BeatSaberOnline.Views.Menus
             (text) =>
             {
                 text.material = NoGlowMaterial;
+                text.enabled = true;
             },
             // OnFree
             (text) =>
@@ -129,72 +129,90 @@ namespace BeatSaberOnline.Views.Menus
             });
 
             // Set the scoreboard position
-            _canvas.transform.position = new Vector3(0f, 4f, 5f);
+            _canvas.transform.position = _basePosition;
             _canvas.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
         }
         
-        public void AddScoreboardEntry(ulong clientIndex, string name)
-        {
-            if (_scoreboardEntries.Find(m => m.name == name && m.clientIndex == clientIndex) != null) return;
-            ScoreboardEntry entry = new ScoreboardEntry(clientIndex, name);
-            entry.place = 0;
-            entry.text = _textPool.Alloc();
-            entry.text.text = name;
-            _scoreboardEntries.Add(entry);
-
-            UpdateScoreboardEntry(clientIndex, 0, 0);
-        }
 
         public void RemoveScoreboardEntry(ulong clientIndex)
         {
-            ScoreboardEntry entry = _scoreboardEntries.First(s => s.clientIndex == clientIndex);
+            ScoreboardEntry entry = _scoreboardEntries[clientIndex];
             if (entry == null) return;
             
             _textPool.Free(entry.text);
-            _scoreboardEntries.Remove(entry);
+            _scoreboardEntries.Remove(clientIndex);
         }
 
-        public void UpdateScoreboardEntry(ulong clientIndex, int score, int combo)
+
+        public void RemoveAll()
         {
-            ScoreboardEntry entry = _scoreboardEntries.First(s => s.clientIndex == clientIndex);
-            if (entry == null) return;
-
-            entry.score = score;
-            entry.combo = combo;
-            _scoreboardEntries.Sort(_scoreComparison);
-            entry.UpdateText(_scoreboardEntries.IndexOf(entry));
+            for (int i = 0; i < _scoreboardEntries.Count; i++)
+            {
+                _scoreboardEntries.Values.ToArray()[i].text.text = "";
+            }
             UpdateScoreboardUI();
+            _scoreboardEntries.Clear();
         }
 
+        public void UpsertScoreboardEntry(ulong clientIndex, string name, int score = 0, int combo = 0)
+        {
+                ScoreboardEntry entry;
+                if (!_scoreboardEntries.ContainsKey(clientIndex))
+                {
+                    entry = new ScoreboardEntry(clientIndex, name);
+                    entry.place = 0;
+                    entry.score = 0;
+                    entry.place = _scoreboardEntries.Count + 1;
+                    entry.text = _textPool.Alloc();
+                    entry.text.text = name;
+                    _scoreboardEntries.Add(clientIndex, entry);
+                }
+                else
+                {
+                    entry = _scoreboardEntries[clientIndex];
+                    entry.score = score;
+                    entry.combo = combo;
+                    entry.UpdateText(entry.place);
+                }
+                List<KeyValuePair<ulong, ScoreboardEntry>> sorted = _scoreboardEntries.ToList();
+                sorted.Sort((pair1, pair2) => pair2.Value.score - pair1.Value.score);
+                _scoreboardEntries = sorted.ToDictionary(pair => pair.Key, pair => pair.Value);
+                UpdateScoreboardUI();
+        }
         private void UpdateScoreboardUI()
         {
-            if (_scoreboardEntries.Count > 0)
-            {
-                for (int i = 0; i < _scoreboardEntries.Count; i++)
+                if (_scoreboardEntries.Count > 0)
                 {
-                    // Only update the text if their place changed
-                    if (i != _scoreboardEntries[i].place)
-                        _scoreboardEntries[i].UpdateText(i);
-                }
-
-                // Update the position of each scoreboard entry
-                float currentYValue = 0;
-                float initialYValue = currentYValue;
-                var _tmpArray = _scoreboardEntries.ToArray();
-                for (int i = 0; i < _tmpArray.Length; i++)
-                {
-                    if (_tmpArray[i].text.text != "")
+                    for (int i = 0; i < _scoreboardEntries.Count; i++)
                     {
-                        _tmpArray[i].text.transform.localPosition = new Vector3(-_width / 2, currentYValue - _tmpArray[i].text.preferredHeight*0.6f/2-1, 0);
-                        currentYValue -= (_tmpArray[i].text.preferredHeight * 0.6f + (i < _scoreboardEntries.Count() - 1 ? _lineSpacing + 1.5f : 0));
+                        // Only update the text if their place changed
+                        if (i != _scoreboardEntries[_scoreboardEntries.Keys.ToArray()[i]].place)
+                        {
+                            _scoreboardEntries[_scoreboardEntries.Keys.ToArray()[i]].UpdateText(i);
+                        }
                     }
+
+                    // Update the position of each scoreboard entry
+                    float currentYValue = 0;
+                    float initialYValue = currentYValue;
+                    KeyValuePair<ulong, ScoreboardEntry>[] _tmpArray = _scoreboardEntries.ToArray();
+
+                    for (int i = 0; i < _tmpArray.Length; i++)
+                    {
+                        if (_tmpArray[i].Value.text.text != "")
+                        {
+                            _tmpArray[i].Value.text.transform.localPosition = new Vector3(-_width / 2, currentYValue - _tmpArray[i].Value.text.preferredHeight * 0.6f / 2 - 1, 0);
+                            currentYValue -= (_tmpArray[i].Value.text.preferredHeight * 0.6f + (i < _scoreboardEntries.Count() - 1 ? _lineSpacing + 1.5f : 0));
+                        }
+                    }
+                    //_width = maxWidth;
+                    _backgroundHeight = (initialYValue - currentYValue) + _padding * 2;
+                    _background.rectTransform.sizeDelta = new Vector2(_width + _padding * 2, _backgroundHeight);
+                    _background.rectTransform.position = _canvas.transform.TransformPoint(new Vector3(-_width / 2 - _padding, (initialYValue - _backgroundHeight + _padding), 0.1f));
+                    _canvas.transform.position = _basePosition;
+                    _canvas.transform.position = _canvas.transform.TransformPoint(new Vector3(0, _backgroundHeight));
                 }
-                //_width = maxWidth;
-                _backgroundHeight = (initialYValue - currentYValue) + _padding * 2;
-                _background.rectTransform.sizeDelta = new Vector2(_width + _padding * 2, _backgroundHeight);
-                _background.rectTransform.position = _canvas.transform.TransformPoint(new Vector3(-_width / 2 - _padding, (initialYValue - _backgroundHeight + _padding), 0.1f));
-            }
         }
     }
 }

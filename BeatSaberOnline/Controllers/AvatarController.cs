@@ -4,7 +4,11 @@ using CustomAvatar;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
@@ -14,6 +18,7 @@ namespace BeatSaberOnline.Controllers
 {
     public class AvatarController : MonoBehaviour, IAvatarInput
     {
+        // Sourced from https://github.com/andruzzzhka/BeatSaberMultiplayer/blob/master/BeatSaberMultiplayer/AvatarController.cs
         static CustomAvatar.CustomAvatar defaultAvatarInstance;
 
         static List<CustomAvatar.CustomAvatar> pendingAvatars = new List<CustomAvatar.CustomAvatar>();
@@ -68,8 +73,6 @@ namespace BeatSaberOnline.Controllers
             if (defaultAvatarInstance == null)
             {
                 defaultAvatarInstance = CustomAvatar.Plugin.Instance.AvatarLoader.Avatars.FirstOrDefault(x => x.FullPath.ToLower().Contains("loading.avatar"));
-
-
             }
             Logger.Debug($"Found avatar, isLoaded={defaultAvatarInstance.IsLoaded}");
             if (!defaultAvatarInstance.IsLoaded)
@@ -82,7 +85,7 @@ namespace BeatSaberOnline.Controllers
                 Task.Run(() =>
                 {
                     string hash;
-                    if (CustomExtensions.CreateMD5FromFile(avatar.FullPath, out hash))
+                    if (CreateMD5FromFile(avatar.FullPath, out hash))
                     {
                         ModelSaberAPI.cachedAvatars.Add(hash, avatar);
                         Logger.Debug("Hashed avatar " + avatar.Name + "! Hash: " + hash);
@@ -114,7 +117,7 @@ namespace BeatSaberOnline.Controllers
 
             avatar = AvatarSpawner.SpawnAvatar(defaultAvatarInstance, this);
 
-            playerNameText = CustomExtensions.CreateWorldText(transform, "Loading");
+            playerNameText = CreateWorldText(transform, "Loading");
             playerNameText.rectTransform.anchoredPosition3D = new Vector3(0f, 0.25f, 0f);
             playerNameText.alignment = TextAlignmentOptions.Center;
             playerNameText.fontSize = 2.5f;
@@ -182,7 +185,7 @@ namespace BeatSaberOnline.Controllers
             Destroy(avatar.GameObject);
         }
 
-        public void SetPlayerInfo(PlayerInfo _playerInfo, float offset, bool isLocal)
+        public void SetPlayerInfo(PlayerInfo _playerInfo, Vector3 offsetVector, bool isLocal)
         {
             if (_playerInfo == null)
             {
@@ -270,8 +273,7 @@ namespace BeatSaberOnline.Controllers
                         }
                     }
                 interpolationProgress = 0f;
-
-                Vector3 offsetVector = new Vector3(offset, 0f, 0f);
+                
 
                 lastHeadPos = targetHeadPos;
                 targetHeadPos = _playerInfo.headPos + offsetVector;
@@ -353,6 +355,50 @@ namespace BeatSaberOnline.Controllers
             }
         }
 
+
+        public TextMeshPro CreateWorldText(Transform parent, string text = "TEXT")
+        {
+            TextMeshPro textMesh = new GameObject("CustomUIText").AddComponent<TextMeshPro>();
+            textMesh.transform.SetParent(parent, false);
+            textMesh.text = text;
+            textMesh.fontSize = 5;
+            textMesh.color = Color.white;
+            textMesh.font = Resources.Load<TMP_FontAsset>("Teko-Medium SDF No Glow");
+            return textMesh;
+        }
+
+        public static T CreateInstance<T>(params object[] args)
+        {
+            var type = typeof(T);
+            var instance = type.Assembly.CreateInstance(
+                type.FullName, false,
+                BindingFlags.Instance | BindingFlags.NonPublic,
+                null, args, null, null);
+            return (T)instance;
+        }
+
+
+        public static bool CreateMD5FromFile(string path, out string hash)
+        {
+            hash = "";
+            if (!File.Exists(path)) return false;
+            using (MD5 md5 = MD5.Create())
+            {
+                using (var stream = File.OpenRead(path))
+                {
+                    byte[] hashBytes = md5.ComputeHash(stream);
+
+                    StringBuilder sb = new StringBuilder();
+                    foreach (byte hashByte in hashBytes)
+                    {
+                        sb.Append(hashByte.ToString("X2"));
+                    }
+
+                    hash = sb.ToString();
+                    return true;
+                }
+            }
+        }
 
     }
 }

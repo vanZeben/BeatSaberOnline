@@ -29,6 +29,7 @@ namespace BeatSaberOnline.Views
         private MainMenuViewController _mainMenuViewController;
         private RectTransform _mainMenuRectTransform;
         private MockPartyViewController _mockPartyViewController;
+        public static MenuButton MultiplayerButton;
 
         public object SongInfo { get; private set; }
 
@@ -46,8 +47,10 @@ namespace BeatSaberOnline.Views
         {
             if (instance != this)
             {
-                DontDestroyOnLoad(this);
                 instance = this;
+
+                instance.StartCoroutine(Utils.AutoUpdater.GetLatestVersionDownload());
+                DontDestroyOnLoad(this);
                 SteamAPI.Init();
                 CreateUI();
             }
@@ -63,7 +66,7 @@ namespace BeatSaberOnline.Views
 
                 if (Config.Instance.AutoStartLobby)
                 {
-                    SteamAPI.CreateLobby();
+                    SteamAPI.CreateLobby(!Config.Instance.IsPublic);
                 }
 
                 AvatarController.LoadAvatars();
@@ -88,14 +91,11 @@ namespace BeatSaberOnline.Views
             AutoStartLobby.GetValue += delegate { return Config.Instance.AutoStartLobby; };
             AutoStartLobby.SetValue += delegate (bool value) { Config.Instance.AutoStartLobby = value; };
 
-            var IsPublic = settingsMenu.AddBool("Lobby Privacy");
-            IsPublic.DisabledText = "Invite Only";
+            var IsPublic = settingsMenu.AddBool("Auto-Start Privacy");
+            IsPublic.DisabledText = "Friends Only";
             IsPublic.EnabledText = "Public";
             IsPublic.GetValue += delegate { return Config.Instance.IsPublic; };
-            IsPublic.SetValue += delegate (bool value) {
-                SteamMatchmaking.SetLobbyJoinable(SteamAPI.getLobbyID(), value);
-                Config.Instance.IsPublic = value;
-            };
+            IsPublic.SetValue += delegate (bool value) { Config.Instance.IsPublic = value; };
 
             var MaxLobbySite = settingsMenu.AddInt("Lobby Size", 2, 10, 1);
             MaxLobbySite.GetValue += delegate { return Config.Instance.MaxLobbySize; };
@@ -111,7 +111,7 @@ namespace BeatSaberOnline.Views
 
         private void CreateMainMenuButton()
         {
-            MenuButtonUI.AddButton("Multiplayer", delegate ()
+            MultiplayerButton = MenuButtonUI.AddButton($"Multiplayer", "", delegate ()
             {
                 try
                 {
