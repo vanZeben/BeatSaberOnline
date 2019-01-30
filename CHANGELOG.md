@@ -1,0 +1,11 @@
+# v1.0.2
+- Corrected disconnection issues
+- Moved Friend invite into its own button
+- added separate buttons for public and friend only lobby creation
+- offset avatars to be in view while in game
+- correct scoreboard issues
+- correct voice chat issues
+- added config option to turn off avatars
+- setup packet version so we can restrict lobbies to play on their own packet version
+- removed newtonsoft dependency
+- publicaly open sourced the code base
