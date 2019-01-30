@@ -14,7 +14,7 @@ namespace BeatSaberOnline.Controllers
         public static LeaderboardController Instance;
         private ScoreController _scoreController;
         private GameEnergyCounter _energyController;
-
+        private GameplayModifiersModelSO _gameplayModifiersSO;
         private PauseMenuManager _pauseMenuManager;
 
         public static void Init(Scene to)
@@ -76,6 +76,7 @@ namespace BeatSaberOnline.Controllers
             yield return new WaitUntil(delegate () { return FindObjectOfType<ScoreController>() != null && FindObjectOfType<GameEnergyCounter>() != null; });
 
             StandardLevelGameplayManager _gameManager = Resources.FindObjectsOfTypeAll<StandardLevelGameplayManager>().First();
+            _gameplayModifiersSO = Resources.FindObjectsOfTypeAll<GameplayModifiersModelSO>().FirstOrDefault();
 
             if (_gameManager != null)
             {
@@ -149,7 +150,8 @@ namespace BeatSaberOnline.Controllers
 
         private void ScoreChanged(int score)
         {
-            PlayerController.Instance.UpdatePlayerScoring("playerScore", (uint) score);
+            score = ScoreController.GetScoreForGameplayModifiers(score, SteamAPI.GetGameplayModifiers(), _gameplayModifiersSO);
+            PlayerController.Instance.UpdatePlayerScoring("playerScore",(uint) score);
         }
     }
 }

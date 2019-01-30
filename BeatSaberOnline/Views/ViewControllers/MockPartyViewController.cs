@@ -26,7 +26,7 @@ namespace BeatSaberOnline.Views.ViewControllers
              detail = ReflectionUtil.GetPrivateField<StandardLevelDetailViewController>(_partyFlowCoordinator, "_levelDetailViewController");
             BeatmapDifficultyViewController beatmap = ReflectionUtil.GetPrivateField<BeatmapDifficultyViewController>(_partyFlowCoordinator, "_beatmapDifficultyViewController");
              _gameplaySetupViewController = ReflectionUtil.GetPrivateField<GameplaySetupViewController>(_partyFlowCoordinator, "_gameplaySetupViewController");
-            
+
             ReflectionUtil.SetField(level, "didSelectLevelEvent", null);
             level.didSelectLevelEvent += didSelectLevel;
             

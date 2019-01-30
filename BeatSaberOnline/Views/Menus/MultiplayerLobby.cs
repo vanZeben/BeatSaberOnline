@@ -56,28 +56,6 @@ namespace BeatSaberOnline.Views.Menus
                             }
                         });
                         float offs = 0;
-                        /*if (SteamAPI.IsHost())
-                        {
-                            offs += 10f;
-                            Button kick = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f - offs), new Vector2(25f, 7f));
-                            kick.SetButtonTextSize(3f);
-                            kick.ToggleWordWrapping(false);
-                            kick.SetButtonText("Kick All");
-                            kick.onClick.AddListener(delegate
-                            {
-                                if (SteamAPI.IsHost())
-                                {
-                                    try
-                                    {
-                                        SteamAPI.KickAll();
-                                    }
-                                    catch (Exception e)
-                                    {
-                                        Logger.Error(e);
-                                    }
-                                }
-                            });
-                        }*/
                         offs += 10f;
                         Button vc = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f - offs), new Vector2(25f, 7f));
                         vc.SetButtonTextSize(3f);
