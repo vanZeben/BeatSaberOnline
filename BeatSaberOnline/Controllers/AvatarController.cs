@@ -72,7 +72,7 @@ namespace BeatSaberOnline.Controllers
         {
             if (defaultAvatarInstance == null)
             {
-                defaultAvatarInstance = CustomAvatar.Plugin.Instance.AvatarLoader.Avatars.FirstOrDefault(x => x.FullPath.ToLower().Contains("loading.avatar"));
+                defaultAvatarInstance = CustomAvatar.Plugin.Instance.AvatarLoader.Avatars.FirstOrDefault(x => x.FullPath.ToLower().Contains("template.avatar"));
             }
             Logger.Debug($"Found avatar, isLoaded={defaultAvatarInstance.IsLoaded}");
             if (!defaultAvatarInstance.IsLoaded)
