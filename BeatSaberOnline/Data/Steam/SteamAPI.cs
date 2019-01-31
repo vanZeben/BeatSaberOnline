@@ -237,7 +237,6 @@ namespace BeatSaberOnline.Data.Steam
         {
             Logger.Debug($"We have finished the song");
 
-            SendLobbyInfo(true);
             setLobbyStatus("Waiting In Menu");
 
         }

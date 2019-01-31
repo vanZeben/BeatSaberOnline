@@ -96,15 +96,10 @@ namespace BeatSaberOnline.Controllers
 
         public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
-            if (levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Quit || (sender == null && levelCompletionResults == null && difficultyBeatmap == null && gameplayModifiers == null))
-            {
-                PauseMenuManager pauseMenu = Resources.FindObjectsOfTypeAll<PauseMenuManager>().FirstOrDefault();
-                pauseMenu?.MenuButtonPressed();
-                SteamAPI.StopSong();
-            }
+
             Logger.Debug("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
-            WaitingMenu.firstInit = true;
             WaitingMenu.Instance.Dismiss();
+            WaitingMenu.firstInit = true;
             SteamAPI.FinishSong();
             PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
 

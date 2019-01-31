@@ -68,7 +68,6 @@ namespace BeatSaberOnline.Controllers
             }
             catch (Exception e)
             {
-                Data.Logger.Error("Unable to show menu! Exception: " + e);
             }
         }
 
