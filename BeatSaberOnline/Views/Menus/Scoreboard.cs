@@ -70,6 +70,7 @@ namespace BeatSaberOnline.Views.Menus
         }
 
         public static Scoreboard Instance = null;
+        public bool disabled = true;
         public static void OnLoad()
         {
             if (Instance) return;
@@ -158,6 +159,7 @@ namespace BeatSaberOnline.Views.Menus
 
         public void UpsertScoreboardEntry(ulong clientIndex, string name, int score = 0, int combo = 0)
         {
+            if (disabled) { return; }
                 ScoreboardEntry entry;
                 if (!_scoreboardEntries.ContainsKey(clientIndex))
                 {

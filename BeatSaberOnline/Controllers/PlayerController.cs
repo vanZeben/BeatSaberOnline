@@ -48,10 +48,21 @@ namespace BeatSaberOnline.Controllers
                 _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
                 _currentScene = SceneManager.GetActiveScene().name;
 
-                InvokeRepeating("BroadcastPlayerInfo", 0f, GameController.TPS);
             }
         }
-
+        private bool isBroadcasting = false;
+        public void StartBroadcasting()
+        {
+            if (isBroadcasting) { return; }
+            isBroadcasting = true;
+            InvokeRepeating("BroadcastPlayerInfo", 0f, GameController.TPS);
+        }
+        public void StopBroadcasting()
+        {
+            if (!isBroadcasting) { return; }
+            isBroadcasting = false;
+            CancelInvoke("BroadcastPlayerInfo");
+        }
         public void DestroyAvatars()
         {
             try
@@ -82,6 +93,14 @@ namespace BeatSaberOnline.Controllers
             }
         }
 
+        public List<PlayerInfo> GetConnectedPlayerInfos()
+        {
+            List<PlayerInfo> scores = new List<PlayerInfo>();
+            scores.AddRange(_connectedPlayers.Values.ToList<PlayerInfo>());
+            scores.Add(_playerInfo);
+            return scores;
+        }
+
         public void UpdatePlayerInfo()
         {
             _playerInfo.avatarHash = ModelSaberAPI.cachedAvatars.FirstOrDefault(x => x.Value == CustomAvatar.Plugin.Instance.PlayerAvatarManager.GetCurrentAvatar()).Key;
@@ -90,7 +109,7 @@ namespace BeatSaberOnline.Controllers
             _playerInfo.playerName = SteamAPI.GetUserName();
             _playerInfo.playerId = SteamAPI.GetUserID();
 
-              WorldController.CharacterPosition pos = WorldController.GetCharacterInfo();
+            WorldController.CharacterPosition pos = WorldController.GetCharacterInfo();
                 _playerInfo.headPos = pos.headPos;
                 _playerInfo.headRot = pos.headRot;
                 _playerInfo.leftHandPos = pos.leftHandPos;
@@ -123,7 +142,7 @@ namespace BeatSaberOnline.Controllers
                         avatar.SetPlayerInfo(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
                         _connectedPlayerAvatars.Add(info.playerId, avatar);
                     }
-
+                    MultiplayerLobby.RefreshScores();
                     Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName);
                     return;
                 }
@@ -133,6 +152,7 @@ namespace BeatSaberOnline.Controllers
                     if (info.playerScore != _connectedPlayers[info.playerId].playerScore || info.playerComboBlocks != _connectedPlayers[info.playerId].playerComboBlocks)
                     {
                         Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName, (int)info.playerScore, (int)info.playerComboBlocks);
+                        MultiplayerLobby.RefreshScores();
                     }
                     if (Config.Instance.AvatarsInLobby)
                     {

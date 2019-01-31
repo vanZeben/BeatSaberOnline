@@ -33,7 +33,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <RunPostBuildEvent>Always</RunPostBuildEvent>
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp" />
@@ -104,12 +104,14 @@
     <Compile Include="Views\Menus\WaitingMenu.cs" />
     <Compile Include="Views\Menus\MultiplayerListing.cs" />
     <Compile Include="Views\PluginUI.cs" />
+    <Compile Include="Views\ViewControllers\TableViewController.cs" />
     <Compile Include="Views\ViewControllers\ListViewController.cs" />
     <Compile Include="Views\ViewControllers\MockPartyViewController.cs" />
     <Compile Include="Workers\VoiceChatWorker.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>copy /Y "$(TargetDir)$(TargetFileName)" "D:\Games\Steam\SteamApps\common\Beat Saber\Plugins"</PostBuildEvent>
+    <PostBuildEvent>copy /Y "$(TargetDir)$(TargetFileName)" "$(TargetDir)\Plugins\$(TargetFileName)"
+copy /Y "$(TargetDir)$(TargetFileName)" "D:\Games\Steam\SteamApps\common\Beat Saber\Plugins"</PostBuildEvent>
   </PropertyGroup>
 </Project>

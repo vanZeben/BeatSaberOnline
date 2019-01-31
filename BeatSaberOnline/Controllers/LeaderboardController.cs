@@ -1,4 +1,5 @@
 ﻿using BeatSaberOnline.Data.Steam;
+using BeatSaberOnline.Utils;
 using CustomUI.Utilities;
 using System;
 using System.Collections;
@@ -44,7 +45,7 @@ namespace BeatSaberOnline.Controllers
                 {
                     return;
                 }
-                if (to.name == "GameCore")
+                if (to.name == "GameCore" && SongListUtils.InSong)
                 {
                     StartCoroutine(InitControllers());
                 }
@@ -132,6 +133,7 @@ namespace BeatSaberOnline.Controllers
         private void ComboDidChangeEvent(int obj)
         {
             PlayerController.Instance.UpdatePlayerScoring("playerComboBlocks", (uint) obj);
+            PlayerController.Instance.UpdatePlayerScoring("playerMaxComboBlocks", (uint)_scoreController.maxCombo);
         }
 
         private void NoteWasCutEvent(NoteData note, NoteCutInfo cut, int score)

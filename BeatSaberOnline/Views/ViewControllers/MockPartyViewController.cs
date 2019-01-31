@@ -1,5 +1,6 @@
 ﻿using BeatSaberOnline.Data;
 using BeatSaberOnline.Data.Steam;
+using BeatSaberOnline.Views.Menus;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
 using System;
@@ -13,6 +14,7 @@ namespace BeatSaberOnline.Views.ViewControllers
 {
     class MockPartyViewController
     {
+        private MainMenuViewController _mainMenuController;
         private PartyFreePlayFlowCoordinator _partyFlowCoordinator;
         private StandardLevelDetailViewController detail;
         private GameplaySetupViewController _gameplaySetupViewController;
@@ -21,17 +23,18 @@ namespace BeatSaberOnline.Views.ViewControllers
         public MockPartyViewController()
         {
             _partyFlowCoordinator = Resources.FindObjectsOfTypeAll<PartyFreePlayFlowCoordinator>().FirstOrDefault();
-
             LevelListViewController level = ReflectionUtil.GetPrivateField<LevelListViewController>(_partyFlowCoordinator, "_levelListViewController");
              detail = ReflectionUtil.GetPrivateField<StandardLevelDetailViewController>(_partyFlowCoordinator, "_levelDetailViewController");
             BeatmapDifficultyViewController beatmap = ReflectionUtil.GetPrivateField<BeatmapDifficultyViewController>(_partyFlowCoordinator, "_beatmapDifficultyViewController");
-             _gameplaySetupViewController = ReflectionUtil.GetPrivateField<GameplaySetupViewController>(_partyFlowCoordinator, "_gameplaySetupViewController");
-
-            ReflectionUtil.SetField(level, "didSelectLevelEvent", null);
+            _gameplaySetupViewController = ReflectionUtil.GetPrivateField<GameplaySetupViewController>(_partyFlowCoordinator, "_gameplaySetupViewController");
+            
+            level.didActivateEvent += (first, type) => {
+                if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED || !_partyFlowCoordinator || !_partyFlowCoordinator.isActivated) { return; }
+                _partyFlowCoordinator.InvokePrivateMethod("SetRightScreenViewController", new object[] { MultiplayerLobby.Instance.rightViewController, true});
+            };
             level.didSelectLevelEvent += didSelectLevel;
             
             beatmap.didSelectDifficultyEvent += didSelectBeatmap;
-
             mPlay = BeatSaberUI.CreateUIButton(detail.rectTransform, "CreditsButton", new Vector2(0f, -24f), new Vector2(40, 9f));
 
             mPlay.SetButtonText("Play with Lobby");
@@ -40,6 +43,20 @@ namespace BeatSaberOnline.Views.ViewControllers
             mPlay.ToggleWordWrapping(false);
 
             mPlay.onClick.AddListener(didSelectPlay);
+            
+            _mainMenuController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().FirstOrDefault();
+            Button partyButton = ReflectionUtil.GetPrivateField<Button>(_mainMenuController, "_partyButton");
+            _mainMenuController.didActivateEvent += (first, type) =>
+            {
+                if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED)
+                {
+                    partyButton.SetButtonText("Party");
+                }
+                else
+                {
+                    partyButton.SetButtonText("Online");
+                }
+            };
         }
 
         private void toggleButtons(bool val)
@@ -99,12 +116,12 @@ namespace BeatSaberOnline.Views.ViewControllers
         private void didSelectBeatmap(BeatmapDifficultyViewController controller, IDifficultyBeatmap beatmap)
         {
             Logger.Debug($"beatmap {beatmap.difficulty} selected");
-
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
                 toggleButtons(true);
                 return;
             }
+
             toggleButtons(false);
             SteamAPI.SetDifficulty((byte)beatmap.difficulty);
         }

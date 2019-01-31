@@ -127,7 +127,7 @@ namespace BeatSaberOnline.Data.Steam
         {
 
             Logger.Debug($"You have entered lobby {pCallback.m_ulSteamIDLobby}");
-
+            Controllers.PlayerController.Instance.StartBroadcasting();
             SteamAPI.SetConnectionState(SteamAPI.ConnectionState.CONNECTED);
             SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);            
         }

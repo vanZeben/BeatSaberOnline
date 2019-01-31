@@ -26,7 +26,6 @@ namespace BeatSaberOnline.Controllers
         public static float TPS { get; } = 25f / 1000f;
         public static float Tickrate { get; } = 1000f / TPS;
         private ResultsViewController _resultsViewController;
-
         private string _currentScene;
 
         public static void Init(Scene to)
@@ -62,8 +61,21 @@ namespace BeatSaberOnline.Controllers
                     return;
                 }
                 if (to.name == "GameCore" || to.name == "Menu")
-                {
-                   PlayerController.Instance.DestroyAvatars();
+                {  
+                    PlayerController.Instance.DestroyAvatars();
+                    if (to.name == "GameCore" && SongListUtils.InSong)
+                    {
+                        Scoreboard.Instance.disabled = false;
+                        List<PlayerInfo> connectedPlayers = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
+                        for (int i = 0; i < connectedPlayers.Count;i++)
+                        {
+                            Scoreboard.Instance.UpsertScoreboardEntry(connectedPlayers[i].playerId, connectedPlayers[i].playerName, 0, 0);
+                        }
+                    } else if (to.name == "Menu")
+                    {
+                        Scoreboard.Instance.RemoveAll();
+                        Scoreboard.Instance.disabled = true;
+                    }
                 }
             }
             catch (Exception e)
@@ -94,12 +106,6 @@ namespace BeatSaberOnline.Controllers
             WaitingMenu.firstInit = true;
             WaitingMenu.Instance.Dismiss();
             SteamAPI.FinishSong();
-           // if (_resultsViewController)
-           // {
-           //     _resultsViewController.Init(levelCompletionResults, difficultyBeatmap, false);
-           //     FlowCoordinator activeFlowCoordinator = GetActiveFlowCoordinator();
-           //     activeFlowCoordinator.InvokePrivateMethod("SetLeftScreenViewController", new object[] { _resultsViewController, false });
-           // }
             PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
 
             _playerDataModel.currentLocalPlayer.playerAllOverallStatsData.soloFreePlayOverallStatsData.UpdateWithLevelCompletionResults(levelCompletionResults);

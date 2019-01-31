@@ -17,6 +17,7 @@ namespace BeatSaberOnline.Data
         public uint playerScore = 0;
         public uint playerCutBlocks = 0;
         public uint playerComboBlocks = 0;
+        public uint playerMaxComboBlocks = 0;
         public uint playerTotalBlocks = 0;
         public float playerEnergy = 0;
 
@@ -51,13 +52,14 @@ namespace BeatSaberOnline.Data
 
                 playerScore = BitConverter.ToUInt32(data, 12 + nameLength);
                 playerCutBlocks = BitConverter.ToUInt32(data, 16 + nameLength);
-                playerComboBlocks = BitConverter.ToUInt32(data, 20 + nameLength);
-                playerTotalBlocks = BitConverter.ToUInt32(data, 24 + nameLength);
-                playerEnergy = BitConverter.ToSingle(data, 28 + nameLength);
+                playerMaxComboBlocks = BitConverter.ToUInt32(data, 20 + nameLength);
+                playerComboBlocks = BitConverter.ToUInt32(data, 24 + nameLength);
+                playerTotalBlocks = BitConverter.ToUInt32(data, 28+ nameLength);
+                playerEnergy = BitConverter.ToSingle(data, 32 + nameLength);
 
-                playerProgress = BitConverter.ToSingle(data, 32 + nameLength);
+                playerProgress = BitConverter.ToSingle(data, 36 + nameLength);
 
-                byte[] avatar = data.Skip(36 + nameLength).Take(100).ToArray();
+                byte[] avatar = data.Skip(40 + nameLength).Take(100).ToArray();
 
                 rightHandPos = Serialization.ToVector3(avatar.Take(12).ToArray());
                 leftHandPos = Serialization.ToVector3(avatar.Skip(12).Take(12).ToArray());
@@ -69,10 +71,10 @@ namespace BeatSaberOnline.Data
 
                 avatarHash = BitConverter.ToString(avatar.Skip(84).Take(16).ToArray()).Replace("-", "");
 
-                Downloading = BitConverter.ToBoolean(data, 136 + nameLength);
+                Downloading = BitConverter.ToBoolean(data, 140 + nameLength);
 
-                int voipLength = BitConverter.ToInt32(data, 137 + nameLength);
-                voip = data.Skip(141 + nameLength).Take(voipLength).ToArray();
+                int voipLength = BitConverter.ToInt32(data, 141 + nameLength);
+                voip = data.Skip(145 + nameLength).Take(voipLength).ToArray();
         }
 
         private byte[] GetBytes()
@@ -86,6 +88,7 @@ namespace BeatSaberOnline.Data
 
             buffer.AddRange(BitConverter.GetBytes(playerScore));
             buffer.AddRange(BitConverter.GetBytes(playerCutBlocks));
+            buffer.AddRange(BitConverter.GetBytes(playerMaxComboBlocks));
             buffer.AddRange(BitConverter.GetBytes(playerComboBlocks));
             buffer.AddRange(BitConverter.GetBytes(playerTotalBlocks));
             buffer.AddRange(BitConverter.GetBytes(playerEnergy));

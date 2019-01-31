@@ -26,7 +26,7 @@ namespace BeatSaberOnline.Data.Steam
             DISCONNECTED
         }
 
-        public static string PACKET_VERSION = "1.0.0";
+        public static string PACKET_VERSION = "1.0.1";
 
         static string userName;
         static ulong userID;
@@ -556,10 +556,9 @@ namespace BeatSaberOnline.Data.Steam
             {
                 Logger.Debug($"Disconnect from current lobby");
                 SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "STATUS", "DISCONNECTED");
-
+                Controllers.PlayerController.Instance.StopBroadcasting();
                 _lobbyInfo.HostName = "";
                 SendLobbyInfo(true);
-
                 
                 Connection = ConnectionState.DISCONNECTED;
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);

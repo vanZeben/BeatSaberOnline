@@ -20,71 +20,85 @@ using UnityEngine.EventSystems;
 
 namespace BeatSaberOnline.Views.Menus
 {
-    class MultiplayerLobby
+    class MultiplayerLobby : MonoBehaviour
     {
         static Vector2 BASE = new Vector2(-45f, 30f);
         public static CustomMenu Instance = null;
         private static Dictionary<CSteamID, string[]> friends;
         private static ulong selectedPlayer = 0;
         private static Button invite;
+        private static TableViewController rightViewController;
         public static void Init()
         {
             if (Instance == null)
             {
-                Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Multiplayer Lobby");
-
-                CustomViewController middleViewController = BeatSaberUI.CreateViewController<CustomViewController>();
-                ListViewController rightViewController = BeatSaberUI.CreateViewController<ListViewController>();
-
-                Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
+                try
                 {
-                    if (firstActivation)
+                    Instance = BeatSaberUI.CreateCustomMenu<CustomMenu>("Multiplayer Lobby");
+
+                    CustomViewController middleViewController = BeatSaberUI.CreateViewController<CustomViewController>();
+                    ListViewController leftViewController = BeatSaberUI.CreateViewController<ListViewController>();
+                     rightViewController = BeatSaberUI.CreateViewController<TableViewController>();
+
+                    Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                     {
-                        Button host = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f), new Vector2(25f, 7f));
-                        host.SetButtonTextSize(3f);
-                        host.ToggleWordWrapping(false);
-                        host.SetButtonText("Disconnect");
-                        host.onClick.AddListener(delegate {
+                        if (firstActivation)
+                        {
                             try
                             {
-                                SteamAPI.Disconnect();
-                                Instance.Dismiss();
-                                MultiplayerListing.Instance.Present();
-                            } catch (Exception e)
-                            {
-                                Logger.Error(e);
-                            }
-                        });
-                        float offs = 0;
-                        offs += 10f;
-                        Button vc = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f - offs), new Vector2(25f, 7f));
-                        vc.SetButtonTextSize(3f);
-                        vc.ToggleWordWrapping(false);
-                        vc.SetButtonText(Controllers.PlayerController.Instance.VoipEnabled ? "Disable Voice Chat" : "Enable Voice Chat");
-                        vc.onClick.AddListener(delegate {
-                            try
-                            {
-                                if (!Controllers.PlayerController.Instance.VoipEnabled)
+                                Button host = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f), new Vector2(25f, 7f));
+                                host.SetButtonTextSize(3f);
+                                host.ToggleWordWrapping(false);
+                                host.SetButtonText("Disconnect");
+                                host.onClick.AddListener(delegate
                                 {
-                                    vc.SetButtonText("Disable Voice Chat");
-                                    Controllers.PlayerController.Instance.VoipEnabled = true;
-                                    SteamUser.StartVoiceRecording();
-                                } else
+                                    try
+                                    {
+                                        SteamAPI.Disconnect();
+                                        Instance.Dismiss();
+                                        MultiplayerListing.Instance.Present();
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Error(e);
+                                    }
+                                });
+                                float offs = 0;
+                                offs += 10f;
+                                Button vc = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f - offs), new Vector2(25f, 7f));
+                                vc.SetButtonTextSize(3f);
+                                vc.ToggleWordWrapping(false);
+                                vc.SetButtonText(Controllers.PlayerController.Instance.VoipEnabled ? "Disable Voice Chat" : "Enable Voice Chat");
+                                vc.onClick.AddListener(delegate
                                 {
-                                    vc.SetButtonText("Enable Voice Chat");
-                                    Controllers.PlayerController.Instance.VoipEnabled = false;
-                                    SteamUser.StopVoiceRecording();
-                                }
-                            }
-                            catch (Exception e)
+                                    try
+                                    {
+                                        if (!Controllers.PlayerController.Instance.VoipEnabled)
+                                        {
+                                            vc.SetButtonText("Disable Voice Chat");
+                                            Controllers.PlayerController.Instance.VoipEnabled = true;
+                                            SteamUser.StartVoiceRecording();
+                                        }
+                                        else
+                                        {
+                                            vc.SetButtonText("Enable Voice Chat");
+                                            Controllers.PlayerController.Instance.VoipEnabled = false;
+                                            SteamUser.StopVoiceRecording();
+                                        }
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Logger.Error(e);
+                                    }
+                                });
+                                var t = middleViewController.CreateText("You can use Party in the Main Menu to choose songs for your lobby. \n\nYou can also control all the default Game Modifiers for the lobby through the Party Menu as well.", new Vector2(0, BASE.y - 10f));
+                                var tt = middleViewController.CreateText("If something goes wrong, click the disconnect button above and just reconnect to the lobby.", new Vector2(0, 0 - BASE.y));
+                                t.alignment = TMPro.TextAlignmentOptions.Center;
+                                tt.alignment = TMPro.TextAlignmentOptions.Center;
+                            } catch(Exception e)
                             {
-                                Logger.Error(e);
+                                Data.Logger.Error(e);
                             }
-                        });
-                        var t = middleViewController.CreateText("You can use Party in the Main Menu to choose songs for your lobby. \n\nYou can also control all the default Game Modifiers for the lobby through the Party Menu as well.", new Vector2(0, BASE.y - 10f));
-                        var tt = middleViewController.CreateText("If something goes wrong, click the disconnect button above and just reconnect to the lobby.", new Vector2(0, 0 - BASE.y));
-                        t.alignment = TMPro.TextAlignmentOptions.Center;
-                        tt.alignment = TMPro.TextAlignmentOptions.Center;
                         /**Button g = middleViewController.CreateUIButton("CreditsButton", new Vector2(0, 0), new Vector2(25f, 25f));
                         g.SetButtonTextSize(7f);
                         g.ToggleWordWrapping(false);
@@ -107,45 +121,69 @@ namespace BeatSaberOnline.Views.Menus
                                 Logger.Error(e);
                             }
                         });*/
-                    }
-                });
-                Instance.SetRightViewController(rightViewController, false, (firstActivation, type) =>
-                {
-                    if (firstActivation)
+                        }
+                    });
+                    Instance.SetLeftViewController(leftViewController, false, (firstActivation, type) =>
                     {
-                        refreshFriendsList(rightViewController);
-                        rightViewController.CreateText("Invite Friends", new Vector2(BASE.x + 62.5f, BASE.y));
-
-                        Button b = rightViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
-                        b.SetButtonText("Refresh");
-                        b.SetButtonTextSize(3f);
-                        b.ToggleWordWrapping(false);
-                        b.onClick.AddListener(delegate ()
+                        if (firstActivation)
                         {
-                            refreshFriendsList(rightViewController);
-                        });
+                            refreshFriendsList(leftViewController);
+                            leftViewController.CreateText("Invite Friends", new Vector2(BASE.x + 62.5f, BASE.y));
 
-
-                        invite = rightViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, 0 - BASE.y + 2.5f), new Vector2(25f, 7f));
-                        invite.SetButtonText("Invite");
-                        invite.SetButtonTextSize(3f);
-                        invite.ToggleWordWrapping(false);
-                        invite.interactable = false;
-                        invite.onClick.AddListener(delegate ()
-                        {
-                            if (selectedPlayer > 0)
+                            Button b = leftViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
+                            b.SetButtonText("Refresh");
+                            b.SetButtonTextSize(3f);
+                            b.ToggleWordWrapping(false);
+                            b.onClick.AddListener(delegate ()
                             {
-                                SteamAPI.InviteUserToLobby(new CSteamID(selectedPlayer));
-                            }
-                        });
-                        
-                    }
-                });
+                                refreshFriendsList(leftViewController);
+                            });
+
+
+                            invite = leftViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, 0 - BASE.y + 2.5f), new Vector2(25f, 7f));
+                            invite.SetButtonText("Invite");
+                            invite.SetButtonTextSize(3f);
+                            invite.ToggleWordWrapping(false);
+                            invite.interactable = false;
+                            invite.onClick.AddListener(delegate ()
+                            {
+                                if (selectedPlayer > 0)
+                                {
+                                    SteamAPI.InviteUserToLobby(new CSteamID(selectedPlayer));
+                                }
+                            });
+                        }
+                    });
+                    Instance.SetRightViewController(rightViewController, false, (active, type) => {
+                        if (active)
+                        {
+                            rightViewController.CreateText("Lobby Leaderboard", new Vector2(BASE.x + 62.5f, BASE.y));
+                        }
+                        RefreshScores();
+                    });
+                } catch(Exception e)
+                {
+                    Data.Logger.Error(e);
+                }
 
             }
         }
+        private static Comparison<PlayerInfo> scoreComparison = new Comparison<PlayerInfo>((x, y) => (int) y.playerScore - (int) x.playerScore);
+        public static void RefreshScores()
+        {
+            if (!Instance.isActiveAndEnabled) { return; } 
+            List<PlayerInfo> players = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
+            players.Sort(scoreComparison);
 
-        private FlowCoordinator GetActiveFlowCoordinator()
+            rightViewController.Data.Clear();
+            rightViewController.Data = players;
+
+            rightViewController._customListTableView.ReloadData();
+            rightViewController._customListTableView.ScrollToRow(0, false);
+
+        }
+
+        private static FlowCoordinator GetActiveFlowCoordinator()
         {
             FlowCoordinator[] flowCoordinators = Resources.FindObjectsOfTypeAll<FlowCoordinator>();
             foreach (FlowCoordinator f in flowCoordinators)
@@ -156,10 +194,10 @@ namespace BeatSaberOnline.Views.Menus
             return null;
         }
 
-        private static void refreshFriendsList(ListViewController rightViewController) 
+        private static void refreshFriendsList(ListViewController leftViewController) 
         {
             friends = SteamAPI.GetOnlineFriends();
-            rightViewController.Data.Clear();
+            leftViewController.Data.Clear();
             CGameID gameId = SteamAPI.GetGameID();
             foreach (KeyValuePair<CSteamID, string[]> entry in friends)
             {
@@ -167,7 +205,7 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     continue;
                 }
-                rightViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Playing Beat Saber"));
+                leftViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Playing Beat Saber"));
             }
             foreach (KeyValuePair<CSteamID, string[]> entry in friends)
             {
@@ -175,7 +213,7 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     continue;
                 }
-                rightViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Playing Other Game"));
+                leftViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Playing Other Game"));
             }
             foreach (KeyValuePair<CSteamID, string[]> entry in friends)
             {
@@ -183,12 +221,12 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     continue;
                 }
-                rightViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Online"));
+                leftViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Online"));
             }
 
-            rightViewController._customListTableView.ReloadData();
-            rightViewController._customListTableView.ScrollToRow(0, false);
-            rightViewController.DidSelectRowEvent = (TableView view, int row) =>
+            leftViewController._customListTableView.ReloadData();
+            leftViewController._customListTableView.ScrollToRow(0, false);
+            leftViewController.DidSelectRowEvent = (TableView view, int row) =>
             {
                 selectedPlayer = friends.Keys.ToArray()[row].m_SteamID;
                 invite.interactable = true;
