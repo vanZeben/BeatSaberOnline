@@ -46,15 +46,25 @@ namespace BeatSaberOnline.Views.ViewControllers
             
             _mainMenuController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().FirstOrDefault();
             Button partyButton = ReflectionUtil.GetPrivateField<Button>(_mainMenuController, "_partyButton");
+            HoverHint hint = Resources.FindObjectsOfTypeAll<HoverHint>().Where(x => x.text == "Play with your friends locally!").First();
             _mainMenuController.didActivateEvent += (first, type) =>
             {
                 if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED)
                 {
                     partyButton.SetButtonText("Party");
+                    if (hint)
+                    {
+                        hint.text = "Play with your friends locally!";
+                    }
                 }
                 else
                 {
-                    partyButton.SetButtonText("Online");
+                    partyButton.SetButtonText("Online Lobby");
+                    if (hint)
+                    {
+                        hint.text = "Play with your friends in your steam lobby!";
+                    }
+                   
                 }
             };
         }
