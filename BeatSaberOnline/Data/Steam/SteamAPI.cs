@@ -201,7 +201,7 @@ namespace BeatSaberOnline.Data.Steam
 
         public static bool IsHost()
         {
-            if (_lobbyInfo.LobbyID.m_SteamID == 0) { return true;  }
+            if (_lobbyInfo.LobbyID.m_SteamID == 0 || SteamMatchmaking.GetNumLobbyMembers(_lobbyInfo.LobbyID) == 1) { return true;  }
             return SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID).m_SteamID == GetUserID();
         }
 
@@ -533,11 +533,17 @@ namespace BeatSaberOnline.Data.Steam
 
         public static void DisconnectPlayer(ulong playerId)
         {
-            Logger.Debug($"{playerId} disconnected from current lobby");
-            _lobbyInfo.UsedSlots -= 1;
-            Scoreboard.Instance.RemoveScoreboardEntry(playerId);
-            Controllers.PlayerController.Instance.RemoveConnectedPlayer(playerId);
-            SendLobbyInfo(true);
+            try
+            {
+                Logger.Debug($"{playerId} disconnected from current lobby");
+                _lobbyInfo.UsedSlots -= 1;
+                Scoreboard.Instance.RemoveScoreboardEntry(playerId);
+                Controllers.PlayerController.Instance.RemoveConnectedPlayer(playerId);
+                SendLobbyInfo(true);
+            } catch (Exception e)
+            {
+                Logger.Error(e);
+            }
         }
 
         public static void KickAll()

@@ -138,8 +138,8 @@ namespace BeatSaberOnline.Views.Menus
 
         public void RemoveScoreboardEntry(ulong clientIndex)
         {
+            if (!_scoreboardEntries.ContainsKey(clientIndex)) { return; }
             ScoreboardEntry entry = _scoreboardEntries[clientIndex];
-            if (entry == null) return;
             entry.text.text = "";
             _textPool.Free(entry.text);
             _scoreboardEntries.Remove(clientIndex);

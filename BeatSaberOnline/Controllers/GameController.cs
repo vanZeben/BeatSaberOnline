@@ -61,20 +61,27 @@ namespace BeatSaberOnline.Controllers
                     return;
                 }
                 if (to.name == "GameCore" || to.name == "Menu")
-                {  
-                    PlayerController.Instance.DestroyAvatars();
-                    if (to.name == "GameCore" && SongListUtils.InSong)
+                {
+                    try
                     {
-                        Scoreboard.Instance.disabled = false;
-                        List<PlayerInfo> connectedPlayers = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
-                        for (int i = 0; i < connectedPlayers.Count;i++)
+                        PlayerController.Instance.DestroyAvatars();
+                        if (to.name == "GameCore" && SongListUtils.InSong)
                         {
-                            Scoreboard.Instance.UpsertScoreboardEntry(connectedPlayers[i].playerId, connectedPlayers[i].playerName, 0, 0);
+                            Scoreboard.Instance.disabled = false;
+                            List<PlayerInfo> connectedPlayers = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
+                            for (int i = 0; i < connectedPlayers.Count; i++)
+                            {
+                                Scoreboard.Instance.UpsertScoreboardEntry(connectedPlayers[i].playerId, connectedPlayers[i].playerName, 0, 0);
+                            }
                         }
-                    } else if (to.name == "Menu")
+                        else if (to.name == "Menu")
+                        {
+                            Scoreboard.Instance.RemoveAll();
+                            Scoreboard.Instance.disabled = true;
+                        }
+                    } catch(Exception e)
                     {
-                        Scoreboard.Instance.RemoveAll();
-                        Scoreboard.Instance.disabled = true;
+                        Logger.Error(e);
                     }
                 }
             }
@@ -96,31 +103,36 @@ namespace BeatSaberOnline.Controllers
 
         public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
-
-            Logger.Debug("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
-            WaitingMenu.Instance.Dismiss();
-            WaitingMenu.firstInit = true;
-            SteamAPI.FinishSong();
-            PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
-
-            _playerDataModel.currentLocalPlayer.playerAllOverallStatsData.soloFreePlayOverallStatsData.UpdateWithLevelCompletionResults(levelCompletionResults);
-            _playerDataModel.Save();
-            if (levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Failed && levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Cleared)
+            try
             {
-                return;
-            }
+                Logger.Debug("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
+                WaitingMenu.Instance.Dismiss();
+                WaitingMenu.firstInit = true;
+                SteamAPI.FinishSong();
+                PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
 
-            PlayerDataModelSO.LocalPlayer currentLocalPlayer = _playerDataModel.currentLocalPlayer;
-            bool cleared = levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Cleared;
-            string levelID = difficultyBeatmap.level.levelID;
-            BeatmapDifficulty difficulty = difficultyBeatmap.difficulty;
-            PlayerLevelStatsData playerLevelStatsData = currentLocalPlayer.GetPlayerLevelStatsData(levelID, difficulty);
-            bool newHighScore = playerLevelStatsData.highScore < levelCompletionResults.score;
-            playerLevelStatsData.IncreaseNumberOfGameplays();
-            if (cleared)
+                _playerDataModel.currentLocalPlayer.playerAllOverallStatsData.soloFreePlayOverallStatsData.UpdateWithLevelCompletionResults(levelCompletionResults);
+                _playerDataModel.Save();
+                if (levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Failed && levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Cleared)
+                {
+                    return;
+                }
+
+                PlayerDataModelSO.LocalPlayer currentLocalPlayer = _playerDataModel.currentLocalPlayer;
+                bool cleared = levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Cleared;
+                string levelID = difficultyBeatmap.level.levelID;
+                BeatmapDifficulty difficulty = difficultyBeatmap.difficulty;
+                PlayerLevelStatsData playerLevelStatsData = currentLocalPlayer.GetPlayerLevelStatsData(levelID, difficulty);
+                bool newHighScore = playerLevelStatsData.highScore < levelCompletionResults.score;
+                playerLevelStatsData.IncreaseNumberOfGameplays();
+                if (cleared)
+                {
+                    playerLevelStatsData.UpdateScoreData(levelCompletionResults.score, levelCompletionResults.maxCombo, levelCompletionResults.fullCombo, levelCompletionResults.rank);
+                    Resources.FindObjectsOfTypeAll<PlatformLeaderboardsModel>().First().AddScore(difficultyBeatmap, levelCompletionResults.unmodifiedScore, gameplayModifiers);
+                }
+            } catch (Exception e)
             {
-                playerLevelStatsData.UpdateScoreData(levelCompletionResults.score, levelCompletionResults.maxCombo, levelCompletionResults.fullCombo, levelCompletionResults.rank);
-                Resources.FindObjectsOfTypeAll<PlatformLeaderboardsModel>().First().AddScore(difficultyBeatmap, levelCompletionResults.unmodifiedScore, gameplayModifiers);
+                Data.Logger.Error(e);
             }
 
         }

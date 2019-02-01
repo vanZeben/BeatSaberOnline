@@ -46,7 +46,7 @@ namespace BeatSaberOnline.Utils
         public static bool InSong = false;
         public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers)
         {
-            if (InSong) { return; }
+            if (InSong || level == null|| gameplayModifiers == null) { return; }
             try
             {
                 MenuSceneSetupDataSO menuSceneSetupData = Resources.FindObjectsOfTypeAll<MenuSceneSetupDataSO>().FirstOrDefault();
@@ -60,9 +60,16 @@ namespace BeatSaberOnline.Utils
                     menuSceneSetupData.StartStandardLevel(difficultyBeatmap, gameplayModifiers, playerSettings, null, null, 
                         (StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults) =>
                         {
-                            InSong = false;
-                            WaitingMenu.queuedSong = null;
-                            GameController.Instance.SongFinished(sender, levelCompletionResults, difficultyBeatmap, gameplayModifiers);
+                            Data.Logger.Debug("SONG FINISHED");
+                            try
+                            {
+                                InSong = false;
+                                WaitingMenu.queuedSong = null;
+                                GameController.Instance.SongFinished(sender, levelCompletionResults, difficultyBeatmap, gameplayModifiers);
+                            } catch (Exception e)
+                            {
+                                Data.Logger.Error(e);
+                            }
                     });
                 }
             } catch (Exception e)

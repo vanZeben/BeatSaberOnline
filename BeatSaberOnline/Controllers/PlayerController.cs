@@ -163,7 +163,7 @@ namespace BeatSaberOnline.Controllers
                             playerInfosByID[0] = _playerInfo.playerId;
                             _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
                             Array.Sort(playerInfosByID);
-                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 3f), 0, Math.Abs(Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId) * 3f));
+                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3f, 0, Math.Abs((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3f));
                         }
 
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
