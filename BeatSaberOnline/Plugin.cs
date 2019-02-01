@@ -13,7 +13,7 @@ namespace BeatSaberOnline
     {
         public static Plugin instance;
         public string Name => "BeatSaberOnline";
-        public string Version => "1.0.2";
+        public string Version => "1.0.3";
         public string UpdatedVersion { get; set; }
         public string CurrentScene { get; set; }
 

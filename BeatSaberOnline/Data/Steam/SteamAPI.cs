@@ -564,13 +564,13 @@ namespace BeatSaberOnline.Data.Steam
                 Controllers.PlayerController.Instance.StopBroadcasting();
                 _lobbyInfo.HostName = "";
                 SendLobbyInfo(true);
-                
+
                 Connection = ConnectionState.DISCONNECTED;
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
                 Controllers.PlayerController.Instance.DestroyAvatars();
+                WaitingMenu.firstInit = true;
                 WaitingMenu.queuedSong = null;
                 _lobbyInfo = new LobbyInfo();
-                userID = 0;
                 UpdateUserInfo();
                 Scoreboard.Instance.RemoveAll();
                 SongListUtils.InSong = false;

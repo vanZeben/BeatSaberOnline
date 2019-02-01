@@ -132,9 +132,9 @@ namespace BeatSaberOnline.Controllers
             {
                 if (avatar != null && !forcePlayerInfo)
                 {
-                    if (GameController.Tickrate < (1f / Time.smoothDeltaTime))
+                    if (GameController.TPS < (1f / Time.smoothDeltaTime))
                     {
-                        interpolationProgress += Time.deltaTime * GameController.Tickrate;
+                        interpolationProgress += Time.deltaTime * GameController.TPS;
                     }
                     else
                     {

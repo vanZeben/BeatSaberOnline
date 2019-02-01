@@ -50,7 +50,7 @@ namespace BeatSaberOnline.Controllers
 
             }
         }
-        private bool isBroadcasting = false;
+        public bool isBroadcasting = false;
         public void StartBroadcasting()
         {
             if (isBroadcasting) { return; }
@@ -136,7 +136,7 @@ namespace BeatSaberOnline.Controllers
                 if (!_connectedPlayers.Keys.Contains(info.playerId))
                 {
                     _connectedPlayers.Add(info.playerId, info);
-                    if (Config.Instance.AvatarsInLobby)
+                    if ((Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "Menu") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
                     {
                         AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
                         avatar.SetPlayerInfo(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
@@ -154,7 +154,7 @@ namespace BeatSaberOnline.Controllers
                         Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName, (int)info.playerScore, (int)info.playerComboBlocks);
                         MultiplayerLobby.RefreshScores();
                     }
-                    if (Config.Instance.AvatarsInLobby)
+                    if (_connectedPlayerAvatars.ContainsKey(info.playerId) && (Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "Menu") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
                     {
                         Vector3 offset = new Vector3(0, 0, 0);
                         if (Plugin.instance.CurrentScene == "GameCore")
@@ -163,7 +163,7 @@ namespace BeatSaberOnline.Controllers
                             playerInfosByID[0] = _playerInfo.playerId;
                             _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
                             Array.Sort(playerInfosByID);
-                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3f, 0, Math.Abs((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 3f));
+                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2.5f, 0, Math.Abs((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2f));
                         }
 
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
@@ -212,6 +212,7 @@ namespace BeatSaberOnline.Controllers
         {
             try
             {
+                Data.Logger.Info("Broadcasting");
                 UpdatePlayerInfo();
                 SteamAPI.SendPlayerInfo(_playerInfo);
                 if (_playerInfo.voip != null && _playerInfo.voip.Length > 0)

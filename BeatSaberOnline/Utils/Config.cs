@@ -12,6 +12,9 @@ namespace BeatSaberOnline.Data
         private bool _noFailMode;
         private bool _debugMode;
         private bool _avatarsInLobby;
+        private bool _avatarsInGame;
+        private int _networkQuality;
+
         private static Config _instance;
 
         private static FileInfo FileLocation { get; } = new FileInfo($"./UserData/{Plugin.instance.Name}.json");
@@ -135,6 +138,28 @@ namespace BeatSaberOnline.Data
         }
 
 
+        public bool AvatarsInGame
+        {
+            get { return _avatarsInGame; }
+            set
+            {
+                _avatarsInGame = value;
+                MarkDirty();
+            }
+        }
+
+
+        public int NetworkQuality
+        {
+            get { return _networkQuality; }
+            set
+            {
+                if (value > 5) { value = 5; }
+                _networkQuality = value;
+                MarkDirty();
+            }
+        }
+        
         Config()
         {
             _autoStartLobby = false;
@@ -143,6 +168,8 @@ namespace BeatSaberOnline.Data
             _noFailMode = true;
             _debugMode = false;
             _avatarsInLobby = true;
+            _avatarsInGame = true;
+            _networkQuality = 3;
             IsDirty = true;
         }
 

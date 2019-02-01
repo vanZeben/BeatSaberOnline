@@ -91,7 +91,7 @@ namespace BeatSaberOnline.Views.Menus
                                         Logger.Error(e);
                                     }
                                 });
-                                var t = middleViewController.CreateText("You can use Party in the Main Menu to choose songs for your lobby. \n\nYou can also control all the default Game Modifiers for the lobby through the Party Menu as well.", new Vector2(0, BASE.y - 10f));
+                                var t = middleViewController.CreateText("You can use Online Lobby in the Main Menu to choose songs for your lobby. \n\nYou can also control all the default Game Modifiers for the lobby through the Online Lobby Menu as well.", new Vector2(0, BASE.y - 10f));
                                 var tt = middleViewController.CreateText("If something goes wrong, click the disconnect button above and just reconnect to the lobby.", new Vector2(0, 0 - BASE.y));
                                 t.alignment = TMPro.TextAlignmentOptions.Center;
                                 tt.alignment = TMPro.TextAlignmentOptions.Center;

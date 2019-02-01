@@ -104,9 +104,26 @@ namespace BeatSaberOnline.Views
                 Config.Instance.MaxLobbySize = value;
             };
 
-            var AvatarsInLobby = settingsMenu.AddBool("Enable Avatars");
+            var AvatarsInLobby = settingsMenu.AddBool("Enable Avatars In Lobby");
             AvatarsInLobby.GetValue += delegate { return Config.Instance.AvatarsInLobby; };
             AvatarsInLobby.SetValue += delegate (bool value) { Config.Instance.AvatarsInLobby = value; };
+
+            var AvatarsInGame = settingsMenu.AddBool("Enable Avatars In Game");
+            AvatarsInGame.GetValue += delegate { return Config.Instance.AvatarsInGame; };
+            AvatarsInGame.SetValue += delegate (bool value) { Config.Instance.AvatarsInGame = value; };
+
+
+            var NetworkQuality = settingsMenu.AddInt("Network Quality", 0, 5, 1);
+            NetworkQuality.GetValue += delegate { return Config.Instance.NetworkQuality; };
+            NetworkQuality.SetValue += delegate (int value) {
+                Config.Instance.NetworkQuality = value;
+                if (Controllers.PlayerController.Instance.isBroadcasting)
+                {
+                    Controllers.PlayerController.Instance.StopBroadcasting();
+                    Controllers.PlayerController.Instance.StartBroadcasting();
+                }
+            };
+
 
             var DebugMode = settingsMenu.AddBool("Debug Mode");
             DebugMode.GetValue += delegate { return Config.Instance.DebugMode; };

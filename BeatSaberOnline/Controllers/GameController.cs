@@ -1,19 +1,12 @@
 ﻿using BeatSaberOnline.Data;
-using BeatSaberOnline.Data.Steam;
 using BeatSaberOnline.Utils;
 using BeatSaberOnline.Views.Menus;
-using CustomAvatar;
-using CustomUI.Utilities;
-using Steamworks;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.XR;
 using VRUI;
 using Logger = BeatSaberOnline.Data.Logger;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
@@ -23,11 +16,38 @@ namespace BeatSaberOnline.Controllers
     class GameController : MonoBehaviour
     {
         public static GameController Instance;
-        public static float TPS { get; } = 25f / 1000f;
-        public static float Tickrate { get; } = 1000f / TPS;
+        public static float TPS
+        {
+            get
+            {
+                float tps = 0;
+                switch (Config.Instance.NetworkQuality)
+                {
+                    case 0:
+                        tps = 5;
+                        break;
+                    case 1:
+                        tps = 10;
+                        break;
+                    case 2:
+                        tps = 15;
+                        break;
+                    case 3:
+                        tps = 20;
+                        break;
+                    case 4:
+                        tps = 25;
+                        break;
+                    case 5:
+                        tps = 30;
+                        break;
+                }
+                return 1f / tps;
+            }
+        }
         private ResultsViewController _resultsViewController;
         private string _currentScene;
-
+        
         public static void Init(Scene to)
         {
             if (Instance != null)
