@@ -52,7 +52,18 @@ namespace BeatSaberOnline.Controllers
         }
 
 
-        public void ActiveSceneChanged(Scene from, Scene to)
+        IEnumerator RunLobbyCleanup()
+        {
+            yield return new WaitUntil(delegate () { Data.Logger.Info("waiting for active: "+ WaitingMenu.Instance.isActiveAndEnabled); return WaitingMenu.Instance.isActiveAndEnabled; });
+            Logger.Info("Finished song, doing cleanup");
+            WaitingMenu.Instance.Dismiss();
+            WaitingMenu.firstInit = true;
+            WaitingMenu.queuedSong = null;
+            SongListUtils.InSong = false;
+            SteamAPI.FinishSong();
+        }
+
+            public void ActiveSceneChanged(Scene from, Scene to)
         {
             try
             {
@@ -78,6 +89,10 @@ namespace BeatSaberOnline.Controllers
                         {
                             Scoreboard.Instance.RemoveAll();
                             Scoreboard.Instance.disabled = true;
+                            if (from.name == "GameCore" && SongListUtils.InSong)
+                            {
+                                StartCoroutine(RunLobbyCleanup());
+                            }
                         }
                     } catch(Exception e)
                     {
@@ -100,17 +115,15 @@ namespace BeatSaberOnline.Controllers
             }
             return null;
         }
-
+        
         public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
             try
             {
-                Logger.Debug("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
-                WaitingMenu.Instance.Dismiss();
-                WaitingMenu.firstInit = true;
-                SteamAPI.FinishSong();
-                PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
+                if (sender == null || levelCompletionResults == null || difficultyBeatmap == null || gameplayModifiers == null) { return; }
+                Logger.Info("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
 
+                PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
                 _playerDataModel.currentLocalPlayer.playerAllOverallStatsData.soloFreePlayOverallStatsData.UpdateWithLevelCompletionResults(levelCompletionResults);
                 _playerDataModel.Save();
                 if (levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Failed && levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Cleared)

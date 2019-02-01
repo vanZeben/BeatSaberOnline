@@ -568,6 +568,7 @@ namespace BeatSaberOnline.Data.Steam
                 Connection = ConnectionState.DISCONNECTED;
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
                 Controllers.PlayerController.Instance.DestroyAvatars();
+                WaitingMenu.queuedSong = null;
                 _lobbyInfo = new LobbyInfo();
                 userID = 0;
                 UpdateUserInfo();

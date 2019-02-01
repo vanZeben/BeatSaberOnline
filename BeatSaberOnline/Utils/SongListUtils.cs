@@ -69,18 +69,9 @@ namespace BeatSaberOnline.Utils
         }
         private static void FinishSong(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults)
         {
-            Data.Logger.Debug("SONG FINISHED");
-            try
-            {
-                InSong = false;
-                WaitingMenu.queuedSong = null;
-                GameController.Instance.SongFinished(sender, levelCompletionResults, _difficultyBeatmap, _gameplayModifiers);
-            } catch (Exception e)
-            {
-                Data.Logger.Error(e);
-            }
+            GameController.Instance.SongFinished(sender, levelCompletionResults, _difficultyBeatmap, _gameplayModifiers);
         }
-
+        
         public static LevelSO GetInstalledSong(string levelId = null)
         {
             try

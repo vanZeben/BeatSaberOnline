@@ -108,6 +108,7 @@ namespace BeatSaberOnline.Views.ViewControllers
         private void didSelectPlay()
         {try
             {
+                Logger.Info("Clicked play button");
                 var practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
                 Logger.Debug("Custom play button selected");
                 if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
