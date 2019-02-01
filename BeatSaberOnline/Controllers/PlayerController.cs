@@ -212,7 +212,6 @@ namespace BeatSaberOnline.Controllers
         {
             try
             {
-                Data.Logger.Info("Broadcasting");
                 UpdatePlayerInfo();
                 SteamAPI.SendPlayerInfo(_playerInfo);
                 if (_playerInfo.voip != null && _playerInfo.voip.Length > 0)
