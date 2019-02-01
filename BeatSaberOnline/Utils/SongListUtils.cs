@@ -44,6 +44,8 @@ namespace BeatSaberOnline.Utils
             }
         }
         public static bool InSong = false;
+        private static IDifficultyBeatmap _difficultyBeatmap;
+        private static GameplayModifiers _gameplayModifiers;
         public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers)
         {
             if (InSong || level == null|| gameplayModifiers == null) { return; }
@@ -53,25 +55,26 @@ namespace BeatSaberOnline.Utils
                 if (menuSceneSetupData != null)
                 {
                     PlayerSpecificSettings playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().currentLocalPlayer.playerSpecificSettings;
-                    IDifficultyBeatmap difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
+                    _gameplayModifiers = gameplayModifiers;
+                    _difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
 
-                    Data.Logger.Info($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={difficultyBeatmap.difficulty}");
+                    Data.Logger.Info($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={_difficultyBeatmap.difficulty}");
                     InSong = true;
-                    menuSceneSetupData.StartStandardLevel(difficultyBeatmap, gameplayModifiers, playerSettings, null, null, 
-                        (StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults) =>
-                        {
-                            Data.Logger.Debug("SONG FINISHED");
-                            try
-                            {
-                                InSong = false;
-                                WaitingMenu.queuedSong = null;
-                                GameController.Instance.SongFinished(sender, levelCompletionResults, difficultyBeatmap, gameplayModifiers);
-                            } catch (Exception e)
-                            {
-                                Data.Logger.Error(e);
-                            }
-                    });
+                    menuSceneSetupData.StartStandardLevel(_difficultyBeatmap, gameplayModifiers, playerSettings, null, null, new Action<StandardLevelSceneSetupDataSO, LevelCompletionResults>(FinishSong));
                 }
+            } catch (Exception e)
+            {
+                Data.Logger.Error(e);
+            }
+        }
+        private static void FinishSong(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults)
+        {
+            Data.Logger.Debug("SONG FINISHED");
+            try
+            {
+                InSong = false;
+                WaitingMenu.queuedSong = null;
+                GameController.Instance.SongFinished(sender, levelCompletionResults, _difficultyBeatmap, _gameplayModifiers);
             } catch (Exception e)
             {
                 Data.Logger.Error(e);
