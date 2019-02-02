@@ -123,14 +123,14 @@ namespace BeatSaberOnline.Controllers
                 _playerInfo.rightHandPos = pos.rightHandPos;
                 _playerInfo.rightHandRot = pos.rightHandRot;
         }
-        public Dictionary<string, bool> GetConnectedPlayerDownloadStatus()
+        public Dictionary<string, float> GetConnectedPlayerDownloadStatus()
         {
-            Dictionary<string, bool> connectedPlayerStatus = new Dictionary<string, bool>();
-            connectedPlayerStatus.Add(_playerInfo.playerName, _playerInfo.Downloading);
+            Dictionary<string, float> connectedPlayerStatus = new Dictionary<string, float>();
+            connectedPlayerStatus.Add(_playerInfo.playerName, _playerInfo.Downloading ? _playerInfo.playerProgress : 1);
             for(int i = 0; i <  _connectedPlayers.Count;i++)
             {
                 PlayerInfo info = _connectedPlayers.Values.ToArray()[i];
-                connectedPlayerStatus.Add(info.playerName, info.Downloading);
+                connectedPlayerStatus.Add(info.playerName, info.Downloading ? info.playerProgress : 1f);
             }
             return connectedPlayerStatus;
         }
@@ -174,7 +174,7 @@ namespace BeatSaberOnline.Controllers
 
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                     }
-                    bool changedDownloading = (_connectedPlayers[info.playerId].Downloading != info.Downloading);
+                    bool changedDownloading = (_connectedPlayers[info.playerId].Downloading != info.Downloading || _connectedPlayers[info.playerId].playerProgress != info.playerProgress);
 
                     _connectedPlayers[info.playerId] = info;
                     if (changedDownloading) {

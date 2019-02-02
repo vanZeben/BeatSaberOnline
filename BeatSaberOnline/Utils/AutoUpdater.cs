@@ -50,7 +50,7 @@ namespace BeatSaberOnline.Utils
                     string zipPath = Path.Combine(Environment.CurrentDirectory, ".pluginupdatecache", $"{Plugin.instance.Name}.zip");
                     string finalPath = Path.Combine(Environment.CurrentDirectory);
                 
-                    yield return FileUtils.DownloadFile(result[0]["files"]["steam"]["url"].Value, zipPath);
+                    yield return FileUtils.DownloadFile(result[0]["files"]["steam"]["url"].Value, zipPath, (float i) => { });
                     yield return FileUtils.ExtractZip(zipPath, finalPath, ".pluginupdatecache", true);
 
                     FileUtils.EmptyDirectory(".pluginupdatecache");

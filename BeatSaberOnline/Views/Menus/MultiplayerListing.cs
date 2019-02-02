@@ -41,10 +41,10 @@ namespace BeatSaberOnline.Views.Menus
 
                 Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                 {
+                    refreshAvailableLobbies();
                     if (firstActivation)
                     {
                         middleViewController.CreateText("Available Lobbies", new Vector2(BASE.x + 60f, BASE.y));
-                        refreshAvailableLobbies();
 
                         refresh = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f - 10f), new Vector2(25f, 7f));
                         refresh.SetButtonText("Refresh");

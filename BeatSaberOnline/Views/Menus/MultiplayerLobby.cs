@@ -99,28 +99,25 @@ namespace BeatSaberOnline.Views.Menus
                             {
                                 Data.Logger.Error(e);
                             }
-                        /**Button g = middleViewController.CreateUIButton("CreditsButton", new Vector2(0, 0), new Vector2(25f, 25f));
-                        g.SetButtonTextSize(7f);
-                        g.ToggleWordWrapping(false);
-                        g.SetButtonText("Select a Song");
-                        g.onClick.AddListener(delegate {
-                            try
-                            {
-                                if (SteamAPI.IsHost())
-                                {
-                                    Instance.Dismiss();
-                                    MainMenuViewController c = Resources.FindObjectsOfTypeAll<MainMenuViewController>().FirstOrDefault();
-                                    if (c != null)
-                                    {
-                                        c.HandleMenuButton(MainMenuViewController.MenuButton.Party);
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Logger.Error(e);
-                            }
-                        });*/
+                            /*   Button g = middleViewController.CreateUIButton("CreditsButton", new Vector2(0, 0), new Vector2(25f, 25f));
+                               g.SetButtonTextSize(7f);
+                               g.ToggleWordWrapping(false);
+                               g.SetButtonText("Select a Song");
+                               g.onClick.AddListener(delegate {
+                                   try
+                                   {
+                                       if (SteamAPI.IsHost())
+                                       {
+                                           SteamAPI.SetSong("112D7FA45FA06F36FF41029099E95B98", "TaKillYa");
+                                           SteamAPI.SetDifficulty((byte)2);
+                                           SteamAPI.RequestPlay(new GameplayModifiers(new GameplayModifiers()));
+                                       }
+                                   }
+                                   catch (Exception e)
+                                   {
+                                       Logger.Error(e);
+                                   }
+                               });*/
                         }
                     });
                     Instance.SetLeftViewController(leftViewController, false, (firstActivation, type) =>

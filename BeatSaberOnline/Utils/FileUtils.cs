@@ -88,12 +88,26 @@ namespace BeatSaberOnline.Utils
             }
         }
 
-        public static IEnumerator DownloadFile(string url, string path)
+        public static IEnumerator DownloadFile(string url, string path, Action<float> progressChanged)
         {
             using (UnityWebRequest www = UnityWebRequest.Get(url))
             {
-                yield return www.SendWebRequest();
+                float initTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+                UnityWebRequestAsyncOperation req = www.SendWebRequest();
 
+                while (!req.isDone)
+                {
+                    yield return null;
+                    
+                    if (new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() - initTime > 5 && req.progress == 0f)
+                    {
+                        Data.Logger.Error("Did not download anything within 5 second, aborting download");
+                        www.Abort();
+                        yield break;
+
+                    }
+                    progressChanged?.Invoke(req.progress);
+                }
                 if (www.isNetworkError || www.isHttpError)
                 {
                     Data.Logger.Error($"Http request error! {www.error}");

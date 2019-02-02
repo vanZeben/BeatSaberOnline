@@ -23,7 +23,6 @@ namespace BeatSaberOnline.Utils
     {
         public static string BEATSAVER_URL = "https://beatsaver.com";
         public Song CurrentlyDownloadingSong { get; set; }
-
         private static SongDownloader _instance = null;
         public static SongDownloader Instance
         {
@@ -40,7 +39,7 @@ namespace BeatSaberOnline.Utils
         }
 
 
-        public IEnumerator DownloadSong(string levelId, Action<string> songDownloaded)
+        public IEnumerator DownloadSong(string levelId, Action<float> downloadProgress, Action<string> songDownloaded)
         {
             levelId = levelId.Substring(0, 32);
             Data.Logger.Info($"Starting download for {levelId}");
@@ -61,29 +60,21 @@ namespace BeatSaberOnline.Utils
                     FileUtils.EmptyDirectory(".mpdownloadcache");
 
                     string zipPath = Path.Combine(Environment.CurrentDirectory, ".mpdownloadcache", $"{song["version"].Value}.zip");
-                    string finalPath = Path.Combine(Environment.CurrentDirectory, "CustomSongs", song["version"].Value);
+                    string finalPath = Path.Combine(Environment.CurrentDirectory, "CustomSongs", Plugin.instance.Name, song["version"].Value);
 
                     if (Directory.Exists(finalPath))
                         Directory.Delete(finalPath, true);
 
-                    Data.Logger.Debug($"ZipPath: {zipPath}");
-                    yield return FileUtils.DownloadFile(song["downloadUrl"].Value, zipPath);
+                    yield return FileUtils.DownloadFile(song["downloadUrl"].Value, zipPath, downloadProgress);
                     yield return FileUtils.ExtractZip(zipPath, finalPath, ".mpdownloadcache", false);
 
                     SongLoader.Instance.RefreshSongs(false);
                     while (SongLoader.AreSongsLoading) yield return null;
                     FileUtils.EmptyDirectory(".mpdownloadcache", true);
-
                     songDownloaded?.Invoke(song["hashMd5"]);
                     break;
                 }
             }
-        }
-
-        public void downloadedSong(Song song)
-        {
-            CurrentlyDownloadingSong = null;
-        }
-        
+        }    
     }
 }
