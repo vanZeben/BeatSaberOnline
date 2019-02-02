@@ -102,6 +102,7 @@ namespace BeatSaberOnline.Utils
                     if (new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() - initTime > 5 && req.progress == 0f)
                     {
                         Data.Logger.Error("Did not download anything within 5 second, aborting download");
+                        progressChanged?.Invoke(-1f);
                         www.Abort();
                         yield break;
 
@@ -111,6 +112,7 @@ namespace BeatSaberOnline.Utils
                 if (www.isNetworkError || www.isHttpError)
                 {
                     Data.Logger.Error($"Http request error! {www.error}");
+                    progressChanged?.Invoke(-1f);
                     yield break;
                 }
                 Data.Logger.Debug($"Success downloading \"{url}\"");
@@ -126,6 +128,7 @@ namespace BeatSaberOnline.Utils
                 catch (Exception)
                 {
                     Data.Logger.Error("Failed to download file!");
+                    progressChanged?.Invoke(-1f);
                     yield break;
                 }
             }

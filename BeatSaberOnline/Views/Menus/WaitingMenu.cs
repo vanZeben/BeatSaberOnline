@@ -134,7 +134,7 @@ namespace BeatSaberOnline.Views.Menus
                     middleViewController.Data.Clear();
                     foreach (KeyValuePair<string, float> user in status.OrderBy(u => u.Value))
                     {
-                        CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value == 1f ? "Ready" : $"Downloading song ${(int) Math.Round(user.Value * 100, 0)}%", user.Value == 1f ? Sprites.checkmarkIcon : Sprites.crossIcon);
+                        CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value == -1f ? "FAILED TO DOWNLOAD": user.Value == 1f ? "Ready" : $"Downloading song ${(int) Math.Round(user.Value * 100, 0)}%", user.Value == 1f ? Sprites.checkmarkIcon : Sprites.crossIcon);
                         middleViewController.Data.Add(cell);
                     }
                     middleViewController._customListTableView.ReloadData();
