@@ -40,7 +40,7 @@ namespace BeatSaberOnline.Data
 
         private static void Write(string type, object message)
         {
-            if ((type == "Debug" && Config.Instance.DebugMode) || type != "Debug")
+            if (type != "Debug")
             {
                 Console.WriteLine($"{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")} [{loggerName}] [{type}] ${message}");
             }

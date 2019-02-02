@@ -236,9 +236,7 @@ namespace BeatSaberOnline.Data.Steam
         public static void FinishSong()
         {
             Logger.Debug($"We have finished the song");
-
             setLobbyStatus("Waiting In Menu");
-
         }
 
         private static void SendLobbyInfo(bool reqHost = false)
@@ -246,18 +244,6 @@ namespace BeatSaberOnline.Data.Steam
              if (reqHost && !IsHost()) return;
              Logger.Debug($"Sending {_lobbyInfo.ToString()}");
              SteamMatchmaking.SetLobbyData(_lobbyInfo.LobbyID, "LOBBY_INFO", _lobbyInfo.Serialize());
-        }
-        public static void IncreaseSlots()
-        {
-            _lobbyInfo.TotalSlots += 1;
-            if (_lobbyInfo.TotalSlots > _lobbyInfo.MaxSlots)
-            {
-                _lobbyInfo.TotalSlots = 2;
-            }
-            Logger.Debug($"Increasing the lobby slots to {_lobbyInfo.TotalSlots}");
-
-            SendLobbyInfo(true);
-            SteamMatchmaking.SetLobbyMemberLimit(_lobbyInfo.LobbyID, _lobbyInfo.TotalSlots);
         }
 
         public static CGameID GetGameID()
@@ -323,6 +309,17 @@ namespace BeatSaberOnline.Data.Steam
         public static void PlayerConnected()
         {
             _lobbyInfo.UsedSlots += 1;
+            if (Config.Instance.NetworkScaling && _lobbyInfo.UsedSlots % 5 == 0)
+            {
+                float mod = _lobbyInfo.UsedSlots / 5;
+                float modifier = mod - (mod * 0.88f);
+                if (modifier > 0.6)
+                {
+                    modifier = 0.6f;
+                }
+                GameController.TPS_MODIFIER = 1 - modifier;
+                Controllers.PlayerController.Instance.RestartBroadcasting();
+            }
             if (IsHost())
             {
                 SendLobbyInfo(true);
@@ -331,6 +328,17 @@ namespace BeatSaberOnline.Data.Steam
         public static void PlayerDisconnected()
         {
             _lobbyInfo.UsedSlots -= 1;
+            if (Config.Instance.NetworkScaling && _lobbyInfo.UsedSlots % 5 == 0)
+            {
+                float mod = _lobbyInfo.UsedSlots / 5;
+                float modifier = mod - (mod * 0.88f);
+                if (modifier > 0.6)
+                {
+                    modifier = 0.6f;
+                }
+                GameController.TPS_MODIFIER = 1 - modifier;
+                Controllers.PlayerController.Instance.RestartBroadcasting();
+            }
             if (IsHost())
             {
                 SendLobbyInfo(true);

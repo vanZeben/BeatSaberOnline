@@ -10,10 +10,10 @@ namespace BeatSaberOnline.Data
         private bool _isPublic;
         private int _maxLobbySize;
         private bool _noFailMode;
-        private bool _debugMode;
         private bool _avatarsInLobby;
         private bool _avatarsInGame;
         private int _networkQuality;
+        private bool _networkScaling;
 
         private static Config _instance;
 
@@ -118,15 +118,6 @@ namespace BeatSaberOnline.Data
                 MarkDirty();
             }
         }
-        public bool DebugMode
-        {
-            get { return _debugMode; }
-            set
-            {
-                _debugMode = value;
-                MarkDirty();
-            }
-        }
         public bool AvatarsInLobby
         {
             get { return _avatarsInLobby; }
@@ -159,17 +150,27 @@ namespace BeatSaberOnline.Data
                 MarkDirty();
             }
         }
-        
+
+        public bool NetworkScaling
+        {
+            get { return _networkScaling; }
+            set
+            {
+                _networkScaling = value;
+                MarkDirty();
+            }
+        }
+
         Config()
         {
             _autoStartLobby = false;
             _isPublic = true;
             _maxLobbySize = 5;
             _noFailMode = true;
-            _debugMode = false;
             _avatarsInLobby = true;
             _avatarsInGame = true;
-            _networkQuality = 3;
+            _networkQuality = 4;
+            _networkScaling = false;
             IsDirty = true;
         }
 

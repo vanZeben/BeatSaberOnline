@@ -16,6 +16,7 @@ namespace BeatSaberOnline.Controllers
     class GameController : MonoBehaviour
     {
         public static GameController Instance;
+        public static float TPS_MODIFIER = 1;
         public static float TPS
         {
             get
@@ -42,6 +43,7 @@ namespace BeatSaberOnline.Controllers
                         tps = 30;
                         break;
                 }
+                tps *= TPS_MODIFIER;
                 return 1f / tps;
             }
         }

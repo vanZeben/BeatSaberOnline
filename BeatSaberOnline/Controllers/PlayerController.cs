@@ -63,6 +63,12 @@ namespace BeatSaberOnline.Controllers
             isBroadcasting = false;
             CancelInvoke("BroadcastPlayerInfo");
         }
+
+        public void RestartBroadcasting()
+        {
+            StopBroadcasting();
+            StartBroadcasting();
+        }
         public void DestroyAvatars()
         {
             try
@@ -163,7 +169,7 @@ namespace BeatSaberOnline.Controllers
                             playerInfosByID[0] = _playerInfo.playerId;
                             _connectedPlayers.Keys.ToList().CopyTo(playerInfosByID, 1);
                             Array.Sort(playerInfosByID);
-                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2.5f, 0, Math.Abs((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2f));
+                            offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2f, 0, Math.Abs((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2.5f));
                         }
 
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
