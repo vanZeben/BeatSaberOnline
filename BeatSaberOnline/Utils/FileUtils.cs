@@ -61,7 +61,7 @@ namespace BeatSaberOnline.Utils
                 }
                 catch (Exception e)
                 {
-                    Data.Logger.Info($"An error occured while trying to extract \"{zipPath}\"!");
+                    Data.Logger.Debug($"An error occured while trying to extract \"{zipPath}\"!");
                     Data.Logger.Error(e);
                     yield break;
                 }
@@ -82,7 +82,7 @@ namespace BeatSaberOnline.Utils
                 }
                 catch (Exception e)
                 {
-                    Data.Logger.Info($"An exception occured while trying to move files into their final directory! {e.ToString()}");
+                    Data.Logger.Debug($"An exception occured while trying to move files into their final directory! {e.ToString()}");
                     Data.Logger.Error(e);
                 }
             }

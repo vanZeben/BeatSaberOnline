@@ -77,7 +77,7 @@ namespace BeatSaberOnline.Controllers
         IEnumerator RunLobbyCleanup()
         {
             yield return new WaitUntil(delegate () { Data.Logger.Info("waiting for active: "+ WaitingMenu.Instance.isActiveAndEnabled); return WaitingMenu.Instance.isActiveAndEnabled; });
-            Logger.Info("Finished song, doing cleanup");
+            Logger.Debug("Finished song, doing cleanup");
             WaitingMenu.Instance.Dismiss();
             WaitingMenu.firstInit = true;
             WaitingMenu.queuedSong = null;
@@ -143,7 +143,7 @@ namespace BeatSaberOnline.Controllers
             try
             {
                 if (sender == null || levelCompletionResults == null || difficultyBeatmap == null || gameplayModifiers == null) { return; }
-                Logger.Info("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
+                Logger.Debug("Finished song: " + levelCompletionResults.levelEndStateType + " - " + levelCompletionResults.songDuration + " - - " + levelCompletionResults.endSongTime);
 
                 PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
                 _playerDataModel.currentLocalPlayer.playerAllOverallStatsData.soloFreePlayOverallStatsData.UpdateWithLevelCompletionResults(levelCompletionResults);

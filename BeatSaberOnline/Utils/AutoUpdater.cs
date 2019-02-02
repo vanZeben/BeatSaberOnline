@@ -38,7 +38,7 @@ namespace BeatSaberOnline.Utils
                     // Check if the remote version on modsaber is newer than what we have and if that version is approved
                     if (latestVersion <= currentVersion && status != "approved") yield break;
               
-                    Data.Logger.Info($"Found a new version, lets download it {result[0]["files"]["steam"]["url"].Value}");
+                    Data.Logger.Debug($"Found a new version, lets download it {result[0]["files"]["steam"]["url"].Value}");
                 
                     yield break;
                     

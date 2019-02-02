@@ -43,7 +43,7 @@ namespace BeatSaberOnline.Utils
         public IEnumerator DownloadSong(string levelId, Action<string> songDownloaded)
         {
             levelId = levelId.Substring(0, 32);
-
+            Data.Logger.Info($"Starting download for {levelId}");
             using (UnityWebRequest www = UnityWebRequest.Get($"https://beatsaver.com/api/songs/search/hash/{levelId}"))
             {
                 yield return www.SendWebRequest();

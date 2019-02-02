@@ -58,7 +58,7 @@ namespace BeatSaberOnline.Utils
                     _gameplayModifiers = gameplayModifiers;
                     _difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
 
-                    Data.Logger.Info($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={_difficultyBeatmap.difficulty}");
+                    Data.Logger.Debug($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={_difficultyBeatmap.difficulty}");
                     InSong = true;
                     menuSceneSetupData.StartStandardLevel(_difficultyBeatmap, gameplayModifiers, playerSettings, null, null, new Action<StandardLevelSceneSetupDataSO, LevelCompletionResults>(FinishSong));
                 }

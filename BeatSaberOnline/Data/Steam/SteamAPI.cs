@@ -353,7 +353,7 @@ namespace BeatSaberOnline.Data.Steam
                 return;
             }
             uint numLobbies = pCallback.m_nLobbiesMatching;
-            Logger.Info($"Found {numLobbies} total lobbies");
+            Logger.Debug($"Found {numLobbies} total lobbies");
             LobbyData.Clear();
             MultiplayerListing.refreshLobbyList();
             try
@@ -369,7 +369,7 @@ namespace BeatSaberOnline.Data.Steam
                 }
             } catch (Exception e)
             {
-                Logger.Info(e);
+                Logger.Error(e);
             }
 
             MultiplayerListing.refreshLobbyList();
