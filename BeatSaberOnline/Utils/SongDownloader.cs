@@ -49,6 +49,7 @@ namespace BeatSaberOnline.Utils
                 if (www.isNetworkError || www.isHttpError)
                 {
                     Data.Logger.Error(www.error);
+                    downloadProgress?.Invoke(-1f);
                     yield break;
                 }
 
@@ -69,7 +70,17 @@ namespace BeatSaberOnline.Utils
                     yield return FileUtils.ExtractZip(zipPath, finalPath, ".mpdownloadcache", false);
 
                     SongLoader.Instance.RefreshSongs(false);
-                    while (SongLoader.AreSongsLoading) yield return null;
+                    float initTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+
+                    while (SongLoader.AreSongsLoading)
+                    {
+                        yield return null;
+                        if (initTime - new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() > 5)
+                        {
+                            downloadProgress?.Invoke(-1f);
+                            yield break;
+                        }
+                    }
                     FileUtils.EmptyDirectory(".mpdownloadcache", true);
                     songDownloaded?.Invoke(song["hashMd5"]);
                     break;
