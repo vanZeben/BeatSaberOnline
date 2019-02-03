@@ -126,11 +126,11 @@ namespace BeatSaberOnline.Controllers
         public Dictionary<string, float> GetConnectedPlayerDownloadStatus()
         {
             Dictionary<string, float> connectedPlayerStatus = new Dictionary<string, float>();
-            connectedPlayerStatus.Add(_playerInfo.playerName, _playerInfo.Downloading ? _playerInfo.playerProgress : 1);
+            connectedPlayerStatus.Add(_playerInfo.playerName, _playerInfo.Ready ? 1f : _playerInfo.playerProgress);
             for(int i = 0; i <  _connectedPlayers.Count;i++)
             {
                 PlayerInfo info = _connectedPlayers.Values.ToArray()[i];
-                connectedPlayerStatus.Add(info.playerName, info.Downloading ? info.playerProgress : 1f);
+                connectedPlayerStatus.Add(info.playerName, info.Ready ? 1f : info.playerProgress);
             }
             return connectedPlayerStatus;
         }
@@ -174,15 +174,15 @@ namespace BeatSaberOnline.Controllers
 
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                     }
-                    bool changedDownloading = (_connectedPlayers[info.playerId].Downloading != info.Downloading || _connectedPlayers[info.playerId].playerProgress != info.playerProgress);
+                    bool changedReady = (_connectedPlayers[info.playerId].Ready != info.Ready || _connectedPlayers[info.playerId].playerProgress != info.playerProgress);
 
                     _connectedPlayers[info.playerId] = info;
-                    if (changedDownloading) {
+                    if (changedReady) {
                         if (SteamAPI.IsHost())
                         {
-                            if (info.Downloading)
+                            if (info.Ready)
                             {
-                                if (_connectedPlayers.Values.ToList().All(u => u.Downloading))
+                                if (_connectedPlayers.Values.ToList().All(u => u.Ready))
                                 {
                                     Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
                                     SteamAPI.StartPlaying();
@@ -191,7 +191,7 @@ namespace BeatSaberOnline.Controllers
                             }
                             else
                             {
-                                if (_connectedPlayers.Values.ToList().All(u => !u.Downloading))
+                                if (_connectedPlayers.Values.ToList().All(u => !u.Ready))
                                 {
                                     Data.Logger.Debug($"Everyone has confirmed they are in game, set the lobby screen to in game");
                                     SteamAPI.StartGame();

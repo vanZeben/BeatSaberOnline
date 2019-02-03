@@ -26,7 +26,7 @@ namespace BeatSaberOnline.Data.Steam
             DISCONNECTED
         }
 
-        public static string PACKET_VERSION = "1.0.1";
+        public static string PACKET_VERSION = "1.0.2";
 
         static string userName;
         static ulong userID;
@@ -124,7 +124,7 @@ namespace BeatSaberOnline.Data.Steam
         public static void SetReady()
         {
             Logger.Debug($"Broadcast to our lobby that we are ready");
-            Controllers.PlayerController.Instance._playerInfo.Downloading = true;
+            Controllers.PlayerController.Instance._playerInfo.Ready = true;
             if (_lobbyInfo.UsedSlots == 1)
             {
                 StartPlaying();
@@ -140,7 +140,7 @@ namespace BeatSaberOnline.Data.Steam
         {
             if (push) {
                 Logger.Debug($"Broadcast to our lobby that our ready status should be cleared");
-                Controllers.PlayerController.Instance._playerInfo.Downloading = false;
+                Controllers.PlayerController.Instance._playerInfo.Ready = false;
             }
         }
 
@@ -190,7 +190,10 @@ namespace BeatSaberOnline.Data.Steam
         {
             return _lobbyInfo.CurrentSongDifficulty;
         }
-
+        public static float GetSongOffset()
+        {
+            return _lobbyInfo.CurrentSongOffset;
+        }
         public static void SetSong(string songId, string songName)
         {
             _lobbyInfo.CurrentSongId = songId;
@@ -198,11 +201,19 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"We want to play {songId} - {songName}");
             SendLobbyInfo(true);
         }
-
+         public static void SetSongOffset(float offset)
+        {
+            _lobbyInfo.CurrentSongOffset = offset;
+            SendLobbyInfo(true);
+        }
         public static bool IsHost()
         {
             if (_lobbyInfo.LobbyID.m_SteamID == 0 || SteamMatchmaking.GetNumLobbyMembers(_lobbyInfo.LobbyID) == 1) { return true;  }
             return SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID).m_SteamID == GetUserID();
+        }
+        public static ulong GetHostId()
+        {
+            return SteamMatchmaking.GetLobbyOwner(_lobbyInfo.LobbyID).m_SteamID;
         }
 
         public static void SetDifficulty(byte songDifficulty)
@@ -320,10 +331,7 @@ namespace BeatSaberOnline.Data.Steam
                 GameController.TPS_MODIFIER = 1 - modifier;
                 Controllers.PlayerController.Instance.RestartBroadcasting();
             }
-            if (IsHost())
-            {
-                SendLobbyInfo(true);
-            }
+            SendLobbyInfo(true);
         }
         public static void PlayerDisconnected()
         {
@@ -341,6 +349,7 @@ namespace BeatSaberOnline.Data.Steam
             }
             if (IsHost())
             {
+                _lobbyInfo.HostName = GetUserName();
                 SendLobbyInfo(true);
             }
         }

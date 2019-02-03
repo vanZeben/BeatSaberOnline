@@ -1,4 +1,5 @@
 ﻿using BeatSaberOnline.Data;
+using BeatSaberOnline.Data.Steam;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
 using HMUI;
@@ -89,7 +90,7 @@ namespace BeatSaberOnline.Views.ViewControllers
         public virtual TableCell CellForRow(int row)
         {
             LeaderboardTableCell _tableCell = Instantiate(_songListTableCellInstance);
-            _tableCell.playerName = Data[row].playerName;
+            _tableCell.playerName = $"{(SteamAPI.GetHostId() == Data[row].playerId ? "[HOST] ": "")}{Data[row].playerName}";
             _tableCell.score = (int)Data[row].playerScore;
             _tableCell.rank = row + 1;
             _tableCell.specialScore = Data[row].playerId == Controllers.PlayerController.Instance._playerInfo.playerId;

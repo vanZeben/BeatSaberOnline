@@ -32,7 +32,7 @@ namespace BeatSaberOnline.Data
         public Quaternion leftHandRot = new Quaternion();
         
         public string avatarHash = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
-        public bool Downloading = false;
+        public bool Ready = false;
         public byte[] voip = new byte[0];
 
         public PlayerInfo(string _name, ulong _id)
@@ -71,7 +71,7 @@ namespace BeatSaberOnline.Data
 
                 avatarHash = BitConverter.ToString(avatar.Skip(84).Take(16).ToArray()).Replace("-", "");
 
-                Downloading = BitConverter.ToBoolean(data, 140 + nameLength);
+                Ready = BitConverter.ToBoolean(data, 140 + nameLength);
 
                 int voipLength = BitConverter.ToInt32(data, 141 + nameLength);
                 voip = data.Skip(145 + nameLength).Take(voipLength).ToArray();
@@ -105,7 +105,7 @@ namespace BeatSaberOnline.Data
 
             buffer.AddRange(HexConverter.ConvertHexToBytesX(avatarHash));
 
-            buffer.AddRange(BitConverter.GetBytes(Downloading));
+            buffer.AddRange(BitConverter.GetBytes(Ready));
             buffer.AddRange(BitConverter.GetBytes(voip.Length));
             buffer.AddRange(voip);
             

@@ -72,19 +72,42 @@ namespace BeatSaberOnline.Controllers
                 _currentScene = SceneManager.GetActiveScene().name;
             }
         }
-
+        
 
         IEnumerator RunLobbyCleanup()
         {
-            yield return new WaitUntil(delegate () { Data.Logger.Info("waiting for active: "+ WaitingMenu.Instance.isActiveAndEnabled); return WaitingMenu.Instance.isActiveAndEnabled; });
+            yield return new WaitUntil(delegate () { return WaitingMenu.Instance.isActiveAndEnabled; });
             Logger.Debug("Finished song, doing cleanup");
             WaitingMenu.Instance.Dismiss();
             WaitingMenu.firstInit = true;
             WaitingMenu.queuedSong = null;
+            WaitingMenu.autoReady = false;
             SongListUtils.InSong = false;
+            SteamAPI.SetSongOffset(0f);
+            CancelInvoke("UpdateSongOffset");
             SteamAPI.FinishSong();
         }
-
+        private AudioTimeSyncController timeSync;
+        public void UpdateSongOffset()
+        {
+            if (!timeSync)
+            {
+                timeSync = Resources.FindObjectsOfTypeAll<AudioTimeSyncController>().First();
+            }
+            else
+            {
+                if ( (1 - (timeSync.songLength - timeSync.songTime) / timeSync.songLength) < 0.75f)
+                {
+                    SteamAPI.SetSongOffset(timeSync.songTime);
+                }
+                else
+                {
+                    SteamAPI.SetSongOffset(0f);
+                    CancelInvoke("UpdateSongOffset");
+                }
+            }
+        }
+       
             public void ActiveSceneChanged(Scene from, Scene to)
         {
             try
@@ -100,6 +123,8 @@ namespace BeatSaberOnline.Controllers
                         PlayerController.Instance.DestroyAvatars();
                         if (to.name == "GameCore" && SongListUtils.InSong)
                         {
+                            SteamAPI.StartGame();
+                            InvokeRepeating("UpdateSongOffset", 0f, 1f);
                             Scoreboard.Instance.disabled = false;
                             List<PlayerInfo> connectedPlayers = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
                             for (int i = 0; i < connectedPlayers.Count; i++)

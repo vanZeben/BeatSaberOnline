@@ -69,15 +69,19 @@ namespace BeatSaberOnline.Data.Steam
                     {
                         currentScreen = info.Screen;
                         Logger.Debug($"Host requested to play the current song {info.CurrentSongId}");
-
                         LevelSO song = SongListUtils.GetInstalledSong();
                         if (SteamAPI.IsHost())
                         {
                             SteamAPI.setLobbyStatus("Playing " + song.songName + " by " + song.songAuthorName);
                         }
-
-                        SteamAPI.ClearPlayerReady(new CSteamID(SteamAPI.GetUserID()), true);
-                        SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), info.GameplayModifiers);
+                        try
+                        {
+                            SteamAPI.ClearPlayerReady(new CSteamID(SteamAPI.GetUserID()), true);
+                            SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), info.GameplayModifiers, null);
+                        } catch(Exception e)
+                        {
+                            Logger.Error(e);
+                        }
                     }
                 } else
                 {
@@ -125,11 +129,18 @@ namespace BeatSaberOnline.Data.Steam
 
         public static void OnLobbyEnter(LobbyEnter_t pCallback)
         {
-
             Logger.Debug($"You have entered lobby {pCallback.m_ulSteamIDLobby}");
             Controllers.PlayerController.Instance.StartBroadcasting();
             SteamAPI.SetConnectionState(SteamAPI.ConnectionState.CONNECTED);
-            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);            
+            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);
+            LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
+            SteamAPI.UpdateLobbyInfo(info);
+            if (info.Screen == LobbyInfo.SCREEN_TYPE.IN_GAME && info.CurrentSongOffset > 0f)
+            {
+                WaitingMenu.autoReady = true;
+                WaitingMenu.timeRequestedToLaunch = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+                WaitingMenu.Instance.Present();
+            }
         }
 
         public void OnP2PSessionFail(P2PSessionConnectFail_t pCallback)

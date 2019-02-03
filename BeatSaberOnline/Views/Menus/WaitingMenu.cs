@@ -33,6 +33,8 @@ namespace BeatSaberOnline.Views.Menus
         private static SongPreviewPlayer _songPreviewPlayer;
         public static LevelSO queuedSong;
         public static bool downloading = false;
+        public static bool autoReady = false;
+        public static float timeRequestedToLaunch = 0f;
 
         public static SongPreviewPlayer PreviewPlayer
         {
@@ -87,8 +89,26 @@ namespace BeatSaberOnline.Views.Menus
             if (queuedSong == null && song != null)
             {
                 queuedSong = song;
-                SteamAPI.SetReady();
-                PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
+                if (autoReady)
+                {
+                    PracticeSettings pSettings = null;
+                    if (SteamAPI.GetSongOffset() > 0f)
+                    {
+                        pSettings = new PracticeSettings();
+                        float offsetTime = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() - timeRequestedToLaunch;
+                        // add 5 seconds to it because that's about how long it takes to launch a song
+                        pSettings.startSongTime = SteamAPI.GetSongOffset() + offsetTime + 5f;
+                        timeRequestedToLaunch = 0;
+                    }
+
+                    SongListUtils.StartSong(song, SteamAPI.GetSongDifficulty(), SteamAPI.GetGameplayModifiers(), pSettings);
+                }
+                else
+                {
+                    SteamAPI.SetReady();
+                    PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
+                }
+                
             }
         }
         public static void RefreshData(LevelSO song = null)
@@ -134,7 +154,7 @@ namespace BeatSaberOnline.Views.Menus
                     middleViewController.Data.Clear();
                     foreach (KeyValuePair<string, float> user in status.OrderBy(u => u.Value))
                     {
-                        CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value == -1f ? "FAILED TO DOWNLOAD": user.Value == 1f ? "Ready" : $"Downloading song ${(int) Math.Round(user.Value * 100, 0)}%", user.Value == 1f ? Sprites.checkmarkIcon : Sprites.crossIcon);
+                        CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value == -1f ? "FAILED TO DOWNLOAD": user.Value == 1f ? "Ready" : $"Downloading song {(int) Math.Round(user.Value * 100, 0)}%", user.Value == 1f ? Sprites.checkmarkIcon : Sprites.crossIcon);
                         middleViewController.Data.Add(cell);
                     }
                     middleViewController._customListTableView.ReloadData();
@@ -150,7 +170,14 @@ namespace BeatSaberOnline.Views.Menus
         public static void LevelDownloadProgress(float progress)
         {
             Controllers.PlayerController.Instance._playerInfo.playerProgress = progress;
-            RefreshData(null);
+            if (progress == -1)
+            {
+                downloading = false;
+            }
+            else
+            {
+                RefreshData(null);
+            }
         }
 
         public static void LevelDownloaded(string hash)

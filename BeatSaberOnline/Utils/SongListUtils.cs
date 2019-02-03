@@ -46,7 +46,7 @@ namespace BeatSaberOnline.Utils
         public static bool InSong = false;
         private static IDifficultyBeatmap _difficultyBeatmap;
         private static GameplayModifiers _gameplayModifiers;
-        public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers)
+        public static void StartSong(LevelSO level, byte difficulty, GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings = null)
         {
             if (InSong || level == null|| gameplayModifiers == null) { return; }
             try
@@ -57,16 +57,17 @@ namespace BeatSaberOnline.Utils
                     PlayerSpecificSettings playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().currentLocalPlayer.playerSpecificSettings;
                     _gameplayModifiers = gameplayModifiers;
                     _difficultyBeatmap = level.GetDifficultyBeatmap((BeatmapDifficulty)difficulty);
-
+                    
                     Data.Logger.Debug($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={_difficultyBeatmap.difficulty}");
                     InSong = true;
-                    menuSceneSetupData.StartStandardLevel(_difficultyBeatmap, gameplayModifiers, playerSettings, null, null, new Action<StandardLevelSceneSetupDataSO, LevelCompletionResults>(FinishSong));
+                    menuSceneSetupData.StartStandardLevel(_difficultyBeatmap, gameplayModifiers, playerSettings, practiceSettings, null, new Action<StandardLevelSceneSetupDataSO, LevelCompletionResults>(FinishSong));
                 }
             } catch (Exception e)
             {
                 Data.Logger.Error(e);
             }
         }
+
         private static void FinishSong(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults)
         {
             GameController.Instance.SongFinished(sender, levelCompletionResults, _difficultyBeatmap, _gameplayModifiers);

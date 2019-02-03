@@ -33,6 +33,7 @@ namespace BeatSaberOnline.Data.Steam
         public string CurrentSongId { get; set; } = "";
         public string CurrentSongName { get; set; } = "";
         public byte CurrentSongDifficulty { get; set; } = 0;
+        public float CurrentSongOffset { get; set; } = 0f;
 
         public SCREEN_TYPE Screen { get; set; } = SCREEN_TYPE.NONE;
         private string _gameplayModifiers = "";
@@ -73,11 +74,12 @@ namespace BeatSaberOnline.Data.Steam
             currentStringPadding += statusLength;
 
             CurrentSongDifficulty = data[37 + currentStringPadding];
+            CurrentSongOffset = BitConverter.ToSingle(data, 38 + currentStringPadding);
 
-            Screen = (SCREEN_TYPE) data[38 + currentStringPadding];
+            Screen = (SCREEN_TYPE) data[42 + currentStringPadding];
 
-            statusLength = BitConverter.ToInt32(data, 39 + currentStringPadding);
-            _gameplayModifiers = Encoding.UTF8.GetString(data, 43 + currentStringPadding, statusLength);
+            statusLength = BitConverter.ToInt32(data, 43 + currentStringPadding);
+            _gameplayModifiers = Encoding.UTF8.GetString(data, 47 + currentStringPadding, statusLength);
             currentStringPadding += statusLength;
         }
 
@@ -107,6 +109,8 @@ namespace BeatSaberOnline.Data.Steam
             buffer.AddRange(BitConverter.GetBytes(nameBuffer.Length));
             buffer.AddRange(nameBuffer);
             buffer.Add(CurrentSongDifficulty);
+            buffer.AddRange(BitConverter.GetBytes(CurrentSongOffset));
+
             buffer.Add((byte) Screen);
             
             nameBuffer = Encoding.UTF8.GetBytes(_gameplayModifiers);
@@ -134,9 +138,9 @@ namespace BeatSaberOnline.Data.Steam
         {
             return unchecked(this.LobbyID.m_SteamID.GetHashCode() * 17 + this.HostName.GetHashCode());
         }
-        public string ToString()
+        public override string ToString()
         {
-            return $"lobbyId={LobbyID},hostname={HostName},status={Status},joinable={Joinable},UsedSlots={UsedSlots},TotalSlots={TotalSlots},MaxSlots={MaxSlots},CurrentSongId={CurrentSongId},CurrentSongDifficulty={CurrentSongDifficulty},CurretnSongName={CurrentSongName},Screen={Screen},gameplayModifiers={_gameplayModifiers}";
+            return $"lobbyId={LobbyID},hostname={HostName},status={Status},joinable={Joinable},UsedSlots={UsedSlots},TotalSlots={TotalSlots},MaxSlots={MaxSlots},CurrentSongId={CurrentSongId},CurrentSongDifficulty={CurrentSongDifficulty},CurretnSongName={CurrentSongName},CurrentSongOffset={CurrentSongOffset},Screen={Screen},gameplayModifiers={_gameplayModifiers}";
         }
 
         public string Serialize()
