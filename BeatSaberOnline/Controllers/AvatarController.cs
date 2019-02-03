@@ -59,6 +59,7 @@ namespace BeatSaberOnline.Controllers
         bool rendererEnabled = true;
         Camera _camera;
         public bool forcePlayerInfo = false;
+        Nullable<Vector3> lockedPosition;
 
         VRCenterAdjust _centerAdjust;
 
@@ -152,8 +153,15 @@ namespace BeatSaberOnline.Controllers
                     interpHeadRot = Quaternion.Lerp(lastHeadRot, targetHeadRot, interpolationProgress);
                     interpLeftHandRot = Quaternion.Lerp(lastLeftHandRot, targetLeftHandRot, interpolationProgress);
                     interpRightHandRot = Quaternion.Lerp(lastRightHandRot, targetRightHandRot, interpolationProgress);
-
-                    transform.position = interpHeadPos;
+                    
+                    if (lockedPosition != null)
+                    {
+                        transform.position = (Vector3) lockedPosition;
+                    }
+                    else
+                    {
+                        transform.position = interpHeadPos;
+                    }
                 }
             }
             catch (Exception e)
@@ -294,7 +302,13 @@ namespace BeatSaberOnline.Controllers
                 targetLeftHandRot = _playerInfo.leftHandRot;
 
                 playerNameText.text = playerInfo.playerName;
-
+                if (offsetVector.x == 0 && offsetVector.y == 0 && offsetVector.z == 0)
+                {
+                    lockedPosition = offsetVector;
+                } else if (lockedPosition != null)
+                {
+                    lockedPosition = null;
+                }
                 if (forcePlayerInfo)
                 {
                     interpHeadPos = targetHeadPos;
