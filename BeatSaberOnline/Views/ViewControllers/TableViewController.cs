@@ -96,7 +96,7 @@ namespace BeatSaberOnline.Views.ViewControllers
             _tableCell.specialScore = Data[row].playerId == Controllers.PlayerController.Instance._playerInfo.playerId;
             _tableCell.showFullCombo = Data[row].playerCutBlocks == Data[row].playerTotalBlocks && Data[row].playerTotalBlocks > 0;
 
-            if (Data[row].Failed) {
+            if (Data[row].SongFailed) {
                 TextMeshProUGUI score = _tableCell.GetPrivateField<TextMeshProUGUI>("_scoreText");
                 score.text = "FAILED";
                 score.color = new Color(255, 0, 0, 1);

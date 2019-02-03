@@ -168,7 +168,7 @@ namespace BeatSaberOnline.Views.Menus
         private static Comparison<PlayerInfo> scoreComparison = new Comparison<PlayerInfo>((x, y) => (int) y.playerScore - (int) x.playerScore);
         public static void RefreshScores()
         {
-            if (!Instance.isActiveAndEnabled) { return; } 
+            if (!Instance || !Instance.isActiveAndEnabled) { return; } 
             List<PlayerInfo> players = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
             players.Sort(scoreComparison);
 

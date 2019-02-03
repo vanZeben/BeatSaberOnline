@@ -123,6 +123,23 @@ namespace BeatSaberOnline.Controllers
                 _playerInfo.rightHandPos = pos.rightHandPos;
                 _playerInfo.rightHandRot = pos.rightHandRot;
         }
+
+
+        public bool AllPlayersInMenu()
+        {
+            bool InMenu = true;
+            InMenu = !_playerInfo.InSong;
+            for (int i = 0; i < _connectedPlayers.Count; i++)
+            {
+                if (!InMenu) { break; }
+                if (InMenu)
+                {
+                    InMenu = !_connectedPlayers.Values.ToArray()[i].InSong;
+                }
+            }
+            return InMenu;
+        }
+
         public Dictionary<string, float> GetConnectedPlayerDownloadStatus()
         {
             Dictionary<string, float> connectedPlayerStatus = new Dictionary<string, float>();

@@ -60,7 +60,8 @@ namespace BeatSaberOnline.Utils
                     
                     Data.Logger.Debug($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={_difficultyBeatmap.difficulty}");
                     InSong = true;
-                    Controllers.PlayerController.Instance._playerInfo.Failed = false;
+                    Controllers.PlayerController.Instance._playerInfo.SongFailed = false;
+                    Controllers.PlayerController.Instance._playerInfo.InSong = true;
                     menuSceneSetupData.StartStandardLevel(_difficultyBeatmap, gameplayModifiers, playerSettings, practiceSettings, null, new Action<StandardLevelSceneSetupDataSO, LevelCompletionResults>(FinishSong));
                 }
             } catch (Exception e)

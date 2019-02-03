@@ -83,6 +83,7 @@ namespace BeatSaberOnline.Controllers
             WaitingMenu.queuedSong = null;
             WaitingMenu.autoReady = false;
             SongListUtils.InSong = false;
+            Controllers.PlayerController.Instance._playerInfo.InSong = false;
             SteamAPI.SetSongOffset(0f);
             CancelInvoke("UpdateSongOffset");
             SteamAPI.FinishSong();
@@ -175,7 +176,7 @@ namespace BeatSaberOnline.Controllers
                 _playerDataModel.Save();
                 if (levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Failed)
                 {
-                    Controllers.PlayerController.Instance._playerInfo.Failed = true;
+                    Controllers.PlayerController.Instance._playerInfo.SongFailed = true;
                 }
                 if (levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Failed && levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Cleared)
                 {
