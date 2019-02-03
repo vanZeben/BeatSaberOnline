@@ -95,6 +95,10 @@ namespace BeatSaberOnline.Views.ViewControllers
             _tableCell.rank = row + 1;
             _tableCell.specialScore = Data[row].playerId == Controllers.PlayerController.Instance._playerInfo.playerId;
             _tableCell.showFullCombo = Data[row].playerCutBlocks == Data[row].playerTotalBlocks && Data[row].playerTotalBlocks > 0;
+            if (SteamAPI.GetHostId() == Data[row].playerId)
+            {
+                _tableCell.GetPrivateField<TextMeshProUGUI>("_playerNameText").color = new Color(255, 0, 0, 1);
+            }
             _tableCell.reuseIdentifier = "CustomListCell";
             return _tableCell;
         }
