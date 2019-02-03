@@ -33,6 +33,7 @@ namespace BeatSaberOnline.Data
         
         public string avatarHash = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
         public bool Ready = false;
+        public bool Failed = false;
         public byte[] voip = new byte[0];
 
         public PlayerInfo(string _name, ulong _id)
@@ -75,6 +76,8 @@ namespace BeatSaberOnline.Data
 
                 int voipLength = BitConverter.ToInt32(data, 141 + nameLength);
                 voip = data.Skip(145 + nameLength).Take(voipLength).ToArray();
+                nameLength += voipLength;
+                Failed = BitConverter.ToBoolean(data, 145 + nameLength);
         }
 
         private byte[] GetBytes()
@@ -108,7 +111,8 @@ namespace BeatSaberOnline.Data
             buffer.AddRange(BitConverter.GetBytes(Ready));
             buffer.AddRange(BitConverter.GetBytes(voip.Length));
             buffer.AddRange(voip);
-            
+            buffer.AddRange(BitConverter.GetBytes(Failed));
+
             return buffer.ToArray();
         }
 

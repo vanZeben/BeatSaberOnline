@@ -173,6 +173,10 @@ namespace BeatSaberOnline.Controllers
                 PlayerDataModelSO _playerDataModel = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().First();
                 _playerDataModel.currentLocalPlayer.playerAllOverallStatsData.soloFreePlayOverallStatsData.UpdateWithLevelCompletionResults(levelCompletionResults);
                 _playerDataModel.Save();
+                if (levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Failed)
+                {
+                    Controllers.PlayerController.Instance._playerInfo.Failed = true;
+                }
                 if (levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Failed && levelCompletionResults.levelEndStateType != LevelCompletionResults.LevelEndStateType.Cleared)
                 {
                     return;
