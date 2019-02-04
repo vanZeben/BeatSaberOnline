@@ -61,25 +61,25 @@ namespace BeatSaberOnline.Data
 
                 playerProgress = BitConverter.ToSingle(data, 36 + nameLength);
 
-                byte[] avatar = data.Skip(40 + nameLength).Take(100).ToArray();
+                byte[] avatar = data.Skip(40 + nameLength).Take(58).ToArray();
 
-                rightHandPos = Serialization.ToVector3(avatar.Take(12).ToArray());
-                leftHandPos = Serialization.ToVector3(avatar.Skip(12).Take(12).ToArray());
-                headPos = Serialization.ToVector3(avatar.Skip(24).Take(12).ToArray());
+                rightHandPos = Serialization.ToVector3(avatar.Take(6).ToArray());
+                leftHandPos = Serialization.ToVector3(avatar.Skip(6).Take(6).ToArray());
+                headPos = Serialization.ToVector3(avatar.Skip(12).Take(6).ToArray());
 
-                rightHandRot = Serialization.ToQuaternion(avatar.Skip(36).Take(16).ToArray());
-                leftHandRot = Serialization.ToQuaternion(avatar.Skip(52).Take(16).ToArray());
-                headRot = Serialization.ToQuaternion(avatar.Skip(68).Take(16).ToArray());
+                rightHandRot = Serialization.ToQuaternion(avatar.Skip(18).Take(8).ToArray());
+                leftHandRot = Serialization.ToQuaternion(avatar.Skip(26).Take(8).ToArray());
+                headRot = Serialization.ToQuaternion(avatar.Skip(34).Take(8).ToArray());
 
-                avatarHash = BitConverter.ToString(avatar.Skip(84).Take(16).ToArray()).Replace("-", "");
+                avatarHash = BitConverter.ToString(avatar.Skip(42).Take(16).ToArray()).Replace("-", "");
 
-                Ready = BitConverter.ToBoolean(data, 140 + nameLength);
+                Ready = BitConverter.ToBoolean(data, 98 + nameLength);
 
-                int voipLength = BitConverter.ToInt32(data, 141 + nameLength);
-                voip = data.Skip(145 + nameLength).Take(voipLength).ToArray();
+                int voipLength = BitConverter.ToInt32(data, 99 + nameLength);
+                voip = data.Skip(103 + nameLength).Take(voipLength).ToArray();
                 nameLength += voipLength;
-                SongFailed = BitConverter.ToBoolean(data, 145 + nameLength);
-                InSong = BitConverter.ToBoolean(data, 146 + nameLength);
+                SongFailed = BitConverter.ToBoolean(data, 103 + nameLength);
+                InSong = BitConverter.ToBoolean(data, 104 + nameLength);
         }
 
         private byte[] GetBytes()

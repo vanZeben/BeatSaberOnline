@@ -46,7 +46,7 @@ namespace BeatSaberOnline.Views.Menus
                     {
                         middleViewController.CreateText("Available Lobbies", new Vector2(BASE.x + 60f, BASE.y));
 
-                        refresh = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f - 10f), new Vector2(25f, 7f));
+                        refresh = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
                         refresh.SetButtonText("Refresh");
                         refresh.SetButtonTextSize(3f);
                         refresh.ToggleWordWrapping(false);
@@ -54,18 +54,7 @@ namespace BeatSaberOnline.Views.Menus
                         {
                             refreshAvailableLobbies();
                         });
-
-                        sortingBtn = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x + 80f, BASE.y + 2.5f), new Vector2(25f, 7f));
-                        sortingBtn.SetButtonText(sorting ? "Friends Only" : "Public");
-                        sortingBtn.SetButtonTextSize(3f);
-                        sortingBtn.ToggleWordWrapping(false);
-                        sortingBtn.onClick.AddListener(delegate ()
-                        {
-                            sorting = !sorting;
-                            sortingBtn.SetButtonText(sorting ? "Friends Only" : "Public");
-
-                            refreshAvailableLobbies();
-                        });
+                        
                         if (!SteamAPI.isLobbyConnected())
                         {
                             Button host = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f), new Vector2(25f, 7f));
@@ -110,14 +99,7 @@ namespace BeatSaberOnline.Views.Menus
             lobbies = new Dictionary<CSteamID, LobbyInfo>();
 
             if (refresh) refresh.interactable = true;
-            if (!sorting)
-            {
-                SteamAPI.RequestLobbies();
-            }
-            else
-            {
-                SteamAPI.RequestAvailableLobbies();
-            }
+            SteamAPI.RequestLobbies();
         }
 
         private static Dictionary<ulong, bool> availableLobbies = new Dictionary<ulong, bool>();

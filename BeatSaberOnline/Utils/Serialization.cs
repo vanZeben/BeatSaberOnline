@@ -19,23 +19,43 @@ namespace BeatSaberOnline.Utils
             return rv;
         }
 
+        private static short compressFloat(float num)
+        {
+            return (short) (num * 1000);
+        }
+
+        private static float decompressFloat(short num)
+        {
+            return ((float)num / 1000f);
+        }
+
+        public static int Vector3Size()
+        {
+            return (sizeof(short) * 3);
+        }
+
+        public static int QuaternionSize()
+        {
+            return (sizeof(short) * 4);
+        }
+
         public static byte[] ToBytes(Vector3 vect)
         {
-            byte[] buff = new byte[sizeof(float) * 3];
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.x), 0, buff, 0 * sizeof(float), sizeof(float));
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.y), 0, buff, 1 * sizeof(float), sizeof(float));
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.z), 0, buff, 2 * sizeof(float), sizeof(float));
+            byte[] buff = new byte[sizeof(short) * 3];
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.x)), 0, buff, 0 * sizeof(short), sizeof(short));
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.y)), 0, buff, 1 * sizeof(short), sizeof(short));
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.z)), 0, buff, 2 * sizeof(short), sizeof(short));
 
             return buff;
         }
 
         public static byte[] ToBytes(Quaternion vect)
         {
-            byte[] buff = new byte[sizeof(float) * 4];
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.x), 0, buff, 0 * sizeof(float), sizeof(float));
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.y), 0, buff, 1 * sizeof(float), sizeof(float));
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.z), 0, buff, 2 * sizeof(float), sizeof(float));
-            Buffer.BlockCopy(BitConverter.GetBytes(vect.w), 0, buff, 3 * sizeof(float), sizeof(float));
+            byte[] buff = new byte[sizeof(short) * 4];
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.x)), 0, buff, 0 * sizeof(short), sizeof(short));
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.y)), 0, buff, 1 * sizeof(short), sizeof(short));
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.z)), 0, buff, 2 * sizeof(short), sizeof(short));
+            Buffer.BlockCopy(BitConverter.GetBytes(compressFloat(vect.w)), 0, buff, 3 * sizeof(short), sizeof(short));
 
             return buff;
         }
@@ -44,9 +64,9 @@ namespace BeatSaberOnline.Utils
         {
             byte[] buff = data;
             Vector3 vect = Vector3.zero;
-            vect.x = BitConverter.ToSingle(buff, 0 * sizeof(float));
-            vect.y = BitConverter.ToSingle(buff, 1 * sizeof(float));
-            vect.z = BitConverter.ToSingle(buff, 2 * sizeof(float));
+            vect.x = decompressFloat(BitConverter.ToInt16(buff, 0 * sizeof(short)));
+            vect.y = decompressFloat(BitConverter.ToInt16(buff, 1 * sizeof(short)));
+            vect.z = decompressFloat(BitConverter.ToInt16(buff, 2 * sizeof(short)));
 
             return vect;
         }
@@ -55,14 +75,12 @@ namespace BeatSaberOnline.Utils
         {
             byte[] buff = data;
             Quaternion vect = Quaternion.identity;
-            vect.x = BitConverter.ToSingle(buff, 0 * sizeof(float));
-            vect.y = BitConverter.ToSingle(buff, 1 * sizeof(float));
-            vect.z = BitConverter.ToSingle(buff, 2 * sizeof(float));
-            vect.w = BitConverter.ToSingle(buff, 3 * sizeof(float));
+            vect.x = decompressFloat(BitConverter.ToInt16(buff, 0 * sizeof(short)));
+            vect.y = decompressFloat(BitConverter.ToInt16(buff, 1 * sizeof(short)));
+            vect.z = decompressFloat(BitConverter.ToInt16(buff, 2 * sizeof(short)));
+            vect.w = decompressFloat(BitConverter.ToInt16(buff, 3 * sizeof(short)));
 
             return vect;
         }
-
-
     }
 }

@@ -26,7 +26,7 @@ namespace BeatSaberOnline.Data.Steam
             DISCONNECTED
         }
 
-        public static string PACKET_VERSION = "1.0.2";
+        public static string PACKET_VERSION = "1.0.3";
 
         static string userName;
         static ulong userID;
@@ -273,10 +273,24 @@ namespace BeatSaberOnline.Data.Steam
             }
             Logger.Debug($"Requesting list of all lobbies from steam");
 
+            LobbyData.Clear();
+            MultiplayerListing.refreshLobbyList();
+
             SteamMatchmaking.AddRequestLobbyListFilterSlotsAvailable(1);
             SteamMatchmaking.AddRequestLobbyListStringFilter("version", PACKET_VERSION, ELobbyComparison.k_ELobbyComparisonEqual);
             SteamAPICall_t apiCall = SteamMatchmaking.RequestLobbyList();
             OnLobbyMatchListCallResult.Set(apiCall);
+
+            int cFriends = SteamFriends.GetFriendCount(EFriendFlags.k_EFriendFlagImmediate);
+            for (int i = 0; i < cFriends; i++)
+            {
+                FriendGameInfo_t friendGameInfo;
+                CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
+                if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
+                {
+                    SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
+                }
+            }
         }
 
         public static Dictionary<CSteamID, string[]> GetOnlineFriends()
@@ -363,8 +377,6 @@ namespace BeatSaberOnline.Data.Steam
             }
             uint numLobbies = pCallback.m_nLobbiesMatching;
             Logger.Debug($"Found {numLobbies} total lobbies");
-            LobbyData.Clear();
-            MultiplayerListing.refreshLobbyList();
             try
             {
                 for (int i = 0; i < numLobbies; i++)
@@ -383,6 +395,7 @@ namespace BeatSaberOnline.Data.Steam
 
             MultiplayerListing.refreshLobbyList();
         }
+
 
         public static void CreateLobby(bool privateLobby)
         {
@@ -456,26 +469,6 @@ namespace BeatSaberOnline.Data.Steam
             SteamMatchmaking.JoinLobby(lobbyId);
         }
         
-        public static void RequestAvailableLobbies()
-        {
-            if (!SteamManager.Initialized)
-            {
-                Logger.Error("CONNECTION FAILED");
-                return;
-            }
-            LobbyData.Clear();
-            MultiplayerListing.refreshLobbyList();
-            int cFriends = SteamFriends.GetFriendCount(EFriendFlags.k_EFriendFlagImmediate);
-                for (int i = 0; i < cFriends; i++)
-                {
-                    FriendGameInfo_t friendGameInfo;
-                    CSteamID steamIDFriend = SteamFriends.GetFriendByIndex(i, EFriendFlags.k_EFriendFlagImmediate); SteamFriends.GetFriendGamePlayed(steamIDFriend, out friendGameInfo);
-                    if (friendGameInfo.m_gameID == GetGameID() && friendGameInfo.m_steamIDLobby.IsValid())
-                    {
-                       SteamMatchmaking.RequestLobbyData(friendGameInfo.m_steamIDLobby);
-                    }
-                }
-        }
 
         public static bool IsMemberInSteamLobby(CSteamID steamUser)
         {

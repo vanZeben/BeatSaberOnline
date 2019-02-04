@@ -4,16 +4,17 @@ using UnityEngine;
 
 namespace BeatSaberOnline.Data
 {
+    [Serializable]
     public class Config
     {
-        private bool _autoStartLobby;
-        private bool _isPublic;
-        private int _maxLobbySize;
-        private bool _noFailMode;
-        private bool _avatarsInLobby;
-        private bool _avatarsInGame;
-        private int _networkQuality;
-        private float _volume;
+        [SerializeField] private bool _autoStartLobby;
+        [SerializeField] private bool _isPublic;
+        [SerializeField] private int _maxLobbySize;
+        [SerializeField] private bool _noFailMode;
+        [SerializeField] private bool _avatarsInLobby;
+        [SerializeField] private bool _avatarsInGame;
+        [SerializeField] private int _networkQuality;
+        [SerializeField] private float _volume;
 
         private static Config _instance;
 
@@ -180,6 +181,7 @@ namespace BeatSaberOnline.Data
             if (!IsDirty) return false;
             try
             {
+
                 using (var f = new StreamWriter(FileLocation.FullName))
                 {
                     var json = JsonUtility.ToJson(this, true);
