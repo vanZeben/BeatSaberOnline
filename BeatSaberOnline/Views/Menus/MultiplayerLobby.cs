@@ -99,21 +99,7 @@ namespace BeatSaberOnline.Views.Menus
                             {
                                 Data.Logger.Error(e);
                             }
-                               Button g = middleViewController.CreateUIButton("CreditsButton", new Vector2(0, 0), new Vector2(25f, 25f));
-                               g.SetButtonTextSize(7f);
-                               g.ToggleWordWrapping(false);
-                               g.SetButtonText("old");
-                               g.onClick.AddListener(delegate {
-                                   try
-                                   {
-                                       Controllers.PlayerController.NEW_VOICE = !Controllers.PlayerController.NEW_VOICE;
-                                       g.SetButtonText(Controllers.PlayerController.NEW_VOICE ? "NEW" : "OLD");
-                                   }
-                                   catch (Exception e)
-                                   {
-                                       Logger.Error(e);
-                                   }
-                               });
+
                         }
                     });
                     Instance.SetLeftViewController(leftViewController, false, (firstActivation, type) =>

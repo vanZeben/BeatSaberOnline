@@ -64,6 +64,29 @@ namespace BeatSaberOnline.Views.ViewControllers
             };
         }
 
+
+        public void UpdatePlayButton()
+        {
+            if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED || (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated))
+            {
+                return;
+            }
+            if (play != null)
+            {
+                if (!SteamAPI.IsHost())
+                {
+                    play.SetButtonText("You need to be host");
+                }
+                else if (!Controllers.PlayerController.Instance.AllPlayersInMenu())
+                {
+                    play.SetButtonText("Players still in song");
+                }
+                else
+                {
+                    play.SetButtonText("Play");
+                }
+            }
+        }
         private void toggleButtons(bool val)
         {
             try
@@ -80,19 +103,7 @@ namespace BeatSaberOnline.Views.ViewControllers
                     practice.gameObject.SetActive(val);
                     practice.interactable = false;
                 }
-                if (play != null)
-                {
-                    if (!SteamAPI.IsHost())
-                    {
-                        play.SetButtonText("You need to be host");
-                    } else if (!Controllers.PlayerController.Instance.AllPlayersInMenu())
-                    {
-                        play.SetButtonText("Players still in song");
-                    } else
-                    {
-                        play.SetButtonText("Play");
-                    }
-                }
+                UpdatePlayButton();
             } catch(Exception e)
             {
                 Data.Logger.Error(e);

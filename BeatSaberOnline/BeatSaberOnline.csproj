@@ -115,7 +115,7 @@
     <Compile Include="Workers\VoiceChatWorker.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\VoipAudioMixer" />
+    <EmbeddedResource Include="Resources\VoipVolumeMixer" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

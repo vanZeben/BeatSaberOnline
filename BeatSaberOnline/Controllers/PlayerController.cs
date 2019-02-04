@@ -2,6 +2,7 @@
 using BeatSaberOnline.Data.Steam;
 using BeatSaberOnline.Utils;
 using BeatSaberOnline.Views.Menus;
+using BeatSaberOnline.Views.ViewControllers;
 using CustomUI.Utilities;
 using Steamworks;
 using System;
@@ -26,9 +27,6 @@ namespace BeatSaberOnline.Controllers
         private string _currentScene;
         private GameObject m_VoiceLoopback;
         public bool VoipEnabled = false;
-        private AudioMixerGroup AudioMixerGroup;
-        private AudioMixer _mixer;
-        public static bool NEW_VOICE = false;
         public void clearVoiceLoopback()
         {
             m_VoiceLoopback = null;
@@ -201,8 +199,8 @@ namespace BeatSaberOnline.Controllers
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                     }
                     bool changedReady = (_connectedPlayers[info.playerId].Ready != info.Ready || _connectedPlayers[info.playerId].playerProgress != info.playerProgress);
-                    
                     _connectedPlayers[info.playerId] = info;
+                    MockPartyViewController.Instance.UpdatePlayButton();
                     if (changedReady)
                     {
                         WaitingMenu.RefreshData();
@@ -302,7 +300,7 @@ namespace BeatSaberOnline.Controllers
             get
             {
                 if (!_assets)
-                    _assets = AssetBundle.LoadFromMemory(UIUtilities.GetResource(Assembly.GetExecutingAssembly(), "BeatSaberOnline.Resources.VoipAudioMixer"));
+                    _assets = AssetBundle.LoadFromMemory(UIUtilities.GetResource(Assembly.GetExecutingAssembly(), "BeatSaberOnline.Resources.VoipVolumeMixer"));
                 return _assets;
             }
         }

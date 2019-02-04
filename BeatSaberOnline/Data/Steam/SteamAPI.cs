@@ -320,7 +320,7 @@ namespace BeatSaberOnline.Data.Steam
         public static void PlayerConnected()
         {
             _lobbyInfo.UsedSlots += 1;
-            if (Config.Instance.NetworkScaling && _lobbyInfo.UsedSlots % 5 == 0)
+            if (_lobbyInfo.UsedSlots > 5)
             {
                 float mod = _lobbyInfo.UsedSlots / 5;
                 float modifier = mod - (mod * 0.88f);
@@ -336,7 +336,7 @@ namespace BeatSaberOnline.Data.Steam
         public static void PlayerDisconnected()
         {
             _lobbyInfo.UsedSlots -= 1;
-            if (Config.Instance.NetworkScaling && _lobbyInfo.UsedSlots % 5 == 0)
+            if (_lobbyInfo.UsedSlots > 5)
             {
                 float mod = _lobbyInfo.UsedSlots / 5;
                 float modifier = mod - (mod * 0.88f);

@@ -82,20 +82,47 @@ namespace BeatSaberOnline.Views
                 Logger.Error($"Unable to create UI! Exception: {e}");
             }
         }
-        
+        float _avatarState = 0;
+        float _autoStart = 0;
         private void CreateSettingsMenu()
         {
             var settingsMenu = SettingsUI.CreateSubMenu(Plugin.instance.Name);
 
-            var AutoStartLobby = settingsMenu.AddBool("Auto-Start Lobby", "Opens up a lobby when you launch the game");
-            AutoStartLobby.GetValue += delegate { return Config.Instance.AutoStartLobby; };
-            AutoStartLobby.SetValue += delegate (bool value) { Config.Instance.AutoStartLobby = value; };
-
-            var IsPublic = settingsMenu.AddBool("Auto-Start Privacy", "Configures the privacy of lobbies that are auto-started");
-            IsPublic.DisabledText = "Friends Only";
-            IsPublic.EnabledText = "Public";
-            IsPublic.GetValue += delegate { return Config.Instance.IsPublic; };
-            IsPublic.SetValue += delegate (bool value) { Config.Instance.IsPublic = value; };
+            var AutoStartLobby = settingsMenu.AddList("Auto-Start Lobby", new float[3] { 0, 1, 2});
+            AutoStartLobby.GetValue += delegate { return _autoStart; };
+            AutoStartLobby.SetValue += delegate (float value)
+            {
+                _autoStart = value;
+                switch (value)
+                {
+                    default:
+                    case 0:
+                        Config.Instance.AutoStartLobby = false;
+                        break;
+                    case 1:
+                        Config.Instance.AutoStartLobby = true;
+                        Config.Instance.IsPublic = false;
+                        break;
+                    case 2:
+                        Config.Instance.AutoStartLobby = true;
+                        Config.Instance.IsPublic = true;
+                        break;
+                }
+            };
+            AutoStartLobby.FormatValue += delegate (float value)
+            {
+                switch (value)
+                {
+                    default:
+                    case 0:
+                        return "Disabled";
+                    case 1:
+                        return "Private Lobby";
+                    case 2:
+                        return "Public Lobby";
+                }
+            };
+            
 
             var MaxLobbySite = settingsMenu.AddInt("Lobby Size", "Configure the amount of users you want to be able to join your lobby.", 2, 15, 1);
             MaxLobbySite.GetValue += delegate { return Config.Instance.MaxLobbySize; };
@@ -110,14 +137,46 @@ namespace BeatSaberOnline.Views
                 Controllers.PlayerController.UpdateVolume((float) value);
                 Config.Instance.Volume = (float) value;
             };
-            
-            var AvatarsInLobby = settingsMenu.AddBool("Enable Avatars In Lobby", "Turns avatars on for you in the waiting lobby");
-            AvatarsInLobby.GetValue += delegate { return Config.Instance.AvatarsInLobby; };
-            AvatarsInLobby.SetValue += delegate (bool value) { Config.Instance.AvatarsInLobby = value; };
 
-            var AvatarsInGame = settingsMenu.AddBool("Enable Avatars In Game", "Turns avatars on for you while playing songs");
-            AvatarsInGame.GetValue += delegate { return Config.Instance.AvatarsInGame; };
-            AvatarsInGame.SetValue += delegate (bool value) { Config.Instance.AvatarsInGame = value; };
+            
+            var Avatar = settingsMenu.AddList("Enable Avatars", new float[4] { 0, 1, 2, 3 });
+            Avatar.GetValue += delegate { return _avatarState; };
+            Avatar.SetValue += delegate (float value) { _avatarState = value;
+                switch (value) {
+                    default:
+                    case 0:
+                        Config.Instance.AvatarsInLobby = false;
+                        Config.Instance.AvatarsInGame = false;
+                        break;
+                    case 1:
+                        Config.Instance.AvatarsInLobby = true;
+                        Config.Instance.AvatarsInGame = false;
+                        break;
+                    case 2:
+                        Config.Instance.AvatarsInLobby = false;
+                        Config.Instance.AvatarsInGame = true;
+                        break;
+                    case 3:
+                        Config.Instance.AvatarsInLobby = true;
+                        Config.Instance.AvatarsInGame = true;
+                        break;
+                }
+            };
+            Avatar.FormatValue += delegate (float value)
+            {
+                switch (value)
+                {
+                    default:
+                    case 0:
+                        return "Disabled";
+                    case 1:
+                        return "Lobby Only";
+                    case 2:
+                        return "InGame Only";
+                    case 3:
+                        return "Enabled";
+                }
+            };
             
             var NetworkQuality = settingsMenu.AddInt("Network Quality", "Higher number, smoother avatar. Note that this effects how you appear to others. ", 0, 5, 1);
             NetworkQuality.GetValue += delegate { return Config.Instance.NetworkQuality; };
@@ -129,10 +188,6 @@ namespace BeatSaberOnline.Views
                     Controllers.PlayerController.Instance.StartBroadcasting();
                 }
             };
-
-            var NetworkScaling = settingsMenu.AddBool("Network Scaling", "Scales your network traffic based on the size of your lobby.");
-            NetworkScaling.GetValue += delegate { return Config.Instance.NetworkScaling; };
-            NetworkScaling.SetValue += delegate (bool value) { Config.Instance.NetworkScaling = value; };
         }
 
         private void CreateMainMenuButton()

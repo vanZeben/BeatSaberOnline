@@ -13,7 +13,6 @@ namespace BeatSaberOnline.Data
         private bool _avatarsInLobby;
         private bool _avatarsInGame;
         private int _networkQuality;
-        private bool _networkScaling;
         private float _volume;
 
         private static Config _instance;
@@ -151,18 +150,7 @@ namespace BeatSaberOnline.Data
                 MarkDirty();
             }
         }
-
-        public bool NetworkScaling
-        {
-            get { return _networkScaling; }
-            set
-            {
-                _networkScaling = value;
-                MarkDirty();
-            }
-        }
-
-
+        
         public float Volume
         {
             get { return _volume; }
@@ -182,7 +170,6 @@ namespace BeatSaberOnline.Data
             _avatarsInLobby = true;
             _avatarsInGame = true;
             _networkQuality = 4;
-            _networkScaling = false;
             _volume = 20;
 
             IsDirty = true;
