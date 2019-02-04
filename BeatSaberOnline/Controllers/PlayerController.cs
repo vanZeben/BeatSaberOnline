@@ -128,7 +128,7 @@ namespace BeatSaberOnline.Controllers
         public bool AllPlayersInMenu()
         {
             bool InMenu = !_playerInfo.InSong;
-    if (!InMenu)
+            if (!InMenu)
             {
                 Data.Logger.Debug("You are in a song");
             }

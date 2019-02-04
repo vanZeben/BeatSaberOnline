@@ -6,6 +6,8 @@ using System;
 using BeatSaberOnline.Controllers;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 using BeatSaberOnline.Workers;
+using Harmony;
+using System.Reflection;
 
 namespace BeatSaberOnline
 {
@@ -32,6 +34,9 @@ namespace BeatSaberOnline
 
             SceneManager.sceneLoaded += SceneLoaded;
             SceneManager.activeSceneChanged += ActiveSceneChanged;
+
+            var harmony = HarmonyInstance.Create("ca.vanzeben.beatsaber.beatsaberonline");
+            harmony.PatchAll(Assembly.GetExecutingAssembly());
         }
 
         public void OnApplicationQuit()

@@ -36,6 +36,10 @@
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="0Harmony, Version=1.2.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\Games\Steam\SteamApps\common\Beat Saber\Beat Saber_Data\Managed\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp" />
     <Reference Include="Assembly-CSharp-firstpass, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL" />
     <Reference Include="BeatSaberCustomUI" />
@@ -82,6 +86,7 @@
     <Compile Include="Controllers\PlayerController.cs" />
     <Compile Include="Controllers\WorldController.cs" />
     <Compile Include="Data\PlayerInfo.cs" />
+    <Compile Include="Harmony\HandleLevelDetailViewControllerDidPressPlayButtonHook.cs" />
     <Compile Include="Utils\Config.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\HexConverter.cs" />

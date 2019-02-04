@@ -12,16 +12,17 @@ using Logger = BeatSaberOnline.Data.Logger;
 
 namespace BeatSaberOnline.Views.ViewControllers
 {
-    class MockPartyViewController
+    public class MockPartyViewController
     {
+        public static MockPartyViewController Instance;
         private MainMenuViewController _mainMenuController;
         private PartyFreePlayFlowCoordinator _partyFlowCoordinator;
         private StandardLevelDetailViewController detail;
         private GameplaySetupViewController _gameplaySetupViewController;
-        private Button mPlay;
-
+        private Button play;
         public MockPartyViewController()
         {
+            Instance = this;
             _partyFlowCoordinator = Resources.FindObjectsOfTypeAll<PartyFreePlayFlowCoordinator>().FirstOrDefault();
             LevelListViewController level = ReflectionUtil.GetPrivateField<LevelListViewController>(_partyFlowCoordinator, "_levelListViewController");
              detail = ReflectionUtil.GetPrivateField<StandardLevelDetailViewController>(_partyFlowCoordinator, "_levelDetailViewController");
@@ -35,14 +36,9 @@ namespace BeatSaberOnline.Views.ViewControllers
             level.didSelectLevelEvent += didSelectLevel;
             
             beatmap.didSelectDifficultyEvent += didSelectBeatmap;
-            mPlay = BeatSaberUI.CreateUIButton(detail.rectTransform, "CreditsButton", new Vector2(0f, -12f), new Vector2(40, 9f));
 
-            mPlay.SetButtonText("Play with Lobby");
-            mPlay.SetButtonTextSize(5f);
-            mPlay.gameObject.SetActive(false);
-            mPlay.ToggleWordWrapping(false);
-            mPlay.onClick.AddListener(didSelectPlay);
-            
+            play = ReflectionUtil.GetPrivateField<Button>(detail, "_playButton");
+                        
             _mainMenuController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().FirstOrDefault();
             Button partyButton = ReflectionUtil.GetPrivateField<Button>(_mainMenuController, "_partyButton");
             HoverHint hint = Resources.FindObjectsOfTypeAll<HoverHint>().Where(x => x.text == "Play with your friends locally!").First();
@@ -72,44 +68,49 @@ namespace BeatSaberOnline.Views.ViewControllers
         {
             try
             {
+                Button practice = ReflectionUtil.GetPrivateField<Button>(detail, "_practiceButton");
                 if (Data.Steam.SteamAPI.GetConnectionState() != SteamAPI.ConnectionState.CONNECTED || (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated))
                 {
-                    mPlay.gameObject.SetActive(false);
+                    practice.gameObject.SetActive(true);
+                    practice.interactable = true;
                     return;
                 }
-                if (mPlay && mPlay.gameObject)
+                if (practice && practice.gameObject)
                 {
-                    mPlay.gameObject.SetActive(!val);
+                    practice.gameObject.SetActive(val);
+                    practice.interactable = false;
                 }
-                if (mPlay && !SteamAPI.IsHost())
+                if (play != null)
                 {
-                    mPlay.SetButtonText("You need to be host");
-                    mPlay.interactable = false;
-                }
-                if (mPlay && !Controllers.PlayerController.Instance.AllPlayersInMenu())
-                {
-                    mPlay.SetButtonText("Players still in song");
-                    mPlay.interactable = false;
+                    if (!SteamAPI.IsHost())
+                    {
+                        play.SetButtonText("You need to be host");
+                    } else if (!Controllers.PlayerController.Instance.AllPlayersInMenu())
+                    {
+                        play.SetButtonText("Players still in song");
+                    }
                 }
             } catch(Exception e)
             {
                 Data.Logger.Error(e);
             }
         }
-
-        private void didSelectPlay()
-        {try
+        
+        public void didSelectPlay()
+        {
+            try
             {
+                if (!SteamAPI.IsHost() || !Controllers.PlayerController.Instance.AllPlayersInMenu())
+                {
+                    return;
+                }
                 if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
                 {
                     toggleButtons(true);
                     return;
                 }
                 toggleButtons(false);
-                if (Controllers.PlayerController.Instance.AllPlayersInMenu())
-                {
-                    SteamAPI.RequestPlay(new GameplayModifiers(_gameplaySetupViewController.gameplayModifiers));
-                }
+                SteamAPI.RequestPlay(new GameplayModifiers(_gameplaySetupViewController.gameplayModifiers));
             } catch (Exception e)
             {
                 Logger.Error(e);
