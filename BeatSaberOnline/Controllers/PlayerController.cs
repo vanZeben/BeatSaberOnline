@@ -130,13 +130,13 @@ namespace BeatSaberOnline.Controllers
             bool InMenu = !_playerInfo.InSong;
     if (!InMenu)
             {
-                Data.Logger.Info("You are in a song");
+                Data.Logger.Debug("You are in a song");
             }
             for (int i = 0; i < _connectedPlayers.Count; i++)
             {
                 if (InMenu && _connectedPlayers.Values.ToArray()[i].InSong)
                 {
-                    Data.Logger.Info(_connectedPlayers.Values.ToArray()[i].playerName+" is in song");
+                    Data.Logger.Debug(_connectedPlayers.Values.ToArray()[i].playerName+" is in song");
                     InMenu = false;
                     break;
                 }
