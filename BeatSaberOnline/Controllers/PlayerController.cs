@@ -127,14 +127,18 @@ namespace BeatSaberOnline.Controllers
 
         public bool AllPlayersInMenu()
         {
-            bool InMenu = true;
-            InMenu = !_playerInfo.InSong;
+            bool InMenu = !_playerInfo.InSong;
+    if (!InMenu)
+            {
+                Data.Logger.Info("You are in a song");
+            }
             for (int i = 0; i < _connectedPlayers.Count; i++)
             {
-                if (!InMenu) { break; }
-                if (InMenu)
+                if (InMenu && _connectedPlayers.Values.ToArray()[i].InSong)
                 {
-                    InMenu = !_connectedPlayers.Values.ToArray()[i].InSong;
+                    Data.Logger.Info(_connectedPlayers.Values.ToArray()[i].playerName+" is in song");
+                    InMenu = false;
+                    break;
                 }
             }
             return InMenu;
@@ -192,9 +196,11 @@ namespace BeatSaberOnline.Controllers
                         _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
                     }
                     bool changedReady = (_connectedPlayers[info.playerId].Ready != info.Ready || _connectedPlayers[info.playerId].playerProgress != info.playerProgress);
-
+                    
                     _connectedPlayers[info.playerId] = info;
-                    if (changedReady) {
+                    if (changedReady)
+                    {
+                        WaitingMenu.RefreshData();
                         if (SteamAPI.IsHost())
                         {
                             if (info.Ready)
@@ -204,7 +210,6 @@ namespace BeatSaberOnline.Controllers
                                     Data.Logger.Debug($"Everyone has confirmed that they are ready to play, broadcast that we want them all to start playing");
                                     SteamAPI.StartPlaying();
                                 }
-                                WaitingMenu.RefreshData();
                             }
                             else
                             {
@@ -214,10 +219,6 @@ namespace BeatSaberOnline.Controllers
                                     SteamAPI.StartGame();
                                 }
                             }
-                        }
-                        else
-                        {
-                            WaitingMenu.RefreshData();
                         }
                     }
                 }
