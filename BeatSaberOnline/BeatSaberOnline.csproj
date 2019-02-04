@@ -114,6 +114,9 @@
     <Compile Include="Views\ViewControllers\MockPartyViewController.cs" />
     <Compile Include="Workers\VoiceChatWorker.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\VoipAudioMixer" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>copy /Y "$(TargetDir)$(TargetFileName)" "$(TargetDir)\Plugins\$(TargetFileName)"

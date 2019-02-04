@@ -66,7 +66,7 @@ namespace BeatSaberOnline.Controllers
             {
                 _pauseMenuManager.ShowMenu();
             }
-            catch (Exception e)
+            catch (Exception)
             {
             }
         }

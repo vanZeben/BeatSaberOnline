@@ -580,8 +580,7 @@ namespace BeatSaberOnline.Data.Steam
                 SteamMatchmaking.SetLobbyMemberData(_lobbyInfo.LobbyID, "STATUS", "DISCONNECTED");
                 Controllers.PlayerController.Instance.StopBroadcasting();
                 _lobbyInfo.HostName = "";
-                SendLobbyInfo(true);
-
+                SendLobbyInfo(true);                
                 Connection = ConnectionState.DISCONNECTED;
                 SteamMatchmaking.LeaveLobby(_lobbyInfo.LobbyID);
                 Controllers.PlayerController.Instance.DestroyAvatars();

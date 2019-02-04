@@ -88,6 +88,9 @@ namespace BeatSaberOnline.Views.ViewControllers
                     } else if (!Controllers.PlayerController.Instance.AllPlayersInMenu())
                     {
                         play.SetButtonText("Players still in song");
+                    } else
+                    {
+                        play.SetButtonText("Play");
                     }
                 }
             } catch(Exception e)

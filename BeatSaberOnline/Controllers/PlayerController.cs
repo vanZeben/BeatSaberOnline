@@ -7,8 +7,10 @@ using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 
@@ -24,7 +26,9 @@ namespace BeatSaberOnline.Controllers
         private string _currentScene;
         private GameObject m_VoiceLoopback;
         public bool VoipEnabled = false;
-
+        private AudioMixerGroup AudioMixerGroup;
+        private AudioMixer _mixer;
+        public static bool NEW_VOICE = false;
         public void clearVoiceLoopback()
         {
             m_VoiceLoopback = null;
@@ -48,6 +52,7 @@ namespace BeatSaberOnline.Controllers
                 _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
                 _currentScene = SceneManager.GetActiveScene().name;
 
+               
             }
         }
         public bool isBroadcasting = false;
@@ -291,6 +296,44 @@ namespace BeatSaberOnline.Controllers
                 Data.Logger.Error(e);
             }
         }
+        private static AssetBundle _assets = null;
+        private static AssetBundle Assets
+        {
+            get
+            {
+                if (!_assets)
+                    _assets = AssetBundle.LoadFromMemory(UIUtilities.GetResource(Assembly.GetExecutingAssembly(), "BeatSaberOnline.Resources.VoipAudioMixer"));
+                return _assets;
+            }
+        }
+        private static AudioMixerGroup _group;
+
+        public static void UpdateVolume(float volume)
+        {
+            AudioMixerGroup g = AudioGroup;
+            g.audioMixer.SetFloat("MasterVolume", volume);
+        }
+        public static AudioMixerGroup AudioGroup
+        {
+            get
+            {
+                if (!_group)
+                {
+                    try
+                    {
+                        AudioMixer mixer = Assets.LoadAsset<AudioMixer>("AudioMixer");
+                        _group = mixer.FindMatchingGroups("Master")[0];
+                        mixer.SetFloat("MasterVolume", Config.Instance.Volume);
+                    }
+                    catch (Exception e)
+                    {
+                        Data.Logger.Error(e);
+                    }
+                }
+                return _group;
+            }
+        }
+
         bool PlayVoip(byte[] voipPacket)
         {
             byte[] voipBuffer = new byte[11025 * 2];
@@ -318,6 +361,7 @@ namespace BeatSaberOnline.Controllers
                     voip[i] = (short)(voipBuffer[i * 2] | voipBuffer[i * 2 + 1] << 8) / 32768.0f;
                 }
                 source.clip.SetData(voip, 0);
+                source.outputAudioMixerGroup = AudioGroup;
                 source.Play();
                 return true;
             }
