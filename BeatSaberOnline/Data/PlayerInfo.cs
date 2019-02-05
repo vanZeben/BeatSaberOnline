@@ -35,7 +35,6 @@ namespace BeatSaberOnline.Data
         public bool Ready = false;
         public bool SongFailed = false;
         public bool InSong = false;
-        public byte[] voip = new byte[0];
 
         public PlayerInfo(string _name, ulong _id)
         {
@@ -74,12 +73,9 @@ namespace BeatSaberOnline.Data
                 avatarHash = BitConverter.ToString(avatar.Skip(42).Take(16).ToArray()).Replace("-", "");
 
                 Ready = BitConverter.ToBoolean(data, 98 + nameLength);
-
-                int voipLength = BitConverter.ToInt32(data, 99 + nameLength);
-                voip = data.Skip(103 + nameLength).Take(voipLength).ToArray();
-                nameLength += voipLength;
-                SongFailed = BitConverter.ToBoolean(data, 103 + nameLength);
-                InSong = BitConverter.ToBoolean(data, 104 + nameLength);
+            
+                SongFailed = BitConverter.ToBoolean(data, 99 + nameLength);
+                InSong = BitConverter.ToBoolean(data, 100 + nameLength);
         }
 
         private byte[] GetBytes()
@@ -111,8 +107,6 @@ namespace BeatSaberOnline.Data
             buffer.AddRange(HexConverter.ConvertHexToBytesX(avatarHash));
 
             buffer.AddRange(BitConverter.GetBytes(Ready));
-            buffer.AddRange(BitConverter.GetBytes(voip.Length));
-            buffer.AddRange(voip);
             buffer.AddRange(BitConverter.GetBytes(SongFailed));
             buffer.AddRange(BitConverter.GetBytes(InSong));
 

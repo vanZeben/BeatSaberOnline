@@ -19,6 +19,7 @@ using CustomUI.MenuButton;
 using Steamworks;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 using BeatSaberOnline.Controllers;
+using UnityEngine.Audio;
 
 namespace BeatSaberOnline.Views
 {
@@ -134,8 +135,9 @@ namespace BeatSaberOnline.Views
             var Volume = settingsMenu.AddInt("Voice Volume", "Higher numbers are louder", 1, 20, 1);
             Volume.GetValue += delegate { return (int)Config.Instance.Volume; };
             Volume.SetValue += delegate (int value) {
-                Controllers.PlayerController.UpdateVolume((float) value);
                 Config.Instance.Volume = (float) value;
+                AudioMixerGroup g = Assets.AudioGroup;
+                g.audioMixer.SetFloat("MasterVolume", (float)value);
             };
 
             

@@ -17,6 +17,7 @@ using System.Linq;
 using VRUI;
 using System.Reflection;
 using UnityEngine.EventSystems;
+using BeatSaberOnline.Workers;
 
 namespace BeatSaberOnline.Views.Menus
 {
@@ -68,21 +69,21 @@ namespace BeatSaberOnline.Views.Menus
                                 Button vc = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f - offs), new Vector2(25f, 7f));
                                 vc.SetButtonTextSize(3f);
                                 vc.ToggleWordWrapping(false);
-                                vc.SetButtonText(Controllers.PlayerController.Instance.VoipEnabled ? "Disable Voice Chat" : "Enable Voice Chat");
+                                vc.SetButtonText(VoiceChatWorker.VoipEnabled ? "Disable Voice Chat" : "Enable Voice Chat");
                                 vc.onClick.AddListener(delegate
                                 {
                                     try
                                     {
-                                        if (!Controllers.PlayerController.Instance.VoipEnabled)
+                                        if (!VoiceChatWorker.VoipEnabled)
                                         {
                                             vc.SetButtonText("Disable Voice Chat");
-                                            Controllers.PlayerController.Instance.VoipEnabled = true;
+                                            VoiceChatWorker.VoipEnabled = true;
                                             SteamUser.StartVoiceRecording();
                                         }
                                         else
                                         {
                                             vc.SetButtonText("Enable Voice Chat");
-                                            Controllers.PlayerController.Instance.VoipEnabled = false;
+                                            VoiceChatWorker.VoipEnabled = false;
                                             SteamUser.StopVoiceRecording();
                                         }
                                     }

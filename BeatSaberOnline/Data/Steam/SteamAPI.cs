@@ -9,6 +9,7 @@ using BeatSaberOnline.Views.Menus;
 using System.Linq;
 using UnityEngine;
 using BeatSaberOnline.Utils;
+using BeatSaberOnline.Workers;
 
 namespace BeatSaberOnline.Data.Steam
 {
@@ -528,7 +529,14 @@ namespace BeatSaberOnline.Data.Steam
             SendToAllInLobby(bytes);
         }
 
-        public static void SendToAllInLobby(byte[] bytes)
+        public static void SendVoip(VoipPacket voip)
+        {
+            var message = voip.Serialize().Trim();
+            byte[] bytes = Encoding.UTF8.GetBytes(message);
+            SendToAllInLobby(bytes, 1);
+        }
+
+        public static void SendToAllInLobby(byte[] bytes, int channel = 0)
         {
             int numMembers = SteamMatchmaking.GetNumLobbyMembers(_lobbyInfo.LobbyID);
             for (int i = 0; i < numMembers; i++)
@@ -536,7 +544,7 @@ namespace BeatSaberOnline.Data.Steam
                 CSteamID member = SteamMatchmaking.GetLobbyMemberByIndex(_lobbyInfo.LobbyID, i);
                 if (member.m_SteamID != SteamAPI.GetUserID())
                 {
-                    SteamNetworking.SendP2PPacket(member, bytes, (uint)bytes.Length, EP2PSend.k_EP2PSendReliable);
+                    SteamNetworking.SendP2PPacket(member, bytes, (uint)bytes.Length, EP2PSend.k_EP2PSendReliable, channel);
                 }
             }
         }
@@ -581,6 +589,7 @@ namespace BeatSaberOnline.Data.Steam
                 WaitingMenu.queuedSong = null;
                 _lobbyInfo = new LobbyInfo();
                 UpdateUserInfo();
+                VoiceChatWorker.VoipEnabled = false;
                 Scoreboard.Instance.RemoveAll();
                 SongListUtils.InSong = false;
                 Controllers.PlayerController.Instance._playerInfo = new PlayerInfo(GetUserName(), GetUserID());

@@ -85,8 +85,10 @@
     <Compile Include="Controllers\LeaderboardController.cs" />
     <Compile Include="Controllers\PlayerController.cs" />
     <Compile Include="Controllers\WorldController.cs" />
+    <Compile Include="Data\VoipPacket.cs" />
     <Compile Include="Data\PlayerInfo.cs" />
     <Compile Include="Harmony\HandleLevelDetailViewControllerDidPressPlayButtonHook.cs" />
+    <Compile Include="Utils\Assets.cs" />
     <Compile Include="Utils\Config.cs" />
     <Compile Include="Utils\FileUtils.cs" />
     <Compile Include="Utils\HexConverter.cs" />

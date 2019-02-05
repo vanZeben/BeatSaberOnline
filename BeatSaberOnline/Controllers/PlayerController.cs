@@ -25,12 +25,7 @@ namespace BeatSaberOnline.Controllers
         private Dictionary<ulong, PlayerInfo> _connectedPlayers = new Dictionary<ulong, PlayerInfo>();
         private Dictionary<ulong, AvatarController> _connectedPlayerAvatars = new Dictionary<ulong, AvatarController>();
         private string _currentScene;
-        private GameObject m_VoiceLoopback;
-        public bool VoipEnabled = false;
-        public void clearVoiceLoopback()
-        {
-            m_VoiceLoopback = null;
-        }
+
         public static void Init(Scene to)
         {
             if (Instance != null)
@@ -48,9 +43,7 @@ namespace BeatSaberOnline.Controllers
                 DontDestroyOnLoad(gameObject);
 
                 _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
-                _currentScene = SceneManager.GetActiveScene().name;
-
-               
+                _currentScene = SceneManager.GetActiveScene().name;               
             }
         }
         public bool isBroadcasting = false;
@@ -241,10 +234,6 @@ namespace BeatSaberOnline.Controllers
             {
                 UpdatePlayerInfo();
                 SteamAPI.SendPlayerInfo(_playerInfo);
-                if (_playerInfo.voip != null && _playerInfo.voip.Length > 0)
-                {
-                    _playerInfo.voip = new byte[0];
-                }
             } catch (Exception e)
             {
                 Data.Logger.Error(e);
@@ -260,7 +249,7 @@ namespace BeatSaberOnline.Controllers
             }
             _connectedPlayerAvatars.Remove(playerId);
         }
-        void Update()
+    void Update()
         {
             uint size;
             try
@@ -274,14 +263,6 @@ namespace BeatSaberOnline.Controllers
                     {
                         var message = Encoding.UTF8.GetString(buffer).Replace(" ", "");
                         PlayerInfo info = new PlayerInfo(message);
-                        if (info.voip != null && info.voip.Length > 0)
-                        {
-                           if (VoipEnabled) 
-                            {
-                                PlayVoip(info.voip);
-                            }
-                            info.voip = new byte[0];
-                        }
                         if (info.playerId != SteamAPI.GetUserID() && SteamAPI.getLobbyID().m_SteamID != 0)
                         {
                             UpsertPlayer(info);
@@ -294,76 +275,8 @@ namespace BeatSaberOnline.Controllers
                 Data.Logger.Error(e);
             }
         }
-        private static AssetBundle _assets = null;
-        private static AssetBundle Assets
-        {
-            get
-            {
-                if (!_assets)
-                    _assets = AssetBundle.LoadFromMemory(UIUtilities.GetResource(Assembly.GetExecutingAssembly(), "BeatSaberOnline.Resources.VoipVolumeMixer"));
-                return _assets;
-            }
-        }
-        private static AudioMixerGroup _group;
+      
 
-        public static void UpdateVolume(float volume)
-        {
-            AudioMixerGroup g = AudioGroup;
-            g.audioMixer.SetFloat("MasterVolume", volume);
-        }
-        public static AudioMixerGroup AudioGroup
-        {
-            get
-            {
-                if (!_group)
-                {
-                    try
-                    {
-                        AudioMixer mixer = Assets.LoadAsset<AudioMixer>("AudioMixer");
-                        _group = mixer.FindMatchingGroups("Master")[0];
-                        mixer.SetFloat("MasterVolume", Config.Instance.Volume);
-                    }
-                    catch (Exception e)
-                    {
-                        Data.Logger.Error(e);
-                    }
-                }
-                return _group;
-            }
-        }
-
-        bool PlayVoip(byte[] voipPacket)
-        {
-            byte[] voipBuffer = new byte[11025 * 2];
-            uint byteLength;
-
-            if (SteamUser.DecompressVoice(voipPacket, (uint)voipPacket.Length, voipBuffer, (uint)voipBuffer.Length, out byteLength, 11025) == EVoiceResult.k_EVoiceResultOK && byteLength > 0)
-            {
-                AudioSource source;
-                if (!m_VoiceLoopback)
-                {
-                    m_VoiceLoopback = new GameObject("Voice Loopback");
-                    source = m_VoiceLoopback.AddComponent<AudioSource>();
-                    DontDestroyOnLoad(source.gameObject);
-                    source.clip = AudioClip.Create("Voice Clip", 11025, 1, 11025, false);
-                    source.volume = 1.0f;
-                }
-                else
-                {
-                    source = m_VoiceLoopback.GetComponent<AudioSource>();
-                }
-
-                float[] voip = new float[11025];
-                for (int i = 0; i < voip.Length; ++i)
-                {
-                    voip[i] = (short)(voipBuffer[i * 2] | voipBuffer[i * 2 + 1] << 8) / 32768.0f;
-                }
-                source.clip.SetData(voip, 0);
-                source.outputAudioMixerGroup = AudioGroup;
-                source.Play();
-                return true;
-            }
-            return false;
-        }
+       
     }
 }
