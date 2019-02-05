@@ -27,7 +27,7 @@ namespace BeatSaberOnline.Data.Steam
             DISCONNECTED
         }
 
-        public static string PACKET_VERSION = "1.0.3";
+        public static string PACKET_VERSION = "1.0.3.1";
 
         static string userName;
         static ulong userID;
