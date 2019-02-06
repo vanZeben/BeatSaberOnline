@@ -29,7 +29,7 @@ namespace BeatSaberOnline
             instance = this;
 
             Logger.Init();
-            Config.Init();
+            new Config($"./UserData/{Name}.ini");
             Sprites.Init();
 
             SceneManager.sceneLoaded += SceneLoaded;

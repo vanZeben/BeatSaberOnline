@@ -1,211 +1,104 @@
 ﻿using System;
 using System.IO;
-using UnityEngine;
 
 namespace BeatSaberOnline.Data
 {
-    [Serializable]
-    public class Config
-    {
-        [SerializeField] private bool _autoStartLobby;
-        [SerializeField] private bool _isPublic;
-        [SerializeField] private int _maxLobbySize;
-        [SerializeField] private bool _noFailMode;
-        [SerializeField] private bool _avatarsInLobby;
-        [SerializeField] private bool _avatarsInGame;
-        [SerializeField] private int _networkQuality;
-        [SerializeField] private float _volume;
+     public class Config
+     {
+        public static Config Instance;
 
-        private static Config _instance;
+        public string FilePath { get; }
+        public bool autoStartLobby = false;
+        public bool isPublic = true;
+        public int maxLobbySize = 5;
+        public bool avatarsInLobby = true;
+        public bool avatarsInGame = true;
+        public int networkQuality = 5;
+        public float volume = 20;
 
-        private static FileInfo FileLocation { get; } = new FileInfo($"./UserData/{Plugin.instance.Name}.json");
+        public bool AutoStartLobby { get { return autoStartLobby; } set { autoStartLobby = value; Save(); } }
+        public bool IsPublic { get { return isPublic; } set { isPublic = value; Save(); } }
+        public int MaxLobbySize { get { return maxLobbySize; } set { maxLobbySize = value; Save(); } }
+        public bool AvatarsInLobby { get { return avatarsInLobby; } set { avatarsInLobby = value; Save(); } }
+        public bool AvatarsInGame { get { return avatarsInGame; } set { avatarsInGame = value; Save(); } }
+        public int NetworkQuality { get { return networkQuality; } set { networkQuality = value; Save(); } }
+        public float Volume { get { return volume; } set { volume = value; Save(); } }
 
-        public static void Init()
+        public event Action<Config> ConfigChangedEvent;
+        private readonly FileSystemWatcher _configWatcher;
+        private bool _saving;
+
+        public Config(string filePath)
         {
-            if (!Load())
-                Create();
-        }
+            Instance = this;
+            FilePath = filePath;
 
-        public static void Reload()
-        {
-            if (_instance.IsDirty)
-                _instance.Save();
+            if (!Directory.Exists(Path.GetDirectoryName(FilePath)))
+                Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
+            if (File.Exists(Path.Combine(Environment.CurrentDirectory, "UserData/BeatSaberOnline.json")))
+                File.Delete(Path.Combine(Environment.CurrentDirectory, "UserData/BeatSaberOnline.json"));
 
-            _instance = null;
-            Load();
-        }
-
-        private static bool Load()
-        {
-            if (_instance != null) return false;
-            try
+            if (File.Exists(FilePath))
             {
-                FileLocation?.Directory?.Create();
-                _instance = JsonUtility.FromJson<Config>(File.ReadAllText(FileLocation.FullName));
-                _instance.MarkDirty();
-                _instance.Save();
+                Load();
             }
-            catch (Exception)
-            {
-                Logger.Error($"Unable to load config @ {FileLocation.FullName}");
-                return false;
-            }
-            return true;
-        }
-
-        private static bool Create()
-        {
-            if (_instance != null) return false;
-            try
-            {
-                FileLocation?.Directory?.Create();
-                Instance.Save();
-            }
-            catch (Exception)
-            {
-                Logger.Error($"Unable to create new config @ {FileLocation.FullName}");
-                return false;
-            }
-            return true;
-        }
-
-        public static Config Instance
-        {
-            get
-            {
-                if (_instance == null)
-                    _instance = new Config();
-                return _instance;
-            }
-        }
-
-        private bool IsDirty { get; set; }
-
-        public bool AutoStartLobby
-        {
-            get { return _autoStartLobby; }
-            set
-            {
-                _autoStartLobby = value;
-                MarkDirty();
-            }
-        }
-
-        public bool IsPublic
-        {
-            get { return _isPublic; }
-            set
-            {
-                _isPublic = value;
-                MarkDirty();
-            }
-        }
-
-        public int MaxLobbySize
-        {
-            get { return _maxLobbySize; }
-            set
-            {
-                _maxLobbySize = value;
-                MarkDirty();
-            }
-        }
-        public bool NoFailMode
-        {
-            get { return _noFailMode; }
-            set
-            {
-                _noFailMode = value;
-                MarkDirty();
-            }
-        }
-        public bool AvatarsInLobby
-        {
-            get { return _avatarsInLobby; }
-            set
-            {
-                _avatarsInLobby = value;
-                MarkDirty();
-            }
-        }
-
-
-        public bool AvatarsInGame
-        {
-            get { return _avatarsInGame; }
-            set
-            {
-                _avatarsInGame = value;
-                MarkDirty();
-            }
-        }
-
-
-        public int NetworkQuality
-        {
-            get { return _networkQuality; }
-            set
-            {
-                if (value > 5) { value = 5; }
-                _networkQuality = value;
-                MarkDirty();
-            }
-        }
-        
-        public float Volume
-        {
-            get { return _volume; }
-            set
-            {
-                _volume = 20f;
-                MarkDirty();
-            }
-        }
-
-        Config()
-        {
-            _autoStartLobby = false;
-            _isPublic = true;
-            _maxLobbySize = 5;
-            _noFailMode = true;
-            _avatarsInLobby = true;
-            _avatarsInGame = true;
-            _networkQuality = 4;
-            _volume = 20;
-
-            IsDirty = true;
-        }
-
-        public bool Save()
-        {
-            if (!IsDirty) return false;
-            try
-            {
-
-                using (var f = new StreamWriter(FileLocation.FullName))
-                {
-                    var json = JsonUtility.ToJson(this, true);
-                    f.Write(json);
-                }
-                MarkClean();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Logger.Error($"Unable to write the config file! Exception: {ex}");
-                return false;
-            }
-        }
-
-        void MarkDirty()
-        {
-            IsDirty = true;
             Save();
+            _configWatcher = new FileSystemWatcher(Path.Combine(Environment.CurrentDirectory, "UserData"))
+            {
+                NotifyFilter = NotifyFilters.LastWrite,
+                Filter = "BeatSaberOnline.ini",
+                EnableRaisingEvents = true
+            };
+            _configWatcher.Changed += ConfigWatcherOnChanged;
         }
 
-        void MarkClean()
+        ~Config()
         {
-            IsDirty = false;
+            _configWatcher.Changed -= ConfigWatcherOnChanged;
+        }
+
+        public void Load()
+        {
+            ConfigSerializer.LoadConfig(this, FilePath);
+
+            CorrectConfigSettings();
+        }
+
+        private void CorrectConfigSettings()
+        {
+            if (volume > 20)
+            {
+                volume = 20;
+            }
+            else if (volume < 0)
+            {
+                volume = 0;
+            }
+            if (networkQuality > 5)
+            {
+                networkQuality = 5;
+            } else if (networkQuality < 0)
+            {
+                networkQuality = 0;
+            }
+        }
+
+        public void Save(bool callback = false)
+        {
+            if (!callback)
+                _saving = true;
+            ConfigSerializer.SaveConfig(this, FilePath);
+        }
+        private void ConfigWatcherOnChanged(object sender, FileSystemEventArgs fileSystemEventArgs)
+        {
+            if (_saving)
+            {
+                _saving = false;
+                return;
+            }
+
+            Load();
+            ConfigChangedEvent?.Invoke(this);
         }
     }
 }
