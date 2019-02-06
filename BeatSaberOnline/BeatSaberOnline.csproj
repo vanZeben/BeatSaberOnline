@@ -85,8 +85,8 @@
     <Compile Include="Controllers\LeaderboardController.cs" />
     <Compile Include="Controllers\PlayerController.cs" />
     <Compile Include="Controllers\WorldController.cs" />
-    <Compile Include="Data\VoipPacket.cs" />
-    <Compile Include="Data\PlayerInfo.cs" />
+    <Compile Include="Data\Packets\VoipPacket.cs" />
+    <Compile Include="Data\Packets\PlayerPacket.cs" />
     <Compile Include="Harmony\HandleLevelDetailViewControllerDidPressPlayButtonHook.cs" />
     <Compile Include="Utils\Assets.cs" />
     <Compile Include="Utils\Config.cs" />
@@ -94,7 +94,7 @@
     <Compile Include="Utils\HexConverter.cs" />
     <Compile Include="Utils\Logger.cs" />
     <Compile Include="Data\Sprites.cs" />
-    <Compile Include="Data\Steam\LobbyInfo.cs" />
+    <Compile Include="Data\Packets\LobbyPacket.cs" />
     <Compile Include="Data\Steam\SteamAPI.cs" />
     <Compile Include="Data\Steam\SteamCallbacks.cs" />
     <Compile Include="Plugin.cs" />

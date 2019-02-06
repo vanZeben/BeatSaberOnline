@@ -24,7 +24,7 @@ namespace BeatSaberOnline.Views.Menus
     {
         static Vector2 BASE = new Vector2(-40f, 30f);
         public static CustomMenu Instance = null;
-        private static Dictionary<CSteamID, LobbyInfo> lobbies;
+        private static Dictionary<CSteamID, LobbyPacket> lobbies;
         private static ListViewController middleViewController;
         private static bool sorting = false;
         private static Button refresh;
@@ -96,7 +96,7 @@ namespace BeatSaberOnline.Views.Menus
         
         private static void refreshAvailableLobbies()
         {
-            lobbies = new Dictionary<CSteamID, LobbyInfo>();
+            lobbies = new Dictionary<CSteamID, LobbyPacket>();
 
             if (refresh) refresh.interactable = true;
             SteamAPI.RequestLobbies();
@@ -109,10 +109,10 @@ namespace BeatSaberOnline.Views.Menus
             middleViewController.Data.Clear();
             try
             {
-                Dictionary<ulong, LobbyInfo> lobbies = SteamAPI.LobbyData;
-                foreach (KeyValuePair<ulong, LobbyInfo> entry in lobbies)
+                Dictionary<ulong, LobbyPacket> lobbies = SteamAPI.LobbyData;
+                foreach (KeyValuePair<ulong, LobbyPacket> entry in lobbies)
                 {
-                    LobbyInfo info = SteamAPI.LobbyData[entry.Key];
+                    LobbyPacket info = SteamAPI.LobbyData[entry.Key];
                     availableLobbies.Add(entry.Key, info.Joinable);
                     middleViewController.Data.Add(new CustomCellInfo($"{(info.Joinable && info.TotalSlots - info.UsedSlots > 0 ? "":"[LOCKED]")}[{info.UsedSlots}/{info.TotalSlots}] {info.HostName}'s Lobby", $"{info.Status}"));
                 }
@@ -126,7 +126,7 @@ namespace BeatSaberOnline.Views.Menus
             middleViewController.DidSelectRowEvent = (TableView view, int row) =>
             {
                 ulong clickedID = availableLobbies.Keys.ToArray()[row];
-                LobbyInfo info = SteamAPI.LobbyData[clickedID];
+                LobbyPacket info = SteamAPI.LobbyData[clickedID];
                 if (clickedID != 0 && availableLobbies.Values.ToArray()[row] && info.TotalSlots - info.UsedSlots > 0)
                 {
                     Scoreboard.Instance.UpsertScoreboardEntry(Controllers.PlayerController.Instance._playerInfo.playerId, Controllers.PlayerController.Instance._playerInfo.playerName);

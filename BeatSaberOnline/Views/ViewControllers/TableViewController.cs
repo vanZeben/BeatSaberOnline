@@ -20,7 +20,7 @@ namespace BeatSaberOnline.Views.ViewControllers
         public Button _pageUpButton;
         public Button _pageDownButton;
         public TableView _customListTableView;
-        public List<PlayerInfo> Data = new List<PlayerInfo>();
+        public List<PlayerPacket> Data = new List<PlayerPacket>();
         public Action<TableView, int> DidSelectRowEvent;
 
         private LeaderboardTableCell _songListTableCellInstance;

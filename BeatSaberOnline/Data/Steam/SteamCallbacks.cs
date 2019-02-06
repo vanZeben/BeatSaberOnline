@@ -22,7 +22,7 @@ namespace BeatSaberOnline.Data.Steam
         protected Callback<P2PSessionConnectFail_t> m_P2PSessionConnectFail_t;
         protected Callback<LobbyChatUpdate_t> m_LobbyChatUpdate_t;
 
-        private LobbyInfo.SCREEN_TYPE currentScreen;
+        private LobbyPacket.SCREEN_TYPE currentScreen;
         public SteamCallbacks()
         {
             m_GameLobbyJoinRequested = Callback<GameLobbyJoinRequested_t>.Create(OnGameLobbyJoinRequested);
@@ -38,7 +38,7 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"Attempting to join {pCallback.m_steamIDFriend}'s lobby @ {pCallback.m_steamIDLobby}");
             SteamAPI.JoinLobby(pCallback.m_steamIDLobby);
         }
-        private bool DidScreenChange(LobbyInfo.SCREEN_TYPE newScreen, LobbyInfo.SCREEN_TYPE val)
+        private bool DidScreenChange(LobbyPacket.SCREEN_TYPE newScreen, LobbyPacket.SCREEN_TYPE val)
         {
             return currentScreen != val && val == newScreen;
         }
@@ -47,25 +47,26 @@ namespace BeatSaberOnline.Data.Steam
             if (pCallback.m_ulSteamIDLobby == pCallback.m_ulSteamIDMember)
             {
                 if (pCallback.m_ulSteamIDLobby == 0) return;
-                LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
+                LobbyPacket info = new LobbyPacket(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
 
                 Logger.Debug($"Received: {info.ToString()}");
                 if (pCallback.m_ulSteamIDLobby == SteamAPI.getLobbyID().m_SteamID)
                 {
-                    SteamAPI.UpdateLobbyInfo(info);
-                    if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.WAITING))
+                    SteamAPI.UpdateLobbyPacket(info);
+                    if (DidScreenChange(info.Screen, LobbyPacket.SCREEN_TYPE.WAITING))
                     {
                         currentScreen = info.Screen;
                         Logger.Debug($"Song has been selected, going to the waiting screen");
                         WaitingMenu.Instance.Present();
                     }
-                    else if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.MENU))
+                    else if (DidScreenChange(info.Screen, LobbyPacket.SCREEN_TYPE.MENU))
                     {
                         currentScreen = info.Screen;
                         Logger.Debug($"Song has finished, updating state to menu");
+                        MultiplayerLobby.UpdateJoinButton();
                         GameController.Instance.SongFinished(null, null, null, null);
                     }
-                    else if (DidScreenChange(info.Screen, LobbyInfo.SCREEN_TYPE.PLAY_SONG))
+                    else if (DidScreenChange(info.Screen, LobbyPacket.SCREEN_TYPE.PLAY_SONG))
                     {
                         currentScreen = info.Screen;
                         Logger.Debug($"Host requested to play the current song {info.CurrentSongId}");
@@ -82,6 +83,9 @@ namespace BeatSaberOnline.Data.Steam
                         {
                             Logger.Error(e);
                         }
+                    } else if (DidScreenChange(info.Screen, LobbyPacket.SCREEN_TYPE.IN_GAME))
+                    {
+                        MultiplayerLobby.UpdateJoinButton();
                     }
                 } else
                 {
@@ -132,10 +136,10 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"You have entered lobby {pCallback.m_ulSteamIDLobby}");
             Controllers.PlayerController.Instance.StartBroadcasting();
             SteamAPI.SetConnectionState(SteamAPI.ConnectionState.CONNECTED);
-            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);
-            LobbyInfo info = new LobbyInfo(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
-            SteamAPI.UpdateLobbyInfo(info);
-            if (info.Screen == LobbyInfo.SCREEN_TYPE.IN_GAME && info.CurrentSongOffset > 0f)
+            SteamAPI.SendPlayerPacket(Controllers.PlayerController.Instance._playerInfo);
+            LobbyPacket info = new LobbyPacket(SteamMatchmaking.GetLobbyData(new CSteamID(pCallback.m_ulSteamIDLobby), "LOBBY_INFO"));
+            SteamAPI.UpdateLobbyPacket(info);
+            if (info.Screen == LobbyPacket.SCREEN_TYPE.IN_GAME && info.CurrentSongOffset > 0f)
             {
                 WaitingMenu.autoReady = true;
                 WaitingMenu.timeRequestedToLaunch = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();

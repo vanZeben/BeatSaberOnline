@@ -24,7 +24,7 @@ namespace BeatSaberOnline.Controllers
         static List<CustomAvatar.CustomAvatar> pendingAvatars = new List<CustomAvatar.CustomAvatar>();
         static event Action<string, CustomAvatar.CustomAvatar> AvatarLoaded;
 
-        PlayerInfo playerInfo;
+        PlayerPacket playerInfo;
 
         SpawnedAvatar avatar;
 
@@ -58,7 +58,7 @@ namespace BeatSaberOnline.Controllers
 
         bool rendererEnabled = true;
         Camera _camera;
-        public bool forcePlayerInfo = false;
+        public bool forcePlayerPacket = false;
 
         VRCenterAdjust _centerAdjust;
 
@@ -130,7 +130,7 @@ namespace BeatSaberOnline.Controllers
         {
             try
             {
-                if (avatar != null && !forcePlayerInfo)
+                if (avatar != null && !forcePlayerPacket)
                 {
                     if (GameController.TPS < (1f / Time.smoothDeltaTime))
                     {
@@ -185,7 +185,7 @@ namespace BeatSaberOnline.Controllers
             Destroy(avatar.GameObject);
         }
 
-        public void SetPlayerInfo(PlayerInfo _playerInfo, Vector3 offsetVector, bool isLocal)
+        public void SetPlayerPacket(PlayerPacket _playerInfo, Vector3 offsetVector, bool isLocal)
         {
             if (_playerInfo == null)
             {
@@ -295,7 +295,7 @@ namespace BeatSaberOnline.Controllers
 
                 playerNameText.text = playerInfo.playerName;
 
-                if (forcePlayerInfo)
+                if (forcePlayerPacket)
                 {
                     interpHeadPos = targetHeadPos;
                     interpLeftHandPos = targetLeftHandPos;

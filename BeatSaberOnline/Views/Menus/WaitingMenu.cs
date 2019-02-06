@@ -66,7 +66,7 @@ namespace BeatSaberOnline.Views.Menus
                             level = middleViewController.CreateText("", new Vector2(BASE.x + 40f, BASE.y));
                             level.alignment = TMPro.TextAlignmentOptions.Center;
 
-                            SteamAPI.SendPlayerInfo(Controllers.PlayerController.Instance._playerInfo);
+                            SteamAPI.SendPlayerPacket(Controllers.PlayerController.Instance._playerInfo);
                         }
                         if (firstInit)
                         {

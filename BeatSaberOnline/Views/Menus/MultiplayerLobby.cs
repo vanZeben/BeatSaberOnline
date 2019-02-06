@@ -18,6 +18,7 @@ using VRUI;
 using System.Reflection;
 using UnityEngine.EventSystems;
 using BeatSaberOnline.Workers;
+using BeatSaberOnline.Data.Steam;
 
 namespace BeatSaberOnline.Views.Menus
 {
@@ -28,7 +29,9 @@ namespace BeatSaberOnline.Views.Menus
         private static Dictionary<CSteamID, string[]> friends;
         private static ulong selectedPlayer = 0;
         private static Button invite;
+        private static Button rejoin;
         private static TableViewController rightViewController;
+        private static TMPro.TextMeshProUGUI bodyText;
         public static void Init()
         {
             if (Instance == null)
@@ -92,9 +95,24 @@ namespace BeatSaberOnline.Views.Menus
                                         Logger.Error(e);
                                     }
                                 });
-                                var t = middleViewController.CreateText("You can use Online Lobby in the Main Menu to choose songs for your lobby. \n\nYou can also control all the default Game Modifiers for the lobby through the Online Lobby Menu as well.", new Vector2(0, BASE.y - 10f));
+                                offs += 10f;
+                                rejoin = middleViewController.CreateUIButton("CreditsButton", new Vector2(BASE.x, BASE.y + 2.5f - offs), new Vector2(25f, 7f));
+                                rejoin.SetButtonTextSize(3f);
+                                rejoin.ToggleWordWrapping(false);
+                                rejoin.SetButtonText("Re-Join Song");
+                                rejoin.interactable = false;
+                                rejoin.onClick.AddListener(delegate
+                                {
+                                    if (SteamAPI.GetLobbyData().Screen == LobbyPacket.SCREEN_TYPE.IN_GAME && SteamAPI.GetLobbyData().CurrentSongOffset > 0f)
+                                    {
+                                        WaitingMenu.autoReady = true;
+                                        WaitingMenu.timeRequestedToLaunch = new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds();
+                                        WaitingMenu.Instance.Present();
+                                    }
+                                });
+                                bodyText = middleViewController.CreateText("You can use Online Lobby in the Main Menu to choose songs for your lobby. \n\nYou can also control all the default Game Modifiers for the lobby through the Online Lobby Menu as well.", new Vector2(0, BASE.y - 10f));
                                 var tt = middleViewController.CreateText("If something goes wrong, click the disconnect button above and just reconnect to the lobby.", new Vector2(0, 0 - BASE.y));
-                                t.alignment = TMPro.TextAlignmentOptions.Center;
+                                bodyText.alignment = TMPro.TextAlignmentOptions.Center;
                                 tt.alignment = TMPro.TextAlignmentOptions.Center;
                             } catch(Exception e)
                             {
@@ -148,11 +166,27 @@ namespace BeatSaberOnline.Views.Menus
 
             }
         }
-        private static Comparison<PlayerInfo> scoreComparison = new Comparison<PlayerInfo>((x, y) => (int) y.playerScore - (int) x.playerScore);
+        public static void UpdateJoinButton()
+        {
+            if (!Instance || !Instance.isActiveAndEnabled) { return; }
+            if (!SteamAPI.IsHost() && SteamAPI.GetLobbyData().Screen == LobbyPacket.SCREEN_TYPE.MENU) { bodyText.text = "Waiting for host to select a song"; }
+            if (SteamAPI.GetLobbyData().Screen != LobbyPacket.SCREEN_TYPE.IN_GAME) { return; }
+            bodyText.text = $"Currently playing {SteamAPI.GetSongName()} @ {Math.Floor(SteamAPI.GetSongOffset() / 60f)}:{Math.Floor(SteamAPI.GetSongOffset() % 60f)}";
+            if (SteamAPI.GetLobbyData().CurrentSongOffset > 0f)
+            {
+                rejoin.interactable = true;
+            }
+            else
+            {
+                rejoin.interactable = false;
+            }
+
+        }
+        private static Comparison<PlayerPacket> scoreComparison = new Comparison<PlayerPacket>((x, y) => (int) y.playerScore - (int) x.playerScore);
         public static void RefreshScores()
         {
             if (!Instance || !Instance.isActiveAndEnabled) { return; } 
-            List<PlayerInfo> players = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
+            List<PlayerPacket> players = Controllers.PlayerController.Instance.GetConnectedPlayerPackets();
             players.Sort(scoreComparison);
 
             rightViewController.Data.Clear();

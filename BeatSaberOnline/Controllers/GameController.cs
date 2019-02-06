@@ -97,7 +97,7 @@ namespace BeatSaberOnline.Controllers
             }
             else
             {
-                if ( (1 - (timeSync.songLength - timeSync.songTime) / timeSync.songLength) < 0.75f)
+                if ( (timeSync.songLength - timeSync.songTime) > 30)
                 {
                     SteamAPI.SetSongOffset(timeSync.songTime);
                 }
@@ -127,7 +127,7 @@ namespace BeatSaberOnline.Controllers
                             SteamAPI.StartGame();
                             InvokeRepeating("UpdateSongOffset", 0f, 1f);
                             Scoreboard.Instance.disabled = false;
-                            List<PlayerInfo> connectedPlayers = Controllers.PlayerController.Instance.GetConnectedPlayerInfos();
+                            List<PlayerPacket> connectedPlayers = Controllers.PlayerController.Instance.GetConnectedPlayerPackets();
                             for (int i = 0; i < connectedPlayers.Count; i++)
                             {
                                 Scoreboard.Instance.UpsertScoreboardEntry(connectedPlayers[i].playerId, connectedPlayers[i].playerName, 0, 0);

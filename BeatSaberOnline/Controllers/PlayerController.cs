@@ -21,8 +21,8 @@ namespace BeatSaberOnline.Controllers
     {
         public static PlayerController Instance;
 
-        public PlayerInfo _playerInfo;
-        private Dictionary<ulong, PlayerInfo> _connectedPlayers = new Dictionary<ulong, PlayerInfo>();
+        public PlayerPacket _playerInfo;
+        private Dictionary<ulong, PlayerPacket> _connectedPlayers = new Dictionary<ulong, PlayerPacket>();
         private Dictionary<ulong, AvatarController> _connectedPlayerAvatars = new Dictionary<ulong, AvatarController>();
         private string _currentScene;
 
@@ -42,7 +42,7 @@ namespace BeatSaberOnline.Controllers
                 Instance = this;
                 DontDestroyOnLoad(gameObject);
 
-                _playerInfo = new PlayerInfo(SteamAPI.GetUserName(), SteamAPI.GetUserID());
+                _playerInfo = new PlayerPacket(SteamAPI.GetUserName(), SteamAPI.GetUserID());
                 _currentScene = SceneManager.GetActiveScene().name;               
             }
         }
@@ -51,13 +51,13 @@ namespace BeatSaberOnline.Controllers
         {
             if (isBroadcasting) { return; }
             isBroadcasting = true;
-            InvokeRepeating("BroadcastPlayerInfo", 0f, GameController.TPS);
+            InvokeRepeating("BroadcastPlayerPacket", 0f, GameController.TPS);
         }
         public void StopBroadcasting()
         {
             if (!isBroadcasting) { return; }
             isBroadcasting = false;
-            CancelInvoke("BroadcastPlayerInfo");
+            CancelInvoke("BroadcastPlayerPacket");
         }
 
         public void RestartBroadcasting()
@@ -95,15 +95,15 @@ namespace BeatSaberOnline.Controllers
             }
         }
 
-        public List<PlayerInfo> GetConnectedPlayerInfos()
+        public List<PlayerPacket> GetConnectedPlayerPackets()
         {
-            List<PlayerInfo> scores = new List<PlayerInfo>();
-            scores.AddRange(_connectedPlayers.Values.ToList<PlayerInfo>());
+            List<PlayerPacket> scores = new List<PlayerPacket>();
+            scores.AddRange(_connectedPlayers.Values.ToList<PlayerPacket>());
             scores.Add(_playerInfo);
             return scores;
         }
 
-        public void UpdatePlayerInfo()
+        public void UpdatePlayerPacket()
         {
             _playerInfo.avatarHash = ModelSaberAPI.cachedAvatars.FirstOrDefault(x => x.Value == CustomAvatar.Plugin.Instance.PlayerAvatarManager.GetCurrentAvatar()).Key;
             if (_playerInfo.avatarHash == null) _playerInfo.avatarHash = "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF";
@@ -146,12 +146,12 @@ namespace BeatSaberOnline.Controllers
             connectedPlayerStatus.Add(_playerInfo.playerName, _playerInfo.Ready ? 1f : _playerInfo.playerProgress);
             for(int i = 0; i <  _connectedPlayers.Count;i++)
             {
-                PlayerInfo info = _connectedPlayers.Values.ToArray()[i];
+                PlayerPacket info = _connectedPlayers.Values.ToArray()[i];
                 connectedPlayerStatus.Add(info.playerName, info.Ready ? 1f : info.playerProgress);
             }
             return connectedPlayerStatus;
         }
-        public void UpsertPlayer(PlayerInfo info)
+        public void UpsertPlayer(PlayerPacket info)
         {
             if (info.playerId == _playerInfo.playerId) { return; }
             try
@@ -162,7 +162,7 @@ namespace BeatSaberOnline.Controllers
                     if ((Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "Menu") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
                     {
                         AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
-                        avatar.SetPlayerInfo(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
+                        avatar.SetPlayerPacket(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
                         _connectedPlayerAvatars.Add(info.playerId, avatar);
                     }
                     MultiplayerLobby.RefreshScores();
@@ -189,7 +189,7 @@ namespace BeatSaberOnline.Controllers
                             offset = new Vector3((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2f, 0, Math.Abs((Array.IndexOf(playerInfosByID, info.playerId) - Array.IndexOf(playerInfosByID, _playerInfo.playerId)) * 2.5f));
                         }
 
-                        _connectedPlayerAvatars[info.playerId].SetPlayerInfo(info, offset, info.playerId == _playerInfo.playerId);
+                        _connectedPlayerAvatars[info.playerId].SetPlayerPacket(info, offset, info.playerId == _playerInfo.playerId);
                     }
                     bool changedReady = (_connectedPlayers[info.playerId].Ready != info.Ready || _connectedPlayers[info.playerId].playerProgress != info.playerProgress);
                     _connectedPlayers[info.playerId] = info;
@@ -228,12 +228,12 @@ namespace BeatSaberOnline.Controllers
         {
             return _connectedPlayers.Keys.ToList();
         }
-        void BroadcastPlayerInfo()
+        void BroadcastPlayerPacket()
         {
             try
             {
-                UpdatePlayerInfo();
-                SteamAPI.SendPlayerInfo(_playerInfo);
+                UpdatePlayerPacket();
+                SteamAPI.SendPlayerPacket(_playerInfo);
             } catch (Exception e)
             {
                 Data.Logger.Error(e);
@@ -262,7 +262,7 @@ namespace BeatSaberOnline.Controllers
                     if (SteamNetworking.ReadP2PPacket(buffer, size, out bytesRead, out remoteId))
                     {
                         var message = Encoding.UTF8.GetString(buffer).Replace(" ", "");
-                        PlayerInfo info = new PlayerInfo(message);
+                        PlayerPacket info = new PlayerPacket(message);
                         if (info.playerId != SteamAPI.GetUserID() && SteamAPI.getLobbyID().m_SteamID != 0)
                         {
                             UpsertPlayer(info);
