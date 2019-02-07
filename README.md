@@ -1,8 +1,8 @@
-# BeatSaberOnline `v1.0.2`
+# BeatSaberOnline
 
 **Requires launching BeatSaber through Steam**. Will not work with OcculusStore version yet.
 
-Requires **CustomUI** & **CustomAvatars**
+Requires **CustomUI** & **CustomAvatars** & **Harmony**
 
 _This mod heavily improves the online experience in Beat Saber._
 
