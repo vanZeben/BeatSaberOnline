@@ -38,8 +38,25 @@ namespace BeatSaberOnline.Utils
             }
         }
 
+        public static IEnumerator CheckSongExists(string levelId, Action<bool> hasSong)
+        {
+            levelId = levelId.Substring(0, 32);
+            using (UnityWebRequest www = UnityWebRequest.Get($"https://beatsaver.com/api/songs/search/hash/{levelId}"))
+            {
+                yield return www.SendWebRequest();
+                if (www.isNetworkError || www.isHttpError)
+                {
+                    Data.Logger.Error(www.error);
+                    hasSong?.Invoke(false);
+                    yield break;
+                }
 
-        public IEnumerator DownloadSong(string levelId, Action<float> downloadProgress, Action<string> songDownloaded)
+                JSONNode result = JSON.Parse(www.downloadHandler.text);
+                hasSong?.Invoke(result["total"].AsInt > 0);
+            }
+        }
+
+        public IEnumerator DownloadSong(string levelId, Action<float> downloadProgress, Action<string> songDownloaded, Action downloadError)
         {
             levelId = levelId.Substring(0, 32);
             Data.Logger.Info($"Starting download for {levelId}");
@@ -49,13 +66,16 @@ namespace BeatSaberOnline.Utils
                 if (www.isNetworkError || www.isHttpError)
                 {
                     Data.Logger.Error(www.error);
-                    downloadProgress?.Invoke(-1f);
+                    downloadError?.Invoke();
                     yield break;
                 }
 
                 JSONNode result = JSON.Parse(www.downloadHandler.text);
-                if (result["total"].AsInt == 0) yield break;
-
+                if (result["total"].AsInt == 0)
+                {
+                    downloadError?.Invoke();
+                    yield break;
+                }
                 foreach (JSONObject song in result["songs"].AsArray)
                 {
                     FileUtils.EmptyDirectory(".mpdownloadcache");
@@ -77,7 +97,7 @@ namespace BeatSaberOnline.Utils
                         yield return null;
                         if (initTime - new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() > 5)
                         {
-                            downloadProgress?.Invoke(-1f);
+                            downloadError?.Invoke();
                             yield break;
                         }
                     }

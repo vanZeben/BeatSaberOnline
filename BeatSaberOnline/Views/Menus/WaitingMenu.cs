@@ -145,7 +145,7 @@ namespace BeatSaberOnline.Views.Menus
 
                         Logger.Debug($"We do not have the song in our library, lets start downloading it.");
                         downloading = true;
-                        Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), LevelDownloadProgress, LevelDownloaded));
+                        Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), LevelDownloadProgress, LevelDownloaded, LevelError));
                     }
                 }
                 if (Instance && Instance.isActiveAndEnabled)
@@ -180,6 +180,11 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
+        public static void LevelError()
+        {
+            downloading = false;
+            RefreshData(null);
+        }
         public static void LevelDownloaded(string hash)
         {
             try

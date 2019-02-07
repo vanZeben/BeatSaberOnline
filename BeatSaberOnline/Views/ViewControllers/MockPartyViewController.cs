@@ -1,5 +1,6 @@
 ﻿using BeatSaberOnline.Data;
 using BeatSaberOnline.Data.Steam;
+using BeatSaberOnline.Utils;
 using BeatSaberOnline.Views.Menus;
 using CustomUI.BeatSaber;
 using CustomUI.Utilities;
@@ -20,6 +21,7 @@ namespace BeatSaberOnline.Views.ViewControllers
         private StandardLevelDetailViewController detail;
         private GameplaySetupViewController _gameplaySetupViewController;
         private Button play;
+        private bool songExists = false;
         public MockPartyViewController()
         {
             Instance = this;
@@ -76,14 +78,21 @@ namespace BeatSaberOnline.Views.ViewControllers
                 if (!SteamAPI.IsHost())
                 {
                     play.SetButtonText("You need to be host");
+                    play.interactable = false;
                 }
                 else if (!Controllers.PlayerController.Instance.AllPlayersInMenu())
                 {
                     play.SetButtonText("Players still in song");
+                    play.interactable = false;
+                } else if (!songExists)
+                {
+                    play.SetButtonText("Song not on BeatSaver");
+                    play.interactable = false;
                 }
                 else
                 {
                     play.SetButtonText("Play");
+                    play.interactable = true;
                 }
             }
         }
@@ -123,8 +132,11 @@ namespace BeatSaberOnline.Views.ViewControllers
                     toggleButtons(true);
                     return;
                 }
-                toggleButtons(false);
-                SteamAPI.RequestPlay(new GameplayModifiers(_gameplaySetupViewController.gameplayModifiers));
+                if (songExists)
+                {
+                    toggleButtons(false);
+                    SteamAPI.RequestPlay(new GameplayModifiers(_gameplaySetupViewController.gameplayModifiers));
+                }
             } catch (Exception e)
             {
                 Logger.Error(e);
@@ -138,7 +150,6 @@ namespace BeatSaberOnline.Views.ViewControllers
                 toggleButtons(true);
                 return;
             }
-
             toggleButtons(false);
             SteamAPI.SetDifficulty((byte)beatmap.difficulty);
         }
@@ -152,6 +163,13 @@ namespace BeatSaberOnline.Views.ViewControllers
             }
             toggleButtons(false);
             SteamAPI.SetSong(level.levelID, level.songName);
+            controller.StartCoroutine(SongDownloader.CheckSongExists(level.levelID, doesSongExist));
+        }
+
+        private void doesSongExist(bool exists)
+        {
+            songExists = exists;
+            toggleButtons(false);
         }
     }
 }
