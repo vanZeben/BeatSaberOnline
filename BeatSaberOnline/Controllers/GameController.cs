@@ -49,14 +49,14 @@ namespace BeatSaberOnline.Controllers
         }
         private ResultsViewController _resultsViewController;
         private string _currentScene;
-        
+
         public static void Init(Scene to)
         {
             if (Instance != null)
             {
                 return;
             }
-            
+
             new GameObject("InGameOnlineController").AddComponent<GameController>();
         }
 
@@ -72,13 +72,19 @@ namespace BeatSaberOnline.Controllers
                 _currentScene = SceneManager.GetActiveScene().name;
             }
         }
-        
+
 
         IEnumerator RunLobbyCleanup()
         {
             yield return new WaitUntil(delegate () { return WaitingMenu.Instance.isActiveAndEnabled; });
             Logger.Debug("Finished song, doing cleanup");
-            WaitingMenu.Instance.Dismiss();
+            try
+            {
+                WaitingMenu.Instance.Dismiss();
+            } catch (Exception e)
+            {
+                Logger.Error($"Error dismissing WaitingMenu {e}");
+            }
             WaitingMenu.firstInit = true;
             WaitingMenu.queuedSong = null;
             WaitingMenu.autoReady = false;
@@ -108,8 +114,8 @@ namespace BeatSaberOnline.Controllers
                 }
             }
         }
-       
-            public void ActiveSceneChanged(Scene from, Scene to)
+
+        public void ActiveSceneChanged(Scene from, Scene to)
         {
             try
             {
@@ -163,7 +169,7 @@ namespace BeatSaberOnline.Controllers
             }
             return null;
         }
-        
+
         public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
             try
