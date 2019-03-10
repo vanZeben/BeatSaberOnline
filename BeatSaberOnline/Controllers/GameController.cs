@@ -49,14 +49,14 @@ namespace BeatSaberOnline.Controllers
         }
         private ResultsViewController _resultsViewController;
         private string _currentScene;
-
+        
         public static void Init(Scene to)
         {
             if (Instance != null)
             {
                 return;
             }
-
+            
             new GameObject("InGameOnlineController").AddComponent<GameController>();
         }
 
@@ -72,7 +72,7 @@ namespace BeatSaberOnline.Controllers
                 _currentScene = SceneManager.GetActiveScene().name;
             }
         }
-
+        
 
         IEnumerator RunLobbyCleanup()
         {
@@ -114,7 +114,7 @@ namespace BeatSaberOnline.Controllers
                 }
             }
         }
-
+       
         public void ActiveSceneChanged(Scene from, Scene to)
         {
             try
@@ -169,7 +169,7 @@ namespace BeatSaberOnline.Controllers
             }
             return null;
         }
-
+        
         public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
             try
