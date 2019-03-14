@@ -78,7 +78,13 @@ namespace BeatSaberOnline.Controllers
         {
             yield return new WaitUntil(delegate () { return WaitingMenu.Instance.isActiveAndEnabled; });
             Logger.Debug("Finished song, doing cleanup");
-            WaitingMenu.Instance.Dismiss();
+            try
+            {
+                WaitingMenu.Instance.Dismiss();
+            } catch (Exception e)
+            {
+                Logger.Error($"Error dismissing WaitingMenu {e}");
+            }
             WaitingMenu.firstInit = true;
             WaitingMenu.queuedSong = null;
             WaitingMenu.autoReady = false;
@@ -109,7 +115,7 @@ namespace BeatSaberOnline.Controllers
             }
         }
        
-            public void ActiveSceneChanged(Scene from, Scene to)
+        public void ActiveSceneChanged(Scene from, Scene to)
         {
             try
             {

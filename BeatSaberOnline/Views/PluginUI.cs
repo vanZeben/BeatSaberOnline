@@ -69,8 +69,13 @@ namespace BeatSaberOnline.Views
                 {
                     SteamAPI.CreateLobby(!Config.Instance.IsPublic);
                 }
-
-                AvatarController.LoadAvatars();
+                try
+                {
+                    AvatarController.LoadAvatars();
+                } catch (Exception e)
+                {
+                    Logger.Error($"Unable to load avatars! Exception: {e}");
+                }
                 SongListUtils.Initialize();
                 MultiplayerListing.Init();
                 MultiplayerLobby.Init();
