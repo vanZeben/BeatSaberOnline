@@ -65,7 +65,7 @@ namespace BeatSaberOnline
         {
             Logger.Debug($"Scene loaded: \"{to.name}\"");
 
-            if (to.name == "MenuCore")
+            if (to.name == "MenuCore" && PluginUI.instance == null)
             {
                 PluginUI.Init();
 ;
