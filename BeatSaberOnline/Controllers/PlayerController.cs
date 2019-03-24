@@ -1,5 +1,4 @@
 ﻿using BeatSaberOnline.Data;
-using BeatSaberOnline.Data.Steam;
 using BeatSaberOnline.Utils;
 using BeatSaberOnline.Views.Menus;
 using BeatSaberOnline.Views.ViewControllers;
@@ -8,11 +7,10 @@ using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
+using Logger = BeatSaberOnline.Data.Logger;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 
 namespace BeatSaberOnline.Controllers
@@ -46,6 +44,7 @@ namespace BeatSaberOnline.Controllers
                 _currentScene = SceneManager.GetActiveScene().name;               
             }
         }
+
         public bool isBroadcasting = false;
         public void StartBroadcasting()
         {
@@ -53,6 +52,7 @@ namespace BeatSaberOnline.Controllers
             isBroadcasting = true;
             InvokeRepeating("BroadcastPlayerPacket", 0f, GameController.TPS);
         }
+
         public void StopBroadcasting()
         {
             if (!isBroadcasting) { return; }
@@ -65,6 +65,7 @@ namespace BeatSaberOnline.Controllers
             StopBroadcasting();
             StartBroadcasting();
         }
+
         public void DestroyAvatars()
         {
             try
@@ -81,7 +82,7 @@ namespace BeatSaberOnline.Controllers
             }
             catch (Exception e)
             {
-                Data.Logger.Error($"Unable to destroy avatars! Exception: {e}");
+                Logger.Error($"Unable to destroy avatars! Exception: {e}");
             }
         }
 
@@ -126,13 +127,13 @@ namespace BeatSaberOnline.Controllers
             bool InMenu = !_playerInfo.InSong;
             if (!InMenu)
             {
-                Data.Logger.Debug("You are in a song");
+                Logger.Debug("You are in a song");
             }
             for (int i = 0; i < _connectedPlayers.Count; i++)
             {
                 if (InMenu && _connectedPlayers.Values.ToArray()[i].InSong)
                 {
-                    Data.Logger.Debug(_connectedPlayers.Values.ToArray()[i].playerName+" is in song");
+                    Logger.Debug(_connectedPlayers.Values.ToArray()[i].playerName+" is in song");
                     InMenu = false;
                     break;
                 }
@@ -151,6 +152,7 @@ namespace BeatSaberOnline.Controllers
             }
             return connectedPlayerStatus;
         }
+
         public void UpsertPlayer(PlayerPacket info)
         {
             if (info.playerId == _playerInfo.playerId) { return; }
@@ -159,7 +161,7 @@ namespace BeatSaberOnline.Controllers
                 if (!_connectedPlayers.Keys.Contains(info.playerId))
                 {
                     _connectedPlayers.Add(info.playerId, info);
-                    if ((Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "Menu") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
+                    if ((Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "MenuCore") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
                     {
                         AvatarController avatar = new GameObject("AvatarController").AddComponent<AvatarController>();
                         avatar.SetPlayerPacket(info, new Vector3(0, 0, 0), info.playerId == _playerInfo.playerId);
@@ -177,7 +179,7 @@ namespace BeatSaberOnline.Controllers
                         Scoreboard.Instance.UpsertScoreboardEntry(info.playerId, info.playerName, (int)info.playerScore, (int)info.playerComboBlocks);
                         MultiplayerLobby.RefreshScores();
                     }
-                    if (_connectedPlayerAvatars.ContainsKey(info.playerId) && (Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "Menu") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
+                    if (_connectedPlayerAvatars.ContainsKey(info.playerId) && (Config.Instance.AvatarsInLobby && Plugin.instance.CurrentScene == "MenuCore") || (Config.Instance.AvatarsInGame && Plugin.instance.CurrentScene == "GameCore"))
                     {
                         Vector3 offset = new Vector3(0, 0, 0);
                         if (Plugin.instance.CurrentScene == "GameCore")
@@ -220,7 +222,7 @@ namespace BeatSaberOnline.Controllers
                 }
             } catch (Exception e)
             {
-                Data.Logger.Error(e);
+                Logger.Error(e);
             }
         }
 
@@ -228,6 +230,7 @@ namespace BeatSaberOnline.Controllers
         {
             return _connectedPlayers.Keys.ToList();
         }
+
         void BroadcastPlayerPacket()
         {
             try
@@ -236,9 +239,10 @@ namespace BeatSaberOnline.Controllers
                 SteamAPI.SendPlayerPacket(_playerInfo);
             } catch (Exception e)
             {
-                Data.Logger.Error(e);
+                Logger.Error(e);
             }
         }
+
         public void RemoveConnectedPlayer(ulong playerId)
         {
             _connectedPlayers.Remove(playerId);
@@ -249,7 +253,8 @@ namespace BeatSaberOnline.Controllers
             }
             _connectedPlayerAvatars.Remove(playerId);
         }
-    void Update()
+
+        void Update()
         {
             uint size;
             try
@@ -272,7 +277,7 @@ namespace BeatSaberOnline.Controllers
             }
             catch (Exception e)
             {
-                Data.Logger.Error(e);
+                Logger.Error(e);
             }
         }
       

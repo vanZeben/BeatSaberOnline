@@ -76,7 +76,7 @@ namespace BeatSaberOnline.Controllers
 
         IEnumerator RunLobbyCleanup()
         {
-            yield return new WaitUntil(delegate () { return WaitingMenu.Instance.isActiveAndEnabled; });
+            yield return new WaitUntil(delegate () { return true; });
             Logger.Debug("Finished song, doing cleanup");
             try
             {
@@ -123,13 +123,14 @@ namespace BeatSaberOnline.Controllers
                 {
                     return;
                 }
-                if (to.name == "GameCore" || to.name == "Menu")
+                if (to.name == "GameCore" || to.name == "MenuCore")
                 {
                     try
                     {
                         PlayerController.Instance.DestroyAvatars();
                         if (to.name == "GameCore" && SongListUtils.InSong)
                         {
+                            Logger.Debug("update scoreboard");
                             SteamAPI.StartGame();
                             InvokeRepeating("UpdateSongOffset", 0f, 1f);
                             Scoreboard.Instance.disabled = false;
@@ -139,7 +140,7 @@ namespace BeatSaberOnline.Controllers
                                 Scoreboard.Instance.UpsertScoreboardEntry(connectedPlayers[i].playerId, connectedPlayers[i].playerName, 0, 0);
                             }
                         }
-                        else if (to.name == "Menu")
+                        else if (to.name == "MenuCore")
                         {
                             Scoreboard.Instance.RemoveAll();
                             Scoreboard.Instance.disabled = true;
@@ -150,6 +151,7 @@ namespace BeatSaberOnline.Controllers
                         }
                     } catch(Exception e)
                     {
+                        Logger.Debug($"Exception: {e}");
                         Logger.Error(e);
                     }
                 }
@@ -170,7 +172,7 @@ namespace BeatSaberOnline.Controllers
             return null;
         }
         
-        public void SongFinished(StandardLevelSceneSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
+        public void SongFinished(StandardLevelScenesTransitionSetupDataSO sender, LevelCompletionResults levelCompletionResults, IDifficultyBeatmap difficultyBeatmap, GameplayModifiers gameplayModifiers)
         {
             try
             {
@@ -193,7 +195,7 @@ namespace BeatSaberOnline.Controllers
                 bool cleared = levelCompletionResults.levelEndStateType == LevelCompletionResults.LevelEndStateType.Cleared;
                 string levelID = difficultyBeatmap.level.levelID;
                 BeatmapDifficulty difficulty = difficultyBeatmap.difficulty;
-                PlayerLevelStatsData playerLevelStatsData = currentLocalPlayer.GetPlayerLevelStatsData(levelID, difficulty);
+                PlayerLevelStatsData playerLevelStatsData = currentLocalPlayer.GetPlayerLevelStatsData(levelID, difficulty, difficultyBeatmap.level.beatmapCharacteristics[0]);
                 bool newHighScore = playerLevelStatsData.highScore < levelCompletionResults.score;
                 playerLevelStatsData.IncreaseNumberOfGameplays();
                 if (cleared)

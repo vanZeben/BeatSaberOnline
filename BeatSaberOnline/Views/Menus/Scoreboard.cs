@@ -2,8 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -134,7 +132,6 @@ namespace BeatSaberOnline.Views.Menus
             _canvas.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
 
         }
-        
 
         public void RemoveScoreboardEntry(ulong clientIndex)
         {
@@ -145,7 +142,6 @@ namespace BeatSaberOnline.Views.Menus
             _scoreboardEntries.Remove(clientIndex);
             UpdateScoreboardUI();
         }
-
 
         public void RemoveAll()
         {
@@ -183,6 +179,7 @@ namespace BeatSaberOnline.Views.Menus
                 _scoreboardEntries = sorted.ToDictionary(pair => pair.Key, pair => pair.Value);
                 UpdateScoreboardUI();
         }
+
         private void UpdateScoreboardUI()
         {
                 if (_scoreboardEntries.Count > 0)
@@ -205,8 +202,8 @@ namespace BeatSaberOnline.Views.Menus
                     {
                         if (_tmpArray[i].Value.text.text != "")
                         {
-                            _tmpArray[i].Value.text.transform.localPosition = new Vector3(-_width / 2, currentYValue - _tmpArray[i].Value.text.preferredHeight * 0.6f / 2 - 1, 0);
-                            currentYValue -= (_tmpArray[i].Value.text.preferredHeight * 0.6f + (i < _scoreboardEntries.Count() - 1 ? _lineSpacing + 1.5f : 0));
+                            _tmpArray[i].Value.text.transform.localPosition = new Vector3(-_width / 2, currentYValue - _tmpArray[i].Value.text.renderedHeight * 0.6f / 2 - 1, 0);
+                            currentYValue -= (_tmpArray[i].Value.text.renderedHeight * 0.6f + (i < _scoreboardEntries.Count() - 1 ? _lineSpacing + 1.5f : 0));
                         }
                     }
                     //_width = maxWidth;

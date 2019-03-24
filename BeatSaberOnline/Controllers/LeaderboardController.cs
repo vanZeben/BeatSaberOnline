@@ -49,7 +49,7 @@ namespace BeatSaberOnline.Controllers
                 {
                     StartCoroutine(InitControllers());
                 }
-                else if (to.name == "Menu")
+                else if (to.name == "MenuCore")
                 {
                     StopCoroutine(InitControllers());
                 }

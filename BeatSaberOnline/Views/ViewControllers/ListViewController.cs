@@ -1,32 +1,18 @@
 ﻿using CustomUI.BeatSaber;
 using CustomUI.Utilities;
 using HMUI;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using VRUI;
 
 namespace BeatSaberOnline.Views.ViewControllers
 {
-    class ListViewController : CustomViewController, TableView.IDataSource
+    class ListViewController : CustomListViewController
     {
-        public Button _pageUpButton;
-        public Button _pageDownButton;
-        public TableView _customListTableView;
-        public List<CustomCellInfo> Data = new List<CustomCellInfo>();
-        public Action<TableView, int> DidSelectRowEvent;
-
-        private LevelListTableCell _songListTableCellInstance;
-
         protected override void DidActivate(bool firstActivation, ActivationType type)
         {
-            if (firstActivation)
+            if (firstActivation && type == ActivationType.AddedToHierarchy)
             {
-                _songListTableCellInstance = Resources.FindObjectsOfTypeAll<LevelListTableCell>().First(x => (x.name == "LevelListTableCell"));
-
                 RectTransform container = new GameObject("CustomListContainer", typeof(RectTransform)).transform as RectTransform;
                 container.SetParent(rectTransform, false);
                 container.sizeDelta = new Vector2(60f, 0f);
@@ -43,7 +29,7 @@ namespace BeatSaberOnline.Views.ViewControllers
                 _customListTableView.SetPrivateField("_isInitialized", false);
                 _customListTableView.dataSource = this;
 
-                _customListTableView.didSelectRowEvent += _customListTableView_didSelectRowEvent;
+                _customListTableView.didSelectCellWithIdxEvent += _customListTableView_didSelectRowEvent;
 
                 _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), container, false);
                 (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 20f);//-14
@@ -63,33 +49,18 @@ namespace BeatSaberOnline.Views.ViewControllers
             }
             base.DidActivate(firstActivation, type);
         }
-        protected override void DidDeactivate(DeactivationType type)
-        {
-            base.DidDeactivate(type);
-        }
 
         private void _customListTableView_didSelectRowEvent(TableView arg1, int arg2)
         {
             DidSelectRowEvent?.Invoke(arg1, arg2);
         }
 
-        public virtual float RowHeight()
+        override public TableCell CellForIdx(int idx)
         {
-            return 10f;
-        }
-
-        public virtual int NumberOfRows()
-        {
-            return Data.Count;
-        }
-
-        public virtual TableCell CellForRow(int row)
-        {
-            LevelListTableCell _tableCell = Instantiate(_songListTableCellInstance);
-            _tableCell.songName = Data[row].text;
-            _tableCell.author = Data[row].subtext;
-            _tableCell.coverImage = Data[row].icon == null ? UIUtilities.BlankSprite : Data[row].icon;
-            _tableCell.reuseIdentifier = "CustomListCell";
+            LevelListTableCell _tableCell = GetTableCell(idx);
+            _tableCell.SetText(Data[idx].text);
+            _tableCell.SetSubText(Data[idx].subtext);
+            _tableCell.SetIcon(Data[idx].icon == null ? UIUtilities.BlankSprite : Data[idx].icon);
             return _tableCell;
         }
     }

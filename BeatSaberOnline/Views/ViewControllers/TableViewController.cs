@@ -47,7 +47,7 @@ namespace BeatSaberOnline.Views.ViewControllers
                 _customListTableView.SetPrivateField("_isInitialized", false);
                 _customListTableView.dataSource = this;
 
-                _customListTableView.didSelectRowEvent += _customListTableView_didSelectRowEvent;
+                _customListTableView.didSelectCellWithIdxEvent += _customListTableView_didSelectRowEvent;
 
                 _pageUpButton = Instantiate(Resources.FindObjectsOfTypeAll<Button>().First(x => (x.name == "PageUpButton")), container, false);
                 (_pageUpButton.transform as RectTransform).anchoredPosition = new Vector2(0f, 20f);//-14
@@ -67,42 +67,38 @@ namespace BeatSaberOnline.Views.ViewControllers
             }
             base.DidActivate(firstActivation, type);
         }
-        protected override void DidDeactivate(DeactivationType type)
-        {
-            base.DidDeactivate(type);
-        }
 
         private void _customListTableView_didSelectRowEvent(TableView arg1, int arg2)
         {
             DidSelectRowEvent?.Invoke(arg1, arg2);
         }
 
-        public virtual float RowHeight()
+        public float CellSize()
         {
             return 10f;
         }
 
-        public virtual int NumberOfRows()
+        public int NumberOfCells()
         {
             return Data.Count;
         }
 
-        public virtual TableCell CellForRow(int row)
+        public TableCell CellForIdx(int idx)
         {
             LeaderboardTableCell _tableCell = Instantiate(_songListTableCellInstance);
-            _tableCell.playerName = $"{(SteamAPI.GetHostId() == Data[row].playerId ? "[HOST] ": "")}{Data[row].playerName}";
-            _tableCell.score = (int)Data[row].playerScore;
-            _tableCell.rank = row + 1;
-            _tableCell.specialScore = Data[row].playerId == Controllers.PlayerController.Instance._playerInfo.playerId;
-            _tableCell.showFullCombo = Data[row].playerCutBlocks == Data[row].playerTotalBlocks && Data[row].playerTotalBlocks > 0;
+            _tableCell.playerName = $"{(SteamAPI.GetHostId() == Data[idx].playerId ? "[HOST] ": "")}{Data[idx].playerName}";
+            _tableCell.score = (int)Data[idx].playerScore;
+            _tableCell.rank = idx + 1;
+            _tableCell.specialScore = Data[idx].playerId == Controllers.PlayerController.Instance._playerInfo.playerId;
+            _tableCell.showFullCombo = Data[idx].playerCutBlocks == Data[idx].playerTotalBlocks && Data[idx].playerTotalBlocks > 0;
 
-            if (Data[row].SongFailed) {
+            if (Data[idx].SongFailed) {
                 TextMeshProUGUI score = _tableCell.GetPrivateField<TextMeshProUGUI>("_scoreText");
                 score.text = "FAILED";
                 score.color = new Color(255, 0, 0, 1);
             }
 
-            if (SteamAPI.GetHostId() == Data[row].playerId)
+            if (SteamAPI.GetHostId() == Data[idx].playerId)
             {
                 _tableCell.GetPrivateField<TextMeshProUGUI>("_playerNameText").color = new Color(0, 255, 0, 1);
             }

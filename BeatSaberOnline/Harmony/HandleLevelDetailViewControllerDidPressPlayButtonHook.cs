@@ -16,7 +16,7 @@ namespace BeatSaberOnline.Harmony
         {
             if (SteamAPI.isLobbyConnected())
             {
-                MockPartyViewController.Instance.didSelectPlay();
+                //MockPartyViewController.Instance.didSelectPlay();
                 return false;
             }
             return true;

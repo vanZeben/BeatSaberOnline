@@ -2,19 +2,12 @@
 using BeatSaverDownloader.Misc;
 using SimpleJSON;
 using SongLoaderPlugin;
-using SongLoaderPlugin.OverrideClasses;
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using Logger = BeatSaberOnline.Data.Logger;
 
 namespace BeatSaberOnline.Utils
 {
@@ -56,7 +49,7 @@ namespace BeatSaberOnline.Utils
             }
         }
 
-        public IEnumerator DownloadSong(string levelId, Action<float> downloadProgress, Action<string> songDownloaded, Action downloadError)
+        public IEnumerator DownloadSong(string levelId, Action<float> downloadProgress, Action<string> songDownloaded, Action<string> downloadError)
         {
             levelId = levelId.Substring(0, 32);
             Data.Logger.Info($"Starting download for {levelId}");
@@ -65,15 +58,16 @@ namespace BeatSaberOnline.Utils
                 yield return www.SendWebRequest();
                 if (www.isNetworkError || www.isHttpError)
                 {
-                    Data.Logger.Error(www.error);
-                    downloadError?.Invoke();
+                    Logger.Error(www.error);
+                    downloadError?.Invoke(www.error);
                     yield break;
                 }
 
                 JSONNode result = JSON.Parse(www.downloadHandler.text);
+                Logger.Debug($"Result: {result}");
                 if (result["total"].AsInt == 0)
                 {
-                    downloadError?.Invoke();
+                    downloadError?.Invoke("song not found");
                     yield break;
                 }
                 foreach (JSONObject song in result["songs"].AsArray)
@@ -97,7 +91,7 @@ namespace BeatSaberOnline.Utils
                         yield return null;
                         if (initTime - new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds() > 5)
                         {
-                            downloadError?.Invoke();
+                            downloadError?.Invoke("timeout");
                             yield break;
                         }
                     }
@@ -106,6 +100,6 @@ namespace BeatSaberOnline.Utils
                     break;
                 }
             }
-        }    
+        }
     }
 }

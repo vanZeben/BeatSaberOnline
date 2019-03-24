@@ -40,7 +40,7 @@ namespace BeatSaberOnline.Data
                     v[i] = (short)(voipBuffer[i * 2] | voipBuffer[i * 2 + 1] << 8) / 32768.0f;
                 }
                 source.clip.SetData(v, 0);
-                source.outputAudioMixerGroup = Assets.AudioGroup;
+                source.outputAudioMixerGroup = Utils.Assets.AudioGroup;
                 source.Play();
                 return true;
             }

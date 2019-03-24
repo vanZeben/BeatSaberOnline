@@ -1,25 +1,16 @@
 ﻿using CustomUI.BeatSaber;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
-using Steamworks;
 using BeatSaberOnline.Data;
 using Logger = BeatSaberOnline.Data.Logger;
-using CustomUI.Utilities;
 using HMUI;
 using System;
 using BeatSaberOnline.Views.ViewControllers;
-using static VRUI.VRUIViewController;
-using BeatSaberOnline.Controllers;
-using System.Text;
 using System.Linq;
-using VRUI;
-using System.Reflection;
 using BeatSaberOnline.Utils;
 using SongLoaderPlugin;
 using SongLoaderPlugin.OverrideClasses;
-using BeatSaverDownloader.Misc;
 
 namespace BeatSaberOnline.Views.Menus
 {
@@ -31,7 +22,7 @@ namespace BeatSaberOnline.Views.Menus
         public static TMPro.TextMeshProUGUI level = null;
         public static bool firstInit = true;
         private static SongPreviewPlayer _songPreviewPlayer;
-        public static LevelSO queuedSong;
+        public static BeatmapLevelSO queuedSong;
         public static bool downloading = false;
         public static bool autoReady = false;
         public static float timeRequestedToLaunch = 0f;
@@ -83,7 +74,7 @@ namespace BeatSaberOnline.Views.Menus
         }
 
        
-        private static void ReadyUp(LevelSO song)
+        private static void ReadyUp(BeatmapLevelSO song)
         {
             if (queuedSong != null || (queuedSong == null && song == null)) { return; }
             if (queuedSong == null && song != null)
@@ -106,15 +97,16 @@ namespace BeatSaberOnline.Views.Menus
                 else
                 {
                     SteamAPI.SetReady();
-                    PreviewPlayer.CrossfadeTo(song.audioClip, song.previewStartTime, song.previewDuration);
+                    PreviewPlayer.CrossfadeTo(song.previewAudioClip, song.previewStartTime, song.previewDuration);
                 }
                 
             }
         }
-        public static void RefreshData(LevelSO song = null)
+        public static void RefreshData(BeatmapLevelSO song = null)
         {
             try
             {
+                Logger.Debug("Refresh waiting menu data");
                 if (queuedSong == null)
                 {
                     if (song == null)
@@ -145,24 +137,30 @@ namespace BeatSaberOnline.Views.Menus
 
                         Logger.Debug($"We do not have the song in our library, lets start downloading it.");
                         downloading = true;
-                        Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), LevelDownloadProgress, LevelDownloaded, LevelError));
+                        try
+                        {
+                            Utils.SongDownloader.Instance.StartCoroutine(Utils.SongDownloader.Instance.DownloadSong(SteamAPI.GetSongId(), LevelDownloadProgress, LevelDownloaded, LevelError));
+                        } catch (Exception e)
+                        {
+                            LevelError(e.Message);
+                            Logger.Error(e);
+                        }
                     }
                 }
-                if (Instance && Instance.isActiveAndEnabled)
+                Dictionary<string, float> status = Controllers.PlayerController.Instance.GetConnectedPlayerDownloadStatus();
+                middleViewController.Data.Clear();
+                foreach (KeyValuePair<string, float> user in status.OrderBy(u => u.Value))
                 {
-                    Dictionary<string, float> status = Controllers.PlayerController.Instance.GetConnectedPlayerDownloadStatus();
-                    middleViewController.Data.Clear();
-                    foreach (KeyValuePair<string, float> user in status.OrderBy(u => u.Value))
-                    {
-                        CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value == -1f ? "FAILED TO DOWNLOAD": user.Value == 1f ? "Ready" : $"Downloading song {(int) Math.Round(user.Value * 100, 0)}%", user.Value == 1f ? Sprites.checkmarkIcon : Sprites.crossIcon);
-                        middleViewController.Data.Add(cell);
-                    }
-                    middleViewController._customListTableView.ReloadData();
-                    middleViewController._customListTableView.ScrollToRow(0, false);
+                    Logger.Debug($"{user.Key}: {user.Value}");
+                    CustomCellInfo cell = new CustomCellInfo(user.Key, user.Value == -1f ? "FAILED TO DOWNLOAD": user.Value == 1f ? "Ready" : $"Downloading song {(int) Math.Round(user.Value * 100, 0)}%", user.Value == 1f ? Sprites.checkmarkIcon : Sprites.crossIcon);
+                    middleViewController.Data.Add(cell);
                 }
+                middleViewController._customListTableView.ReloadData();
+                middleViewController._customListTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
             }
             catch (Exception e)
             {
+                Logger.Debug($"Exception: {e}");
                 Logger.Error(e);
             }
         }
@@ -180,17 +178,19 @@ namespace BeatSaberOnline.Views.Menus
             }
         }
 
-        public static void LevelError()
+        public static void LevelError(string error)
         {
+            Logger.Error($"Error downloading song: {error}");
             downloading = false;
             RefreshData(null);
         }
+
         public static void LevelDownloaded(string hash)
         {
             try
             {
                 downloading = false;
-                LevelSO song = SongListUtils.GetInstalledSong(hash.ToUpper());
+                BeatmapLevelSO song = SongListUtils.GetInstalledSong(hash.ToUpper());
                 RefreshData(song);
             } catch (Exception e)
             {
