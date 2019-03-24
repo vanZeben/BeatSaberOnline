@@ -65,10 +65,10 @@ namespace BeatSaberOnline
         {
             Logger.Debug($"Scene loaded: \"{to.name}\"");
 
-            if (to.name == "MenuCore" && PluginUI.instance == null)
+            if (to.name == "MenuCore")
             {
                 PluginUI.Init();
-;
+
                 GameController.Init(to);
                 LeaderboardController.Init(to);
                 Controllers.PlayerController.Init(to);

@@ -38,7 +38,7 @@ namespace BeatSaberOnline.Views
         {
             if (instance != null)
             {
-                //instance.CreateUI();
+                instance.CreateUI();
                 return;
             }
             new GameObject(Plugin.instance.Name).AddComponent<PluginUI>();
