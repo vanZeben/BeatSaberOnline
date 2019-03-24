@@ -22,7 +22,7 @@ namespace BeatSaberOnline.Views.Menus
         public static TMPro.TextMeshProUGUI level = null;
         public static bool firstInit = true;
         private static SongPreviewPlayer _songPreviewPlayer;
-        public static BeatmapLevelSO queuedSong;
+        public static IBeatmapLevel queuedSong;
         public static bool downloading = false;
         public static bool autoReady = false;
         public static float timeRequestedToLaunch = 0f;
@@ -74,7 +74,7 @@ namespace BeatSaberOnline.Views.Menus
         }
 
        
-        private static void ReadyUp(BeatmapLevelSO song)
+        private static void ReadyUp(IBeatmapLevel song)
         {
             if (queuedSong != null || (queuedSong == null && song == null)) { return; }
             if (queuedSong == null && song != null)
@@ -102,7 +102,7 @@ namespace BeatSaberOnline.Views.Menus
                 
             }
         }
-        public static void RefreshData(BeatmapLevelSO song = null)
+        public static void RefreshData(IBeatmapLevel song = null)
         {
             try
             {
@@ -190,7 +190,7 @@ namespace BeatSaberOnline.Views.Menus
             try
             {
                 downloading = false;
-                BeatmapLevelSO song = SongListUtils.GetInstalledSong(hash.ToUpper());
+                IBeatmapLevel song = SongListUtils.GetInstalledSong(hash.ToUpper());
                 RefreshData(song);
             } catch (Exception e)
             {

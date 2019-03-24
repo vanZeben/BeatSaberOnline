@@ -72,7 +72,7 @@ namespace BeatSaberOnline.Data.Steam
                     {
                         currentScreen = info.Screen;
                         Logger.Debug($"Host requested to play the current song {info.CurrentSongId}");
-                        BeatmapLevelSO song = SongListUtils.GetInstalledSong();
+                        IBeatmapLevel song = SongListUtils.GetInstalledSong();
                         if (SteamAPI.IsHost())
                         {
                             SteamAPI.setLobbyStatus("Playing " + song.songName + " by " + song.songAuthorName);

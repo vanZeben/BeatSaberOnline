@@ -171,7 +171,7 @@ namespace BeatSaberOnline.Data.Steam
                 try
                 {
                     Logger.Debug($"update the current screen to the waiting screen while people download the song");
-                    BeatmapLevelSO song = SongListUtils.GetInstalledSong();
+                    IBeatmapLevel song = SongListUtils.GetInstalledSong();
                     if (song != null)
                     {
                         setLobbyStatus("Loading " + song.songName + " by " + song.songAuthorName);

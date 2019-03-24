@@ -27,6 +27,7 @@ namespace BeatSaberOnline.Utils
             }
             return false;
         }
+
         public static void Initialize()
         {
             _standardLevelListViewController = Resources.FindObjectsOfTypeAll<LevelPackLevelsViewController>().FirstOrDefault();
@@ -43,10 +44,11 @@ namespace BeatSaberOnline.Utils
                 }
             }
         }
+
         public static bool InSong = false;
         private static IDifficultyBeatmap _difficultyBeatmap;
         private static GameplayModifiers _gameplayModifiers;
-        public static void StartSong(BeatmapLevelSO level, byte difficulty, GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings = null)
+        public static void StartSong(IBeatmapLevel level, byte difficulty, GameplayModifiers gameplayModifiers, PracticeSettings practiceSettings = null)
         {
             if (InSong || level == null|| gameplayModifiers == null) { return; }
             try
@@ -56,7 +58,20 @@ namespace BeatSaberOnline.Utils
                 {
                     PlayerSpecificSettings playerSettings = Resources.FindObjectsOfTypeAll<PlayerDataModelSO>().FirstOrDefault().currentLocalPlayer.playerSpecificSettings;
                     _gameplayModifiers = gameplayModifiers;
-                    _difficultyBeatmap = level.difficultyBeatmapSets[0].difficultyBeatmaps[difficulty];
+                    _difficultyBeatmap = null;
+                    foreach (IDifficultyBeatmap difficultyBeatmap in level.beatmapLevelData.difficultyBeatmapSets[0].difficultyBeatmaps)
+                    {
+                        if (difficultyBeatmap.difficultyRank == difficulty)
+                        {
+                            _difficultyBeatmap = difficultyBeatmap;
+                            break;
+                        }
+                    }
+
+                    if (_difficultyBeatmap == null)
+                    {
+                        throw new Exception("IDifficultyBeatmap not found");
+                    }
                     
                     Data.Logger.Debug($"Starting song: name={level.songName}, levelId={level.levelID}, difficulty={_difficultyBeatmap.difficulty}");
                     InSong = true;
@@ -75,7 +90,7 @@ namespace BeatSaberOnline.Utils
             GameController.Instance.SongFinished(sender, levelCompletionResults, _difficultyBeatmap, _gameplayModifiers);
         }
         
-        public static BeatmapLevelSO GetInstalledSong(string levelId = null)
+        public static IBeatmapLevel GetInstalledSong(string levelId = null)
         {
             try
             {
@@ -83,19 +98,19 @@ namespace BeatSaberOnline.Utils
                 {
                     levelId = SteamAPI.GetSongId();
                 }
-                BeatmapLevelSO level;
-                 if (levelId.Length > 32)
-                 {
-                     if (SongLoader.CustomLevels == null) { return null; }
-                     BeatmapLevelSO[] levels = SongLoader.CustomLevels.Where(l => l.levelID.StartsWith(levelId.Substring(0, 32))).ToArray();
-                     level = levels.Length > 0 ? levels[0] : null;
-                 }
-                 else
-                 {
-                if (SongLoader.CustomLevelCollectionSO._levelList == null) { return null; }
-                BeatmapLevelSO[] levels = SongLoader.CustomLevelCollectionSO._levelList.Where(l => l.levelID.StartsWith(levelId)).ToArray();
-                level = levels.Length > 0 ? levels[0] : null;
-                 }
+                IBeatmapLevel level;
+                if (levelId.Length > 32)
+                {
+                    if (SongLoader.CustomLevels == null) { return null; }
+                    BeatmapLevelSO[] levels = SongLoader.CustomLevels.Where(l => l.levelID.StartsWith(levelId.Substring(0, 32))).ToArray();
+                    level = levels.Length > 0 ? levels[0] : null;
+                }
+                else
+                {
+                    if (SongLoader.CustomLevelCollectionSO._levelList == null) { return null; }
+                    BeatmapLevelSO[] levels = SongLoader.CustomLevelCollectionSO._levelList.Where(l => l.levelID.StartsWith(levelId)).ToArray();
+                    level = levels.Length > 0 ? levels[0] : null;
+                }
                 return level;
             }
             catch (Exception e) {
@@ -103,6 +118,5 @@ namespace BeatSaberOnline.Utils
                 return null;
             }
         }
-
     }
 }

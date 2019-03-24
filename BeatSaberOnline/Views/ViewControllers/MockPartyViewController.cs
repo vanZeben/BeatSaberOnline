@@ -32,8 +32,13 @@ namespace BeatSaberOnline.Views.ViewControllers
             _gameplaySetupViewController = ReflectionUtil.GetPrivateField<GameplaySetupViewController>(_partyFlowCoordinator, "_gameplaySetupViewController");
             LocalLeaderboardViewController leaderboard = ReflectionUtil.GetPrivateField<LocalLeaderboardViewController>(_partyFlowCoordinator, "_localLeaderboardViewController");
 
-
-            levels.didSelectLevelEvent += didSelectLevel;
+            detail.didPresentContentEvent += (controller, type) =>
+            {
+                if (type == StandardLevelDetailViewController.ContentType.OwnedAndReady)
+                {
+                    didSelectLevel(detail.selectedDifficultyBeatmap);
+                }
+            };
             detail.didChangeDifficultyBeatmapEvent += didSelectDifficultyBeatmap;
             detail.didPressPlayButtonEvent += didPressPlay;
 
@@ -147,22 +152,22 @@ namespace BeatSaberOnline.Views.ViewControllers
             }
         }
 
-        private void didSelectDifficultyBeatmap(StandardLevelDetailViewController controller, IDifficultyBeatmap beatmap)
+        private void didSelectDifficultyBeatmap(StandardLevelDetailViewController controller, IDifficultyBeatmap difficultyBeatmap)
         {
-            Logger.Debug($"select beatmap {beatmap.level.songName}");
-            Logger.Debug($"select beatmap {beatmap.difficulty}");
+            Logger.Debug($"select difficulty {difficultyBeatmap.level.songName} - {difficultyBeatmap.difficulty} - {difficultyBeatmap.difficultyRank}");
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
                 toggleButtons(true);
                 return;
             }
             toggleButtons(false);
-            SteamAPI.SetDifficulty((byte)beatmap.difficulty);
+            SteamAPI.SetDifficulty((byte) difficultyBeatmap.difficultyRank);
         }
 
-        protected void didSelectLevel(LevelPackLevelsViewController controller, IPreviewBeatmapLevel level)
+        protected void didSelectLevel(IDifficultyBeatmap difficultyBeatmap)
         {
-            Logger.Debug($"select level {level.songName}");
+            IBeatmapLevel level = difficultyBeatmap.level;
+            Logger.Debug($"select level {level.songName} - {difficultyBeatmap.difficulty} - {difficultyBeatmap.difficultyRank}");
             if (!_partyFlowCoordinator || !_partyFlowCoordinator.isActivated)
             {
                 toggleButtons(true);
@@ -170,6 +175,7 @@ namespace BeatSaberOnline.Views.ViewControllers
             }
             toggleButtons(false);
             SteamAPI.SetSong(level.levelID, level.songName);
+            SteamAPI.SetDifficulty((byte) difficultyBeatmap.difficultyRank);
             SongDownloader.Instance.StartCoroutine(SongDownloader.CheckSongExists(level.levelID, doesSongExist));
         }
 
