@@ -6,17 +6,11 @@ using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 using Steamworks;
 using BeatSaberOnline.Data;
 using Logger = BeatSaberOnline.Data.Logger;
-using CustomUI.Utilities;
 using HMUI;
 using System;
 using BeatSaberOnline.Views.ViewControllers;
-using static VRUI.VRUIViewController;
-using BeatSaberOnline.Controllers;
-using System.Text;
 using System.Linq;
 using VRUI;
-using System.Reflection;
-using UnityEngine.EventSystems;
 using BeatSaberOnline.Workers;
 using BeatSaberOnline.Data.Steam;
 
@@ -42,7 +36,7 @@ namespace BeatSaberOnline.Views.Menus
 
                     CustomViewController middleViewController = BeatSaberUI.CreateViewController<CustomViewController>();
                     ListViewController leftViewController = BeatSaberUI.CreateViewController<ListViewController>();
-                     rightViewController = BeatSaberUI.CreateViewController<TableViewController>();
+                    rightViewController = BeatSaberUI.CreateViewController<TableViewController>();
 
                     Instance.SetMainViewController(middleViewController, true, (firstActivation, type) =>
                     {
@@ -116,7 +110,7 @@ namespace BeatSaberOnline.Views.Menus
                                 tt.alignment = TMPro.TextAlignmentOptions.Center;
                             } catch(Exception e)
                             {
-                                Data.Logger.Error(e);
+                                Logger.Error(e);
                             }
 
                         }
@@ -152,8 +146,8 @@ namespace BeatSaberOnline.Views.Menus
                             });
                         }
                     });
-                    Instance.SetRightViewController(rightViewController, false, (active, type) => {
-                        if (active)
+                    Instance.SetRightViewController(rightViewController, false, (firstActivation, type) => {
+                        if (firstActivation)
                         {
                             rightViewController.CreateText("Lobby Leaderboard", new Vector2(BASE.x + 62.5f, BASE.y));
                         }
@@ -161,14 +155,15 @@ namespace BeatSaberOnline.Views.Menus
                     });
                 } catch(Exception e)
                 {
-                    Data.Logger.Error(e);
+                    Logger.Error(e);
                 }
 
             }
         }
+
         public static void UpdateJoinButton()
         {
-            if (!Instance || !Instance.isActiveAndEnabled) { return; }
+            //if (!Instance || !Instance.isActiveAndEnabled) { return; }
             if (!SteamAPI.IsHost() && SteamAPI.GetLobbyData().Screen == LobbyPacket.SCREEN_TYPE.MENU) { bodyText.text = "Waiting for host to select a song"; }
             if (SteamAPI.GetLobbyData().Screen != LobbyPacket.SCREEN_TYPE.IN_GAME) { return; }
             bodyText.text = $"Currently playing {SteamAPI.GetSongName()} @ {Math.Floor(SteamAPI.GetSongOffset() / 60f)}:{Math.Floor(SteamAPI.GetSongOffset() % 60f)}";
@@ -180,12 +175,12 @@ namespace BeatSaberOnline.Views.Menus
             {
                 rejoin.interactable = false;
             }
-
         }
+
         private static Comparison<PlayerPacket> scoreComparison = new Comparison<PlayerPacket>((x, y) => (int) y.playerScore - (int) x.playerScore);
         public static void RefreshScores()
         {
-            if (!Instance || !Instance.isActiveAndEnabled) { return; } 
+            //if (!Instance || !Instance.isActiveAndEnabled) { return; }
             List<PlayerPacket> players = Controllers.PlayerController.Instance.GetConnectedPlayerPackets();
             players.Sort(scoreComparison);
 
@@ -193,7 +188,7 @@ namespace BeatSaberOnline.Views.Menus
             rightViewController.Data = players;
 
             rightViewController._customListTableView.ReloadData();
-            rightViewController._customListTableView.ScrollToRow(0, false);
+            rightViewController._customListTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
 
         }
 
@@ -219,6 +214,7 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     continue;
                 }
+                Logger.Debug($"{entry.Value[0]} playing Beat Saber");
                 leftViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Playing Beat Saber"));
             }
             foreach (KeyValuePair<CSteamID, string[]> entry in friends)
@@ -227,6 +223,7 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     continue;
                 }
+                Logger.Debug($"{entry.Value[0]} playing Other Game");
                 leftViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Playing Other Game"));
             }
             foreach (KeyValuePair<CSteamID, string[]> entry in friends)
@@ -235,14 +232,18 @@ namespace BeatSaberOnline.Views.Menus
                 {
                     continue;
                 }
+                Logger.Debug($"{entry.Value[0]} online");
                 leftViewController.Data.Add(new CustomCellInfo(entry.Value[0], "Online"));
             }
-
+            
             leftViewController._customListTableView.ReloadData();
-            leftViewController._customListTableView.ScrollToRow(0, false);
-            leftViewController.DidSelectRowEvent = (TableView view, int row) =>
+            leftViewController._customListTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
+            leftViewController.DidSelectRowEvent = (view, row) =>
             {
-                selectedPlayer = friends.Keys.ToArray()[row].m_SteamID;
+                invite.interactable = false;
+                CustomCellInfo cell = leftViewController.Data[row];
+                KeyValuePair<CSteamID, string[]> friend = friends.Where(entry => entry.Value[0] == cell.text).First();
+                selectedPlayer = friend.Key.m_SteamID;
                 invite.interactable = true;
             };
         }

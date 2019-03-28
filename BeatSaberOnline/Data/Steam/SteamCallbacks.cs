@@ -38,10 +38,12 @@ namespace BeatSaberOnline.Data.Steam
             Logger.Debug($"Attempting to join {pCallback.m_steamIDFriend}'s lobby @ {pCallback.m_steamIDLobby}");
             SteamAPI.JoinLobby(pCallback.m_steamIDLobby);
         }
+
         private bool DidScreenChange(LobbyPacket.SCREEN_TYPE newScreen, LobbyPacket.SCREEN_TYPE val)
         {
             return currentScreen != val && val == newScreen;
         }
+
         public void OnLobbyDataUpdate(LobbyDataUpdate_t pCallback)
         {
             if (pCallback.m_ulSteamIDLobby == pCallback.m_ulSteamIDMember)
@@ -70,7 +72,7 @@ namespace BeatSaberOnline.Data.Steam
                     {
                         currentScreen = info.Screen;
                         Logger.Debug($"Host requested to play the current song {info.CurrentSongId}");
-                        LevelSO song = SongListUtils.GetInstalledSong();
+                        IBeatmapLevel song = SongListUtils.GetInstalledSong();
                         if (SteamAPI.IsHost())
                         {
                             SteamAPI.setLobbyStatus("Playing " + song.songName + " by " + song.songAuthorName);

@@ -4,18 +4,11 @@ using UnityEngine;
 using UnityEngine.UI;
 using SteamAPI = BeatSaberOnline.Data.Steam.SteamAPI;
 using Steamworks;
-using BeatSaberOnline.Data;
 using Logger = BeatSaberOnline.Data.Logger;
-using CustomUI.Utilities;
 using HMUI;
 using System;
 using BeatSaberOnline.Views.ViewControllers;
-using static VRUI.VRUIViewController;
-using BeatSaberOnline.Controllers;
-using System.Text;
 using System.Linq;
-using VRUI;
-using System.Reflection;
 using BeatSaberOnline.Data.Steam;
 
 namespace BeatSaberOnline.Views.Menus
@@ -80,11 +73,9 @@ namespace BeatSaberOnline.Views.Menus
                             hostP.SetButtonText("Host Private Lobby");
                             hostP.onClick.AddListener(delegate ()
                             {
-
                                 SteamAPI.CreateLobby(true);
                                 Instance.Dismiss();
                                 MultiplayerLobby.Instance.Present();
-
                             });
                         }
                     }
@@ -92,7 +83,6 @@ namespace BeatSaberOnline.Views.Menus
 
             }
         }
-        
         
         private static void refreshAvailableLobbies()
         {
@@ -122,7 +112,7 @@ namespace BeatSaberOnline.Views.Menus
                 Logger.Error(e);
             }
             middleViewController._customListTableView.ReloadData();
-            middleViewController._customListTableView.ScrollToRow(0, false);
+            middleViewController._customListTableView.ScrollToCellWithIdx(0, TableView.ScrollPositionType.Beginning, false);
             middleViewController.DidSelectRowEvent = (TableView view, int row) =>
             {
                 ulong clickedID = availableLobbies.Keys.ToArray()[row];

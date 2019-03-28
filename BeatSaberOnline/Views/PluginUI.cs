@@ -49,21 +49,41 @@ namespace BeatSaberOnline.Views
             if (instance != this)
             {
                 instance = this;
-
+                
                 instance.StartCoroutine(Utils.AutoUpdater.GetLatestVersionDownload());
                 DontDestroyOnLoad(this);
                 SteamAPI.Init();
-                CreateUI();
+                Logger.Debug("CreateUI");
+                try
+                {
+                    CreateUI();
+                } catch (Exception e)
+                {
+                    Logger.Error($"Unable to create UI! Exception: {e}");
+                }
             }
         }
+
         protected void CreateUI()
         {
             try
             {
                 _mainMenuViewController = Resources.FindObjectsOfTypeAll<MainMenuViewController>().First();
+                _mainMenuViewController.didFinishEvent += (sender, result) =>
+                {
+                    Logger.Debug($"finish \"{result}\"");
+                    if (result == MainMenuViewController.MenuButton.Party)
+                    {
+                        try
+                        {
+                            _mockPartyViewController = new MockPartyViewController();
+                        } catch (Exception e)
+                        {
+                            Logger.Error(e);
+                        }
+                    }
+                };
                 _mainMenuRectTransform = _mainMenuViewController.transform as RectTransform;
-
-                _mockPartyViewController = new MockPartyViewController();
 
                 if (Config.Instance.AutoStartLobby)
                 {
@@ -80,8 +100,8 @@ namespace BeatSaberOnline.Views
                 MultiplayerListing.Init();
                 MultiplayerLobby.Init();
                 WaitingMenu.Init();
-                CreateMainMenuButton(); 
                 CreateSettingsMenu();
+                CreateMainMenuButton();
             }
             catch (Exception e)
             {
@@ -141,7 +161,7 @@ namespace BeatSaberOnline.Views
             Volume.GetValue += delegate { return (int)Config.Instance.Volume; };
             Volume.SetValue += delegate (int value) {
                 Config.Instance.Volume = (float) value;
-                AudioMixerGroup g = Assets.AudioGroup;
+                AudioMixerGroup g = Utils.Assets.AudioGroup;
                 g.audioMixer.SetFloat("MasterVolume", (float)value);
             };
 

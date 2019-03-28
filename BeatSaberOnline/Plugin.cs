@@ -63,9 +63,21 @@ namespace BeatSaberOnline
 
         private void SceneLoaded(Scene to, LoadSceneMode mode)
         {
+            Logger.Debug($"Scene loaded: \"{to.name}\"");
+
+            if (to.name == "MenuCore")
+            {
+                PluginUI.Init();
+
+                GameController.Init(to);
+                LeaderboardController.Init(to);
+                Controllers.PlayerController.Init(to);
+                VoiceChatWorker.Init();
+            }
+
             try
             {
-                if (to.name == "Menu" && SteamAPI.getLobbyID().m_SteamID > 0)
+                if (to.name == "MenuCore" && SteamAPI.getLobbyID().m_SteamID > 0)
                 {
                     Logger.Debug("Creating new lobby");
                     SteamAPI.CreateLobby(!Config.Instance.IsPublic);
@@ -80,20 +92,8 @@ namespace BeatSaberOnline
         {
             Logger.Debug($"Active scene changed from \"{from.name}\" to \"{to.name}\"");
             CurrentScene = to.name;
-            if (from.name == "EmptyTransition" && to.name == "Menu")
-            {
-                PluginUI.Init();
-
-                GameController.Init(to);
-                LeaderboardController.Init(to);
-                Controllers.PlayerController.Init(to);
-                VoiceChatWorker.Init();
-            }
-            else
-            { 
-                GameController.Instance?.ActiveSceneChanged(from, to);
-                LeaderboardController.Instance?.ActiveSceneChanged(from, to);
-            }
+            GameController.Instance?.ActiveSceneChanged(from, to);
+            LeaderboardController.Instance?.ActiveSceneChanged(from, to);
         }
     }
 }
